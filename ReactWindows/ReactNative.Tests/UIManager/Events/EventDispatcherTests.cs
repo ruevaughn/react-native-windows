@@ -424,7 +424,7 @@ namespace ReactNative.Tests.UIManager.Events
                 JavaScriptModuleRegistry = jsModules,
                 Registry = registry,
                 JavaScriptExecutorFactory = () => executor,
-                NativeModuleCallExceptionHandler = ex => Assert.Fail(ex.ToString()),
+                NativeModuleCallExceptionHandler = ex => { Assert.Fail(ex.ToString()); return false; }
             }.Build();
 
             instance.Initialize();

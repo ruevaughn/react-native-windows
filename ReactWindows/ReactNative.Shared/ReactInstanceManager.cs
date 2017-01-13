@@ -42,7 +42,7 @@ namespace ReactNative
         private readonly IDevSupportManager _devSupportManager;
         private readonly bool _useDeveloperSupport;
         private readonly UIImplementationProvider _uiImplementationProvider;
-        private readonly Action<Exception> _nativeModuleCallExceptionHandler;
+        private readonly NativeModuleCallExceptionHandler _nativeModuleCallExceptionHandler;
 
         private LifecycleState _lifecycleState;
         private bool _hasStartedCreatingInitialContext;
@@ -65,7 +65,7 @@ namespace ReactNative
             bool useDeveloperSupport,
             LifecycleState initialLifecycleState,
             UIImplementationProvider uiImplementationProvider,
-            Action<Exception> nativeModuleCallExceptionHandler)
+            NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler)
         {
             if (packages == null)
                 throw new ArgumentNullException(nameof(packages));
@@ -557,6 +557,12 @@ namespace ReactNative
             // TODO: add memory pressure hooks
         }
 
+        private bool DefaultNativeModuleCallExceptionHandler(Exception ex)
+        {
+            _devSupportManager.HandleException(ex);
+            return false;
+        }
+
         private async Task<ReactContext> CreateReactContextAsync(
             Func<IJavaScriptExecutor> jsExecutorFactory,
             JavaScriptBundleLoader jsBundleLoader)
@@ -596,7 +602,7 @@ namespace ReactNative
                 nativeModuleRegistry = nativeRegistryBuilder.Build();
             }
 
-            var exceptionHandler = _nativeModuleCallExceptionHandler ?? _devSupportManager.HandleException;
+            var exceptionHandler = _nativeModuleCallExceptionHandler ?? DefaultNativeModuleCallExceptionHandler;
             var reactInstanceBuilder = new ReactInstance.Builder
             {
                 QueueConfigurationSpec = ReactQueueConfigurationSpec.Default,
@@ -677,7 +683,7 @@ namespace ReactNative
             private string _jsMainModuleName;
             private LifecycleState? _initialLifecycleState;
             private UIImplementationProvider _uiImplementationProvider;
-            private Action<Exception> _nativeModuleCallExceptionHandler;
+            private NativeModuleCallExceptionHandler _nativeModuleCallExceptionHandler;
 
             /// <summary>
             /// A provider of <see cref="UIImplementation" />.
@@ -749,7 +755,7 @@ namespace ReactNative
             /// <summary>
             /// The exception handler for all native module calls.
             /// </summary>
-            public Action<Exception> NativeModuleCallExceptionHandler
+            public NativeModuleCallExceptionHandler NativeModuleCallExceptionHandler
             {
                 set
                 {

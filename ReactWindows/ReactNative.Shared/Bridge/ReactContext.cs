@@ -58,7 +58,7 @@ namespace ReactNative.Bridge
         /// </summary>
         /// <typeparam name="T">Type of JavaScript module.</typeparam>
         /// <returns>The JavaScript module instance.</returns>
-        public T GetJavaScriptModule<T>()
+        public T GetJavaScriptModule<T>() 
             where T : IJavaScriptModule
         {
             AssertReactInstance();
@@ -82,7 +82,7 @@ namespace ReactNative.Bridge
         /// Adds a lifecycle event listener to the context.
         /// </summary>
         /// <param name="listener">The listener.</param>
-        public virtual void AddLifecycleEventListener(ILifecycleEventListener listener)
+        public void AddLifecycleEventListener(ILifecycleEventListener listener)
         {
             _lock.EnterWriteLock();
             try
@@ -99,7 +99,7 @@ namespace ReactNative.Bridge
         /// Removes a lifecycle event listener from the context.
         /// </summary>
         /// <param name="listener">The listener.</param>
-        public virtual void RemoveLifecycleEventListener(ILifecycleEventListener listener)
+        public void RemoveLifecycleEventListener(ILifecycleEventListener listener)
         {
             _lock.EnterWriteLock();
             try

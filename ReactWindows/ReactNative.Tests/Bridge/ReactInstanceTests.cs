@@ -37,7 +37,7 @@ namespace ReactNative.Tests.Bridge
                 JavaScriptModuleRegistry = jsRegistry,
                 JavaScriptExecutorFactory = () => executor,
                 BundleLoader = JavaScriptBundleLoader.CreateFileLoader("ms-appx:///Resources/test.js"),
-                NativeModuleCallExceptionHandler = _ => false
+                NativeModuleCallExceptionHandler = _ => { }
             };
 
             var instance = await DispatcherHelpers.CallOnDispatcherAsync(() => builder.Build());
@@ -76,7 +76,7 @@ namespace ReactNative.Tests.Bridge
                 JavaScriptModuleRegistry = jsRegistry,
                 JavaScriptExecutorFactory = () => executor,
                 BundleLoader = JavaScriptBundleLoader.CreateFileLoader("ms-appx:///Resources/test.js"),
-                NativeModuleCallExceptionHandler = _ => false,
+                NativeModuleCallExceptionHandler = _ => { },
             };
 
             var instance = await DispatcherHelpers.CallOnDispatcherAsync(() => builder.Build());
@@ -127,10 +127,9 @@ namespace ReactNative.Tests.Bridge
 
             var exception = new Exception();
             var tcs = new TaskCompletionSource<Exception>();
-            var handler = new NativeModuleCallExceptionHandler(ex =>
+            var handler = new Action<Exception>(ex =>
             {
                 Task.Run(() => tcs.SetResult(ex));
-                return false;
             });
 
             var builder = new ReactInstance.Builder()

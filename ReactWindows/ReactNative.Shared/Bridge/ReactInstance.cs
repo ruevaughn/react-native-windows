@@ -22,7 +22,7 @@ namespace ReactNative.Bridge
         private readonly JavaScriptModuleRegistry _jsRegistry;
         private readonly Func<IJavaScriptExecutor> _jsExecutorFactory;
         private readonly JavaScriptBundleLoader _bundleLoader;
-        private readonly NativeModuleCallExceptionHandler _nativeModuleCallExceptionHandler;
+        private readonly Action<Exception> _nativeModuleCallExceptionHandler;
 
         private IReactBridge _bridge;
 
@@ -34,7 +34,7 @@ namespace ReactNative.Bridge
             NativeModuleRegistry registry,
             JavaScriptModuleRegistry jsModuleRegistry,
             JavaScriptBundleLoader bundleLoader,
-            NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler)
+            Action<Exception> nativeModuleCallExceptionHandler)
         {
             _registry = registry;
             _jsExecutorFactory = jsExecutorFactory;
@@ -231,7 +231,7 @@ namespace ReactNative.Bridge
             private JavaScriptModuleRegistry _jsModuleRegistry;
             private Func<IJavaScriptExecutor> _jsExecutorFactory;
             private JavaScriptBundleLoader _bundleLoader;
-            private NativeModuleCallExceptionHandler _nativeModuleCallExceptionHandler;
+            private Action<Exception> _nativeModuleCallExceptionHandler;
 
             public ReactQueueConfigurationSpec QueueConfigurationSpec
             {
@@ -273,7 +273,7 @@ namespace ReactNative.Bridge
                 }
             }
 
-            public NativeModuleCallExceptionHandler NativeModuleCallExceptionHandler
+            public Action<Exception> NativeModuleCallExceptionHandler
             {
                 set
                 {

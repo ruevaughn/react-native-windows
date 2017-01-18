@@ -41,13 +41,7 @@ namespace ReactNative
             });
         }
 
-        protected IReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
-
-        protected virtual NativeModuleCallExceptionHandler NativeModuleCallExceptionHandler
-        {
-            get { return null; }
-        }
-
+        private IReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
 
         /// <summary>
         /// The custom path of the bundle file.
@@ -140,7 +134,7 @@ namespace ReactNative
         /// </summary>
         public async Task DisposeAsync()
         {
-            RootView?.RemoveHandler(Keyboard.KeyDownEvent, (KeyEventHandler)OnAcceleratorKeyActivated);
+            RootView?.RemoveHandler(Keyboard.KeyDownEvent, (KeyEventHandler) OnAcceleratorKeyActivated);
 
             if (_reactInstanceManager.IsValueCreated)
             {
@@ -200,7 +194,6 @@ namespace ReactNative
                 InitialLifecycleState = LifecycleState.Resumed,
                 JavaScriptBundleFile = JavaScriptBundleFile,
                 JavaScriptMainModuleName = JavaScriptMainModuleName,
-                NativeModuleCallExceptionHandler = NativeModuleCallExceptionHandler
             };
 
             builder.Packages.AddRange(Packages);

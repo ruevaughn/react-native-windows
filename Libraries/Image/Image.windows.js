@@ -119,6 +119,10 @@ var Image = React.createClass({
      * Used to locate this view in end-to-end tests.
      */
     testID: PropTypes.string,
+    /**
+     * Changes the color of all the non-transparent pixels to the tintColor.
+     */
+    tintColor: PropTypes.string,
   },
 
   statics: {

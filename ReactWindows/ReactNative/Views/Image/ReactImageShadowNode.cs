@@ -26,7 +26,7 @@ namespace ReactNative.Views.Image
         /// Set the color of all the non-transparent pixels to the tintColor.
         /// </summary>
         /// <param name="tintColor">The scaling mode.</param>
-        [ReactProp("tintColor")]
+        [ReactProp("tintColor", CustomType = "Color")]
         public void SetTintColor(uint? tintColor)
         {
             if (tintColor != null)
@@ -45,7 +45,7 @@ namespace ReactNative.Views.Image
         /// Set the color of all the non-transparent pixels to the tintColor.
         /// </summary>
         /// <param name="backgroundColor">The scaling mode.</param>
-        [ReactProp("backgroundColor")]
+        [ReactProp("backgroundColor", CustomType = "Color")]
         public void SetBackgroundColor(uint? backgroundColor)
         {
             if (backgroundColor != null)

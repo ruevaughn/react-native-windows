@@ -98,7 +98,9 @@ namespace ReactNative.Views.Image
                         uri,
                         width * height));
                 _imageSources.Add(tag, viewSources);
+                _tintColors.Remove(tag);
                 _tintColors.Add(tag, tintColor);
+                _backgroundColors.Remove(tag);
                 _backgroundColors.Add(tag, backgroundColor);
                 SetUriFromSingleSource(view, uri, tintColor, backgroundColor);
             }
@@ -124,8 +126,9 @@ namespace ReactNative.Views.Image
                             sourceData.Value<string>("uri"),
                             sourceData.Value<double>("width") * sourceData.Value<double>("height")));
                 }
-
+                _tintColors.Remove(tag);
                 _tintColors.Add(tag, tintColor);
+                _backgroundColors.Remove(tag);
                 _backgroundColors.Add(tag, backgroundColor);
 
                 viewSources.Sort((p1, p2) => p1.Value.CompareTo(p2.Value));
@@ -226,6 +229,22 @@ namespace ReactNative.Views.Image
                 : null;
         }
 
+        [ReactProp("tintColor", CustomType = "Color")]
+        public void SetTintColor(Border view, uint? color)
+        {
+            var tag = view.GetTag();
+            _tintColors.Remove(tag);
+            if (color != null) _tintColors.Add(tag, ColorHelpers.Parse((uint)color));
+        }
+
+        [ReactProp(ViewProps.BackgroundColor, CustomType = "Color")]
+        public void SetBackgroundColor(Border view, uint? color)
+        {
+            var tag = view.GetTag();
+            _backgroundColors.Remove(tag);
+            if (color != null) _backgroundColors.Add(tag, ColorHelpers.Parse((uint)color));
+        }
+
         /// <summary>
         /// Sets the border thickness of the image view.
         /// </summary>
@@ -263,6 +282,8 @@ namespace ReactNative.Views.Image
             }
 
             _imageSources.Remove(tag);
+            _tintColors.Remove(tag);
+            _backgroundColors.Remove(tag);
         }
 
         /// <summary>

@@ -86,13 +86,18 @@ namespace ReactNative.UIManager
         /// Set the border color of the view.
         /// </summary>
         /// <param name="view">The view panel.</param>
+        /// <param name="index">The property index.</param>
         /// <param name="color">The color hex code.</param>
-        [ReactProp("borderColor", CustomType = "Color")]
-        public void SetBorderColor(Border view, uint? color)
+        [ReactPropGroup(
+            ViewProps.BorderLeftColor,
+            ViewProps.BorderRightColor,
+            ViewProps.BorderTopColor,
+            ViewProps.BorderBottomColor,
+            ViewProps.BorderColor,
+            CustomType = "Color")]
+        public void SetBorderColor(Border view, int index, uint? color)
         {
-            view.BorderBrush = color.HasValue
-                ? new SolidColorBrush(ColorHelpers.Parse(color.Value))
-                : s_defaultBorderBrush;
+            view.SetBorderColor(index, color);
         }
 
         /// <summary>

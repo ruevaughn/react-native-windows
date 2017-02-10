@@ -73,6 +73,11 @@ namespace ReactNative.UIManager
         public const string TextAlignVertical = "textAlignVertical";
         public const string TextDecorationLine = "textDecorationLine";
 
+        public const string BorderColor = "borderColor";
+        public const string BorderTopColor = "borderTopColor";
+        public const string BorderRightColor = "borderRightColor";
+        public const string BorderBottomColor = "borderBottomColor";
+        public const string BorderLeftColor = "borderLeftColor";
         public const string BorderWidth = "borderWidth";
         public const string BorderLeftWidth = "borderLeftWidth";
         public const string BorderTopWidth = "borderTopWidth";

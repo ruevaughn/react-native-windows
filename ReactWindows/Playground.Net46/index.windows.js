@@ -27,6 +27,7 @@ class Playground extends Component {
         <Text style={styles.instructions}>
           Press Ctrl+D or Ctrl+M for dev menu
         </Text>
+        <View style={{width: 100, height: 100, backgroundColor: '#ffffff', borderWidth: 20, borderBottomColor: '#0000ff', borderLeftColor: '#ff0000'}} />
       </View>
     );
   }

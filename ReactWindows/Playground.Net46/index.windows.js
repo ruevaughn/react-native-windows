@@ -9,24 +9,26 @@ import {
   StyleSheet,
   Text,
   View,
+  Dimensions
 } from 'react-native';
 
 class Playground extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome} testID='WelcomeText'>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.windows.js
-        </Text>
-        <Text style={styles.instructions}>
-          Press Ctrl+R to reload
-        </Text>
-        <Text style={styles.instructions}>
-          Press Ctrl+D or Ctrl+M for dev menu
-        </Text>
+        <View style={styles.left}>
+          <View style={styles.title}>
+            <Text>My Title</Text>
+            <Text>1:59 PM</Text>
+          </View>
+          <View style={{width: 50, height: 50, backgroundColor: '#ff0000'}} />
+        </View>
+        <View style={styles.center}>
+          <View style={{width: 50, height: 50, backgroundColor: '#ff0000', paddingRight: 10}} />
+          <View style={{width: 50, height: 50, backgroundColor: '#00ff00', paddingRight: 10}} />
+          <View style={{width: 50, height: 50, backgroundColor: '#0000ff', paddingRight: 10}} />
+        </View>
+        <View style={styles.right} />
       </View>
     );
   }
@@ -34,21 +36,27 @@ class Playground extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: Dimensions.get('window').width,
+    height: 100,
+    paddingTop: 20
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
+  left: {
+    flexDirection: 'row'
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5
+  center: {
+    flexDirection: 'row'
   },
+  right: {
+    width: 350
+  },
+  title: {
+    width: 130,
+    marginTop: 7,
+    marginLeft: 24,
+    marginRight: 10
+  }
 });
 
 AppRegistry.registerComponent('Playground.Net46', () => Playground);

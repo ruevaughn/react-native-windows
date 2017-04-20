@@ -1,6 +1,7 @@
 machine:
   environment:
     PATH: "${PATH}:${HOME}/${CIRCLE_PROJECT_REPONAME}/node_modules/.bin"
+    PLAYGROUND_NET46_DIR: "${HOME}/${CIRCLE_PROJECT_REPONAME}/ReactWindows/Playground.Net46"
   node:
     version: 6.10.2
     
@@ -10,7 +11,8 @@ dependencies:
 
 compile:
   override:
-    - react-native bundle --platform windows --entry-file index.windows.js --bundle-output ./index.windows.bundle --assets-dest . --dev false
+    - mkdir $BUNDLE_DIR
+    - react-native bundle --platform windows --entry-file $PLAYGROUND_NET46_DIR/index.windows.js --bundle-output index.windows.bundle --assets-dest . --dev false
 
 test:
   override:

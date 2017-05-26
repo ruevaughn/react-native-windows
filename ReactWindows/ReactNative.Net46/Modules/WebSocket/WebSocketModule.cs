@@ -7,7 +7,6 @@ using ReactNative.Tracing;
 using System;
 using System.Collections.Generic;
 using WebSocketSharp;
-using static System.FormattableString;
 
 namespace ReactNative.Modules.WebSocket
 {
@@ -84,7 +83,7 @@ namespace ReactNative.Modules.WebSocket
                 {
                     Tracer.Write(
                         ReactConstants.Tag,
-                        Invariant($"Cannot close WebSocket. Unknown WebSocket id {id}."));
+                        $"Cannot close WebSocket. Unknown WebSocket id {id}.");
 
                     return;
                 }
@@ -105,7 +104,7 @@ namespace ReactNative.Modules.WebSocket
 
                     Tracer.Error(
                         ReactConstants.Tag,
-                        Invariant($"Could not close WebSocket connection for id '{id}'."),
+                        $"Could not close WebSocket connection for id '{id}'.",
                         ex);
                 }
             }

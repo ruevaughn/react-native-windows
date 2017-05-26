@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Extensions;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using static System.FormattableString;
 
 namespace ReactNative.Bridge
 {
@@ -18,7 +18,7 @@ namespace ReactNative.Bridge
         private readonly IDictionary<Type, IJavaScriptModule> _moduleInstances;
 
         /// <summary>
-        /// Instantiates the <see cref="JavaScriptModuleRegistry"/>. 
+        /// Instantiates the <see cref="JavaScriptModuleRegistry"/>.
         /// </summary>
         public JavaScriptModuleRegistry()
         {
@@ -66,7 +66,7 @@ namespace ReactNative.Bridge
                     _moduleName,
                     name,
                     JArray.FromObject(args),
-                    Invariant($"JSCall__{_moduleName}_{name}"));
+                    $"JSCall__{_moduleName}_{name}");
             }
         }
     }

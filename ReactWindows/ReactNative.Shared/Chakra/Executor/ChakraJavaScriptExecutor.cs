@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using static System.FormattableString;
 
 namespace ReactNative.Chakra.Executor
 {
@@ -318,7 +317,7 @@ namespace ReactNative.Chakra.Executor
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(arguments),
-                    Invariant($"Received invalid module ID '{moduleId}'."));
+                    $"Received invalid module ID '{moduleId}'.");
             }
 
             var module = _unbundle.GetModule((int)moduleId);
@@ -358,8 +357,7 @@ namespace ReactNative.Chakra.Executor
             var fbBatchedBridge = globalObject.GetProperty(propertyId);
             if (fbBatchedBridge.ValueType != JavaScriptValueType.Object)
             {
-                throw new InvalidOperationException(
-                    Invariant($"Could not resolve '{FBBatchedBridgeVariableName}' object.  Check the JavaScript bundle to ensure it is generated correctly."));
+                throw new InvalidOperationException($"Could not resolve '{FBBatchedBridgeVariableName}' object.  Check the JavaScript bundle to ensure it is generated correctly.");
             }
 
             return fbBatchedBridge;
@@ -424,7 +422,7 @@ namespace ReactNative.Chakra.Executor
             }
             catch (Exception ex)
             {
-                var exceptionMessage = Invariant($"File read exception for asset '{fileName}'.");
+                var exceptionMessage = $"File read exception for asset '{fileName}'.";
                 throw new InvalidOperationException(exceptionMessage, ex);
             }
         }

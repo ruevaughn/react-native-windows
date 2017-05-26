@@ -104,7 +104,7 @@ namespace ReactNative
 
         /// <summary>
         /// Signals whether <see cref="CreateReactContextAsync(CancellationToken)"/> has
-        /// been called. Will return <code>false</code> after 
+        /// been called. Will return <code>false</code> after
         /// <see cref="IAsyncDisposable.DisposeAsync"/>  until a new initial
         /// context has been created.
         /// </summary>

@@ -4,7 +4,6 @@ using ReactNative.Tracing;
 using ReactNative.UIManager;
 using System;
 using System.Collections.Generic;
-using static System.FormattableString;
 
 namespace ReactNative.Animated
 {
@@ -42,7 +41,7 @@ namespace ReactNative.Animated
             if (_connectedViewTag != -1)
             {
                 throw new InvalidOperationException(
-                    Invariant($"Animated node {Tag} has already been attached to a view."));
+                    $"Animated node {Tag} has already been attached to a view.");
             }
 
             _connectedViewTag = viewTag;
@@ -53,7 +52,7 @@ namespace ReactNative.Animated
             if (_connectedViewTag != viewTag)
             {
                 throw new InvalidOperationException(
-                    Invariant($"Attempting to disconnect view that has not been connected with the given animated node."));
+                    $"Attempting to disconnect view that has not been connected with the given animated node.");
             }
 
             _connectedViewTag = -1;
@@ -93,8 +92,7 @@ namespace ReactNative.Animated
                 }
                 else
                 {
-                    throw new InvalidOperationException(
-                        Invariant($"Unsupported type of node used in property node '{node.GetType()}'."));
+                    throw new InvalidOperationException($"Unsupported type of node used in property node '{node.GetType()}'.");
                 }
             }
 

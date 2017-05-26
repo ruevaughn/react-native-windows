@@ -8,7 +8,6 @@ using PCLStorage;
 using System.IO;
 using System.Reflection;
 #endif
-using static System.FormattableString;
 
 namespace ReactNative.Bridge
 {
@@ -105,7 +104,9 @@ namespace ReactNative.Bridge
                 var pathToAssemblyResource = SourceUrl;
                 var u = new Uri(pathToAssemblyResource);
                 _script = u.LocalPath;
-                return Task.CompletedTask;
+                var task = new Task(() => { });
+                task.Start();
+                return task;
             }
 #endif
 
@@ -174,7 +175,9 @@ namespace ReactNative.Bridge
 
             public override Task InitializeAsync(CancellationToken token)
             {
-                return Task.CompletedTask;
+                var task = new Task(() => { });
+                task.Start();
+                return task;
             }
 
             public override void LoadScript(IReactBridge executor)

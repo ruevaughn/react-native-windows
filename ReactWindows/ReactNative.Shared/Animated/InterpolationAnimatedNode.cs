@@ -1,6 +1,5 @@
 using Newtonsoft.Json.Linq;
 using System;
-using static System.FormattableString;
 
 namespace ReactNative.Animated
 {
@@ -88,8 +87,7 @@ namespace ReactNative.Animated
                     case ExtrapolateTypeExtend:
                         break;
                     default:
-                        throw new InvalidOperationException(
-                            Invariant($"Invalid extrapolation type '{extrapolateLeft}' for left extrapolation."));
+                        throw new InvalidOperationException($"Invalid extrapolation type '{extrapolateLeft}' for left extrapolation.");
                 }
             }
 
@@ -105,8 +103,7 @@ namespace ReactNative.Animated
                     case ExtrapolateTypeExtend:
                         break;
                     default:
-                        throw new InvalidOperationException(
-                            Invariant($"Invalid extrapolation type '{extrapolateRight} for right extrapolation"));
+                        throw new InvalidOperationException($"Invalid extrapolation type '{extrapolateRight} for right extrapolation");
                 }
             }
 

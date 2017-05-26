@@ -4,7 +4,11 @@ using ReactNative.Tracing;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using static System.FormattableString;
+#if WINDOWS_UWP
+using Windows.UI.Xaml.Media;
+#else
+using System.Windows.Media;
+#endif
 
 namespace ReactNative.UIManager.Events
 {
@@ -13,28 +17,28 @@ namespace ReactNative.UIManager.Events
     /// purpose of this class is to act as an intermediary between UI code
     /// generating events and JavaScript, making sure we don't send more events
     /// than JavaScript can process.
-    /// 
+    ///
     /// To use it, create a subclass of <see cref="Event"/> and call
     /// <see cref="DispatchEvent(Event)"/> whenever there is a UI event to
     /// dispatch.
-    /// 
+    ///
     /// This class differs from the Android implementation of React as there is
     /// no analogy to the choreographer in UWP. Instead, there is a self-managed
     /// callback that coalesces events on the JavaScript thread.
-    /// 
+    ///
     /// If JavaScript is taking a long time processing events, then the UI
     /// events generated on the dispatcher thread can be coalesced into fewer
     /// events so that, when the dispatch occurs, we do not overload JavaScript
     /// with a ton of events and cause it to get even farther behind.
-    /// 
+    ///
     /// Ideally, this is unnecessary and JavaScript is fast enough to process
-    /// all the events each frame, but this is a reasonable precautionary 
+    /// all the events each frame, but this is a reasonable precautionary
     /// measure.
     /// </summary>
     /// <remarks>
     /// Event cookies are used to coalesce events. They are made up of the
     /// event type ID, view tag, and a custom coalescing key.
-    /// 
+    ///
     /// Event Cookie Composition:
     /// VIEW_TAG_MASK =       0x00000000ffffffff
     /// EVENT_TYPE_ID_MASK =  0x0000ffff00000000
@@ -110,7 +114,7 @@ namespace ReactNative.UIManager.Events
             {
                 listener.OnEventDispatch(@event);
             }
-            
+
             lock (_eventsStagingLock)
             {
                 _eventStaging.Add(@event);
@@ -120,7 +124,7 @@ namespace ReactNative.UIManager.Events
         }
 
         /// <summary>
-        /// Adds a listener to this <see cref="EventDispatcher"/>. 
+        /// Adds a listener to this <see cref="EventDispatcher"/>.
         /// </summary>
         /// <param name="listener">The listener.</param>
         public void AddListener(IEventDispatcherListener listener)
@@ -129,7 +133,7 @@ namespace ReactNative.UIManager.Events
         }
 
         /// <summary>
-        /// Removes a listener from this <see cref="EventDispatcher"/>. 
+        /// Removes a listener from this <see cref="EventDispatcher"/>.
         /// </summary>
         /// <param name="listener">The listener.</param>
         public void RemoveListener(IEventDispatcherListener listener)
@@ -304,7 +308,7 @@ namespace ReactNative.UIManager.Events
 
                 if (_rctEventEmitter == null)
                 {
-                    throw new InvalidOperationException(Invariant($"The '{nameof(RCTEventEmitter)}' must not be null."));
+                    throw new InvalidOperationException($"The '{nameof(RCTEventEmitter)}' must not be null.");
                 }
 
                 lock (_eventsToDispatchLock)

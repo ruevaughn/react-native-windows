@@ -14,14 +14,13 @@ using Windows.UI.Xaml.Media;
 using System.Windows;
 using System.Windows.Media;
 #endif
-using static System.FormattableString;
 
 namespace ReactNative.UIManager
 {
     /// <summary>
     /// Delegate of <see cref="UIManagerModule"/> that owns the native view
     /// hierarchy and mapping between native view names used in JavaScript and
-    /// corresponding instances of <see cref="IViewManager"/>. The 
+    /// corresponding instances of <see cref="IViewManager"/>. The
     /// <see cref="UIManagerModule"/> communicates with this class by it's
     /// public interface methods:
     /// - <see cref="UpdateProperties(int, ReactStylesDiffMap)"/>
@@ -33,10 +32,10 @@ namespace ReactNative.UIManager
     /// <remarks>
     /// All native view management methods listed above must be called from the
     /// dispatcher thread.
-    /// 
+    ///
     /// The <see cref="ReactContext"/> instance that is passed to views that
     /// this manager creates differs from the one that we pass to the
-    /// constructor. Instead we wrap the provided instance of 
+    /// constructor. Instead we wrap the provided instance of
     /// <see cref="ReactContext"/> in an instance of <see cref="ThemedReactContext"/>
     /// that additionally provides a correct theme based on the root view for
     /// a view tree that we attach newly created views to. Therefore this view
@@ -44,8 +43,8 @@ namespace ReactNative.UIManager
     /// wraps the instance of <see cref="ReactContext"/> for each root view
     /// added to the manager (see
     /// <see cref="AddRootView(int, SizeMonitoringCanvas, ThemedReactContext)"/>).
-    /// 
-    /// TODO: 
+    ///
+    /// TODO:
     /// 1) AnimationRegistry
     /// 2) ShowPopupMenu
     /// </remarks>
@@ -80,7 +79,7 @@ namespace ReactNative.UIManager
             private get;
             set;
         }
-        
+
         /// <summary>
         /// Updates the properties of the view with the given tag.
         /// </summary>
@@ -129,8 +128,7 @@ namespace ReactNative.UIManager
                 if (!_tagsToViewManagers.TryGetValue(parentTag, out parentViewManager) ||
                     (parentViewParentManager = parentViewManager as IViewParentManager) == null)
                 {
-                    throw new InvalidOperationException(
-                        Invariant($"Trying to use view with tag '{tag}' as a parent, but its manager doesn't extend ViewParentManager."));
+                    throw new InvalidOperationException($"Trying to use view with tag '{tag}' as a parent, but its manager doesn't extend ViewParentManager.");
                 }
 
                 if (!parentViewParentManager.NeedsCustomLayoutForChildren)
@@ -160,7 +158,7 @@ namespace ReactNative.UIManager
                 _tagsToViews.Add(tag, view);
                 _tagsToViewManagers.Add(tag, viewManager);
 
-                // Uses an extension method and `Tag` property on 
+                // Uses an extension method and `Tag` property on
                 // DependencyObject to store the tag of the view.
                 view.SetTag(tag);
                 view.SetReactContext(themedContext);
@@ -203,8 +201,7 @@ namespace ReactNative.UIManager
             var viewManager = default(IViewManager);
             if (!_tagsToViewManagers.TryGetValue(tag, out viewManager))
             {
-                throw new InvalidOperationException(
-                    Invariant($"Trying to manage children with tag '{tag}' which doesn't exist."));
+                throw new InvalidOperationException($"Trying to manage children with tag '{tag}' which doesn't exist.");
             }
 
             var viewParentManager = (IViewParentManager)viewManager;
@@ -218,20 +215,17 @@ namespace ReactNative.UIManager
                     var indexToRemove = indexesToRemove[i];
                     if (indexToRemove < 0)
                     {
-                        throw new InvalidOperationException(
-                            Invariant($"Trying to remove a negative index '{indexToRemove}' on view tag '{tag}'."));
+                        throw new InvalidOperationException($"Trying to remove a negative index '{indexToRemove}' on view tag '{tag}'.");
                     }
 
                     if (indexToRemove >= viewParentManager.GetChildCount(viewToManage))
                     {
-                        throw new InvalidOperationException(
-                            Invariant($"Trying to remove a view index '{indexToRemove}' greater than the child could for view tag '{tag}'."));
+                        throw new InvalidOperationException($"Trying to remove a view index '{indexToRemove}' greater than the child could for view tag '{tag}'.");
                     }
 
                     if (indexToRemove >= lastIndexToRemove)
                     {
-                        throw new InvalidOperationException(
-                            Invariant($"Trying to remove an out of order index '{indexToRemove}' (last index was '{lastIndexToRemove}') for view tag '{tag}'."));
+                        throw new InvalidOperationException($"Trying to remove an out of order index '{indexToRemove}' (last index was '{lastIndexToRemove}') for view tag '{tag}'.");
                     }
 
                     var viewToRemove = viewParentManager.GetChildAt(viewToManage, indexToRemove) as FrameworkElement;
@@ -259,8 +253,7 @@ namespace ReactNative.UIManager
                     var viewToAdd = default(DependencyObject);
                     if (!_tagsToViews.TryGetValue(viewAtIndex.Tag, out viewToAdd))
                     {
-                        throw new InvalidOperationException(
-                            Invariant($"Trying to add unknown view tag '{viewAtIndex.Tag}'."));
+                        throw new InvalidOperationException($"Trying to add unknown view tag '{viewAtIndex.Tag}'.");
                     }
 
                     viewParentManager.AddView(viewToManage, viewToAdd, viewAtIndex.Index);
@@ -275,8 +268,7 @@ namespace ReactNative.UIManager
                     var viewToDestroy = default(DependencyObject);
                     if (!_tagsToViews.TryGetValue(tagToDelete, out viewToDestroy))
                     {
-                        throw new InvalidOperationException(
-                            Invariant($"Trying to destroy unknown view tag '{tagToDelete}'."));
+                        throw new InvalidOperationException($"Trying to destroy unknown view tag '{tagToDelete}'.");
                     }
 
                     var elementToDestroy = viewToDestroy as FrameworkElement;
@@ -316,8 +308,7 @@ namespace ReactNative.UIManager
                 var viewToAdd = _tagsToViews[childrenTags[i]];
                 if (viewToAdd == null)
                 {
-                    throw new InvalidOperationException(
-                        Invariant($"Trying to add unknown view tag: {childrenTags[i]}."));
+                    throw new InvalidOperationException($"Trying to add unknown view tag: {childrenTags[i]}.");
                 }
 
                 viewManager.AddView(viewToManage, viewToAdd, i);
@@ -333,8 +324,7 @@ namespace ReactNative.UIManager
             DispatcherHelpers.AssertOnDispatcher();
             if (!_rootTags.ContainsKey(rootViewTag))
             {
-                throw new InvalidOperationException(
-                    Invariant($"View with tag '{rootViewTag}' is not registered as a root view."));
+                throw new InvalidOperationException($"View with tag '{rootViewTag}' is not registered as a root view.");
             }
 
             var rootView = _tagsToViews[rootViewTag];
@@ -360,15 +350,13 @@ namespace ReactNative.UIManager
             var viewManager = default(IViewManager);
             if (!_tagsToViewManagers.TryGetValue(tag, out viewManager))
             {
-                throw new InvalidOperationException(
-                    Invariant($"Could not find view manager for tag '{tag}."));
+                throw new InvalidOperationException($"Could not find view manager for tag '{tag}.");
             }
 
             var rootView = RootViewHelper.GetRootView(view);
             if (rootView == null)
             {
-                throw new InvalidOperationException(
-                    Invariant($"Native view '{tag}' is no longer on screen."));
+                throw new InvalidOperationException($"Native view '{tag}' is no longer on screen.");
             }
 
             // TODO: better way to get relative position?
@@ -405,8 +393,7 @@ namespace ReactNative.UIManager
             var viewManager = default(IViewManager);
             if (!_tagsToViewManagers.TryGetValue(tag, out viewManager))
             {
-                throw new InvalidOperationException(
-                    Invariant($"Could not find view manager for tag '{tag}."));
+                throw new InvalidOperationException($"Could not find view manager for tag '{tag}.");
             }
 
             var uiElement = view.As<UIElement>();
@@ -448,8 +435,7 @@ namespace ReactNative.UIManager
             var view = default(DependencyObject);
             if (!_tagsToViews.TryGetValue(reactTag, out view))
             {
-                throw new InvalidOperationException(
-                    Invariant($"Could not find view with tag '{reactTag}'."));
+                throw new InvalidOperationException($"Could not find view with tag '{reactTag}'.");
             }
 
             var uiElement = view.As<UIElement>();
@@ -475,8 +461,7 @@ namespace ReactNative.UIManager
 
             if (target == null)
             {
-                throw new InvalidOperationException(
-                    Invariant($"Could not find React view at coordinates '{touchX},{touchY}'."));
+                throw new InvalidOperationException($"Could not find React view at coordinates '{touchX},{touchY}'.");
             }
 
             return target.GetTag();
@@ -494,8 +479,7 @@ namespace ReactNative.UIManager
             var view = default(DependencyObject);
             if (!_tagsToViews.TryGetValue(reactTag, out view))
             {
-                throw new InvalidOperationException(
-                    Invariant($"Trying to send command to a non-existent view with tag '{reactTag}."));
+                throw new InvalidOperationException($"Trying to send command to a non-existent view with tag '{reactTag}.");
             }
 
             var viewManager = ResolveViewManager(reactTag);
@@ -560,8 +544,7 @@ namespace ReactNative.UIManager
             var view = default(DependencyObject);
             if (!_tagsToViews.TryGetValue(tag, out view))
             {
-                throw new InvalidOperationException(
-                    Invariant($"Trying to resolve view with tag '{tag}' which doesn't exist."));
+                throw new InvalidOperationException($"Trying to resolve view with tag '{tag}' which doesn't exist.");
             }
 
             return view;
@@ -576,8 +559,7 @@ namespace ReactNative.UIManager
             var viewManager = default(IViewManager);
             if (!_tagsToViewManagers.TryGetValue(tag, out viewManager))
             {
-                throw new InvalidOperationException(
-                    Invariant($"ViewManager for tag '{tag}' could not be found."));
+                throw new InvalidOperationException($"ViewManager for tag '{tag}' could not be found.");
             }
 
             return viewManager;

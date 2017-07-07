@@ -150,7 +150,7 @@ namespace ReactNative.Views.Image
                 SetUriFromMultipleSources(view);
             }
         }
-        
+
         /// <summary>
         /// The border radius of the <see cref="ReactRootView"/>.
         /// </summary>
@@ -194,7 +194,7 @@ namespace ReactNative.Views.Image
         }
 
         /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
+        /// Called when view is detached from view hierarchy and allows for
         /// additional cleanup.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
@@ -276,7 +276,9 @@ namespace ReactNative.Views.Image
         /// </summary>
         /// <param name="view">The image view instance.</param>
         /// <param name="source">The source URI.</param>
-        private async void SetUriFromSingleSource(Border view, string source)
+        /// <param name="tintColor">The tint color</param>
+        /// <param name="backgroundColor">The background color</param>
+        private async void SetUriFromSingleSource(Border view, string source, Color? tintColor, Color? backgroundColor)
         {
             var imageBrush = (ImageBrush)view.Background;
             OnImageStatusUpdate(view, ImageLoadStatus.OnLoadStart, default(ImageMetadata));

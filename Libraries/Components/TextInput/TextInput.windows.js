@@ -237,7 +237,7 @@ const TextInput = createReactClass({
      * If true, will increase the height of the textbox if need be. If false,
      * the textbox will become scrollable once the height is reached. The
      * default value is false.
-     * @platform android     
+     * @platform android
      * @platform windows
      */
     autoGrow: PropTypes.bool,
@@ -291,7 +291,7 @@ const TextInput = createReactClass({
       'name-phone-pad',
       'decimal-pad',
       'web-search',
-      // iOS-only 
+      // iOS-only
       'ascii-capable',
       'numbers-and-punctuation',
       'twitter',
@@ -879,7 +879,7 @@ const TextInput = createReactClass({
   },
 
   _renderWindows: function() {
-    
+
     const props = Object.assign({}, this.props);
     props.style = this.props.style;
     if (this.state.layoutHeight >= 0) {
@@ -946,6 +946,8 @@ const TextInput = createReactClass({
           tabIndex={tabIndex}
           onKeyDown={this.props.onKeyDown}
           onKeyUp={this.props.onKeyUp}
+          editable={this.props.editable}
+          blurOnSubmit={this.props.blurOnSubmit}
         />;
     }
 

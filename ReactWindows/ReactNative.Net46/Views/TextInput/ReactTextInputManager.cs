@@ -21,6 +21,9 @@ namespace ReactNative.Views.TextInput
         internal const int FocusTextInput = 1;
         internal const int BlurTextInput = 2;
 
+        private bool _onSelectionChange;
+        private bool? _blurOnSubmit;
+
         internal static readonly Color DefaultTextBoxBorder = Color.FromArgb(255, 122, 122, 122);
         internal static readonly Color DefaultPlaceholderTextColor = Color.FromArgb(255, 0, 0, 0);
 
@@ -267,7 +270,7 @@ namespace ReactNative.Views.TextInput
         /// <param name="isTabStop">
         /// <code>true</code> if the view is a tab stop, otherwise <code>false</code> (control can't get keyboard focus or accept keyboard input in this case).
         /// </param>
-        /// 
+        ///
         [ReactProp("isTabStop")]
         public void SetIsTabStop(ReactTextBox view, bool isTabStop)
         {
@@ -318,6 +321,10 @@ namespace ReactNative.Views.TextInput
         {
             view.AcceptsReturn = multiline;
             view.TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap;
+            if (_blurOnSubmit == null)
+            {
+                _blurOnSubmit = !multiline;
+            }
         }
 
         /// <summary>
@@ -371,6 +378,12 @@ namespace ReactNative.Views.TextInput
         public void SetSelectTextOnFocus(ReactTextBox view, bool selectTextOnFocus)
         {
             view.SelectTextOnFocus = selectTextOnFocus;
+        }
+
+        [ReactProp("blurOnSubmit")]
+        public void SetBlurOnSubmit(ReactTextBox view, bool blurOnSubmit)
+        {
+            _blurOnSubmit = blurOnSubmit;
         }
 
         /// <summary>
@@ -465,8 +478,8 @@ namespace ReactNative.Views.TextInput
         public override void OnDropViewInstance(ThemedReactContext reactContext, ReactTextBox view)
         {
             base.OnDropViewInstance(reactContext, view);
-            view.KeyDown -= OnKeyDown;
             view.KeyUp -= OnKeyUp;
+            view.PreviewKeyDown -= OnKeyDown;
             view.LostFocus -= OnLostFocus;
             view.GotFocus -= OnGotFocus;
             view.TextChanged -= OnTextChanged;
@@ -503,8 +516,8 @@ namespace ReactNative.Views.TextInput
             view.TextChanged += OnTextChanged;
             view.GotFocus += OnGotFocus;
             view.LostFocus += OnLostFocus;
-            view.KeyDown += OnKeyDown;
             view.KeyUp += OnKeyUp;
+            view.PreviewKeyDown += OnKeyDown;
         }
 
         private void OnTextChanged(object sender, TextChangedEventArgs e)
@@ -548,12 +561,20 @@ namespace ReactNative.Views.TextInput
 
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            var textBox = (ReactTextBox)sender;
-            if (e.Key == Key.Enter)
+            var shiftModifier = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+            var controlModifier = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+            var blurOnSubmit = (_blurOnSubmit.HasValue && _blurOnSubmit.Value);
+
+            if (e.Key == Key.Enter && !shiftModifier)
             {
-                if (!textBox.AcceptsReturn)
+                var textBox = (ReactTextBox)sender;
+                if (!textBox.AcceptsReturn || blurOnSubmit || controlModifier)
                 {
                     e.Handled = true;
+                    if (blurOnSubmit)
+                    {
+                        Keyboard.ClearFocus();
+                    }
                     textBox.GetReactContext()
                         .GetNativeModule<UIManagerModule>()
                         .EventDispatcher

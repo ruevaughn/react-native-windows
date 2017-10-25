@@ -1,7 +1,14 @@
-﻿using ReactNative.UIManager.Annotations;
+﻿using Newtonsoft.Json.Linq;
+using ReactNative.Touch;
+using ReactNative.UIManager.Annotations;
+using System;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
+using System.Windows.Media.Media3D;
 
 namespace ReactNative.UIManager
 {
@@ -16,7 +23,24 @@ namespace ReactNative.UIManager
         where TFrameworkElement : FrameworkElement
         where TLayoutShadowNode : LayoutShadowNode
     {
-        // ToDo: SetTransform - ReactProp("transform")
+        /// <summary>
+        /// Set's the  <typeparamref name="TFrameworkElement"/> styling layout 
+        /// properties, based on the <see cref="JObject"/> map.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="transforms">The list of transforms.</param>
+        [ReactProp("transform")]
+        public void SetTransform(TFrameworkElement view, JArray transforms)
+        {
+            if (transforms == null)
+            {
+                ResetProjectionMatrix(view);
+            }
+            else
+            {
+                SetProjectionMatrix(view, transforms);
+            }
+        }
 
         /// <summary>
         /// Sets the opacity of the <typeparamref name="TFrameworkElement"/>.
@@ -29,7 +53,23 @@ namespace ReactNative.UIManager
             view.Opacity = opacity;
         }
 
-        // ToDo: SetOverflow - ReactProp("overflow")
+        /// <summary>
+        /// Sets the overflow property for the <typeparamref name="TFrameworkElement"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="overflow">The overflow value.</param>
+        [ReactProp("overflow")]
+        public void SetOverflow(TFrameworkElement view, string overflow)
+        {
+            if (overflow == "hidden")
+            {
+                view.ClipToBounds = true;
+            }
+            else
+            {
+                view.ClipToBounds = false;
+            }
+        }
 
         /// <summary>
         /// Sets the z-index of the element.
@@ -52,7 +92,7 @@ namespace ReactNative.UIManager
         {
             AutomationProperties.SetName(view, label ?? "");
         }
-        
+
         // ToDo: SetAccessibilityLiveRegion - ReactProp("accessibilityLiveRegion")
 
         /// <summary>
@@ -64,6 +104,182 @@ namespace ReactNative.UIManager
         public void SetTestId(TFrameworkElement view, string testId)
         {
             AutomationProperties.SetAutomationId(view, testId ?? "");
+        }
+
+        /// <summary>
+        /// Called when view is detached from view hierarchy and allows for 
+        /// additional cleanup by the <see cref="IViewManager"/> subclass.
+        /// </summary>
+        /// <param name="reactContext">The React context.</param>
+        /// <param name="view">The view.</param>
+        /// <remarks>
+        /// Be sure to call this base class method to register for pointer 
+        /// entered and pointer exited events.
+        /// </remarks>
+        public override void OnDropViewInstance(ThemedReactContext reactContext, TFrameworkElement view)
+        {
+            view.MouseEnter -= OnPointerEntered;
+            view.MouseLeave -= OnPointerExited;
+        }
+
+        /// <summary>
+        /// Subclasses can override this method to install custom event 
+        /// emitters on the given view.
+        /// </summary>
+        /// <param name="reactContext">The React context.</param>
+        /// <param name="view">The view instance.</param>
+        /// <remarks>
+        /// Consider overriding this method if your view needs to emit events
+        /// besides basic touch events to JavaScript (e.g., scroll events).
+        /// 
+        /// Make sure you call the base implementation to ensure base pointer
+        /// event handlers are subscribed.
+        /// </remarks>
+        protected override void AddEventEmitters(ThemedReactContext reactContext, TFrameworkElement view)
+        {
+            view.MouseEnter += OnPointerEntered;
+            view.MouseLeave += OnPointerExited;
+        }
+
+        private void OnPointerEntered(object sender, MouseEventArgs e)
+        {
+            var view = (TFrameworkElement)sender;
+            TouchHandler.OnPointerEntered(view, e);
+        }
+
+        private void OnPointerExited(object sender, MouseEventArgs e)
+        {
+            var view = (TFrameworkElement)sender;
+            TouchHandler.OnPointerExited(view, e);
+        }
+
+        /// <summary>
+        /// Sets the shadow color of the <typeparamref name="TFrameworkElement"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="color">The shadow color.</param>
+        [ReactProp("shadowColor", CustomType = "Color")]
+        public void SetShadowColor(TFrameworkElement view, uint? color)
+        {
+            var effect = (DropShadowEffect)view.Effect ?? new DropShadowEffect();
+            effect.Color = ColorHelpers.Parse(color.Value);
+            view.Effect = effect;
+        }
+
+        /// <summary>
+        /// Sets the shadow offset of the <typeparamref name="TFrameworkElement"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="offset">The shadow offset.</param>
+        [ReactProp("shadowOffset")]
+        public void SetShadowOffset(TFrameworkElement view, JObject offset)
+        {
+            var effect = (DropShadowEffect)view.Effect ?? new DropShadowEffect();
+            var deltaX = offset.Value<double>("width");
+            var deltaY = offset.Value<double>("height");
+            var angle = Math.Atan2(deltaY, deltaX) * (180 / Math.PI);
+            var distance = Math.Sqrt(Math.Pow(deltaX, 2) + Math.Pow(deltaY, 2));
+            effect.Direction = angle;
+            effect.ShadowDepth = distance;
+            view.Effect = effect;
+        }
+
+        /// <summary>
+        /// Sets the shadow opacity of the <typeparamref name="TFrameworkElement"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="opacity">The shadow opacity.</param>
+        [ReactProp("shadowOpacity")]
+        public void SetShadowOpacity(TFrameworkElement view, double opacity)
+        {
+            var effect = (DropShadowEffect)view.Effect ?? new DropShadowEffect();
+            effect.Opacity = opacity;
+            view.Effect = effect;
+        }
+
+        /// <summary>
+        /// Sets the shadow radius of the <typeparamref name="TFrameworkElement"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="radius">The shadow radius.</param>
+        [ReactProp("shadowRadius")]
+        public void SetShadowRadius(TFrameworkElement view, double radius)
+        {
+            var effect = (DropShadowEffect)view.Effect ?? new DropShadowEffect();
+            effect.BlurRadius = radius;
+            view.Effect = effect;
+        }
+
+        private static void SetProjectionMatrix(TFrameworkElement view, JArray transforms)
+        {
+            var transformMatrix = TransformHelper.ProcessTransform(transforms);
+
+            var translateMatrix = Matrix3D.Identity;
+            var translateBackMatrix = Matrix3D.Identity;
+            if (!double.IsNaN(view.Width))
+            {
+                translateMatrix.OffsetX = -view.Width / 2;
+                translateBackMatrix.OffsetX = view.Width / 2;
+            }
+
+            if (!double.IsNaN(view.Height))
+            {
+                translateMatrix.OffsetY = -view.Height / 2;
+                translateBackMatrix.OffsetY = view.Height / 2;
+            }
+
+            var projectionMatrix = translateMatrix * transformMatrix * translateBackMatrix;
+            ApplyProjection(view, projectionMatrix);
+        }
+
+        private static void ApplyProjection(TFrameworkElement view, Matrix3D projectionMatrix)
+        {
+            if (!projectionMatrix.IsAffine)
+            {
+                throw new NotImplementedException("ReactNative.Net46 does not support non-affine transformations");
+            }
+
+            if (IsSimpleTranslationOnly(projectionMatrix))
+            {
+                ResetProjectionMatrix(view);
+                var transform = new MatrixTransform();
+                var matrix = transform.Matrix;
+                matrix.OffsetX = projectionMatrix.OffsetX;
+                matrix.OffsetY = projectionMatrix.OffsetY;
+                transform.Matrix = matrix;
+                view.RenderTransform = transform;
+            }
+            else
+            {
+                var transform = new MatrixTransform(projectionMatrix.M11,
+					projectionMatrix.M12,
+                    projectionMatrix.M21,
+                    projectionMatrix.M22,
+                    projectionMatrix.OffsetX,
+                    projectionMatrix.OffsetY);
+
+                view.RenderTransform = transform;
+            }
+        }
+
+        private static bool IsSimpleTranslationOnly(Matrix3D matrix)
+        {
+            // Matrix3D is a struct and passed-by-value. As such, we can modify
+            // the values in the matrix without affecting the caller.
+            matrix.OffsetX = matrix.OffsetY = 0;
+            return matrix.IsIdentity;
+        }
+
+        private static void ResetProjectionMatrix(TFrameworkElement view)
+        {
+            var transform = view.RenderTransform;
+            var matrixTransform = transform as MatrixTransform;
+            if (transform != null && matrixTransform == null)
+            {
+                throw new InvalidOperationException("Unknown projection set on framework element.");
+            }
+
+            view.RenderTransform = null;
         }
     }
 }

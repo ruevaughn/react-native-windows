@@ -1,4 +1,4 @@
-using Facebook.CSSLayout;
+﻿using Facebook.Yoga;
 using ReactNative.Bridge;
 using ReactNative.Reflection;
 using ReactNative.UIManager;
@@ -33,7 +33,8 @@ namespace ReactNative.Views.Text
         /// </summary>
         public ReactTextShadowNode()
         {
-            MeasureFunction = MeasureText;
+            MeasureFunction = (node, width, widthMode, height, heightMode) =>
+                MeasureText(this, node, width, widthMode, height, heightMode);
         }
 
         /// <summary>
@@ -182,41 +183,33 @@ namespace ReactNative.Views.Text
             dirty();
         }
 
-        private static MeasureOutput MeasureText(CSSNode node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode)
+        private static YogaSize MeasureText(ReactTextShadowNode textNode, YogaNode node, float width, YogaMeasureMode widthMode, float height, YogaMeasureMode heightMode)
         {
-            // This is not a terribly efficient way of projecting the height of
-            // the text elements. It requires that we have access to the
-            // dispatcher in order to do measurement, which, for obvious
-            // reasons, can cause perceived performance issues as it will block
-            // the UI thread from handling other work.
-            //
-            // TODO: determine another way to measure text elements.
-            var task = DispatcherHelpers.CallOnDispatcher(() =>
+            // TODO: Measure text with DirectWrite or other API that does not
+            // require dispatcher access. Currently, we're instantiating a
+            // second CoreApplicationView (that is never activated) and using
+            // its Dispatcher thread to calculate layout.
+            var textBlock = new TextBlock
             {
-                var textBlock = new TextBlock
-                {
-                    TextAlignment = TextAlignment.Left,
-                    TextWrapping = TextWrapping.Wrap,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                };
+                TextAlignment = TextAlignment.Left,
+                TextWrapping = TextWrapping.Wrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            };
 
-                var textNode = (ReactTextShadowNode)node;
-                textNode.UpdateTextBlockCore(textBlock, true);
+            textNode.UpdateTextBlockCore(textBlock, true);
 
-                foreach (var child in textNode.Children)
-                {
-                    textBlock.Inlines.Add(ReactInlineShadowNodeVisitor.Apply(child));
-                }
+            for (var i = 0; i < textNode.ChildCount; ++i)
+            {
+                var child = textNode.GetChildAt(i);
+                textBlock.Inlines.Add(ReactInlineShadowNodeVisitor.Apply(child));
+            }
 
-                var normalizedWidth = CSSConstants.IsUndefined(width) ? double.PositiveInfinity : width;
-                var normalizedHeight = CSSConstants.IsUndefined(height) ? double.PositiveInfinity : height;
-                textBlock.Measure(new Size(normalizedWidth, normalizedHeight));
-                return new MeasureOutput(
-                    (float)Math.Ceiling(textBlock.DesiredSize.Width),
-                    (float)Math.Ceiling(textBlock.DesiredSize.Height));
-            });
-
-            return task.Result;
+            var normalizedWidth = YogaConstants.IsUndefined(width) ? double.PositiveInfinity : width;
+            var normalizedHeight = YogaConstants.IsUndefined(height) ? double.PositiveInfinity : height;
+            textBlock.Measure(new Size(normalizedWidth, normalizedHeight));
+            return MeasureOutput.Make(
+                (float)Math.Ceiling(textBlock.DesiredSize.Width),
+                (float)Math.Ceiling(textBlock.DesiredSize.Height));
         }
 
         /// <summary>
@@ -257,8 +250,8 @@ namespace ReactNative.Views.Text
             if (!measureOnly)
             {
                 textBlock.Padding = new Thickness(
-                    this.GetPaddingSpace(CSSSpacingType.Left),
-                    this.GetPaddingSpace(CSSSpacingType.Top),
+                    GetPadding(YogaEdge.Left),
+                    GetPadding(YogaEdge.Top),
                     0,
                     0);
             }
@@ -273,8 +266,9 @@ namespace ReactNative.Views.Text
         public override void OnBeforeLayout()
         {
             // Run flexbox on the children which are inline views.
-            foreach (var child in this.Children)
+            for (var i = 0; i < ChildCount; ++i)
             {
+                var child = GetChildAt(i);
                 if (!(child is ReactInlineShadowNode))
                 {
                     child.CalculateLayout();

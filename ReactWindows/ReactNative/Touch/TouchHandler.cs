@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using Windows.Foundation;
 using Windows.Foundation.Metadata;
+using Windows.Graphics.Display;
 using Windows.UI.Input;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -303,7 +304,10 @@ namespace ReactNative.Touch
 
         private static Point AdjustPointForStatusBar(Point point)
         {
-            if (ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
+            var currentOrientation = DisplayInformation.GetForCurrentView().CurrentOrientation;
+            if (currentOrientation != DisplayOrientations.Landscape &&
+                currentOrientation != DisplayOrientations.LandscapeFlipped &&
+                ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
             {
                 var rect = StatusBar.GetForCurrentView().OccludedRect;
                 point.Y += rect.Height;
@@ -320,7 +324,7 @@ namespace ReactNative.Touch
             private readonly uint _coalescingKey;
 
             public TouchEvent(TouchEventType touchEventType, JArray touches, JArray changedIndices, uint coalescingKey)
-                : base(-1, TimeSpan.FromTicks(Environment.TickCount))
+                : base(-1)
             {
                 _touchEventType = touchEventType;
                 _touches = touches;
@@ -366,7 +370,7 @@ namespace ReactNative.Touch
             private readonly TouchEventType _touchEventType;
 
             public PointerEnterExitEvent(TouchEventType touchEventType, int viewTag) 
-                : base(viewTag, TimeSpan.FromTicks(Environment.TickCount))
+                : base(viewTag)
             {
                 _touchEventType = touchEventType;
             }

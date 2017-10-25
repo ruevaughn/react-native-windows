@@ -230,6 +230,13 @@ namespace ReactNative.UIManager
                         { "registrationName", "onMouseLeave" },
                     }
                 },
+                {
+                    "topMessage",
+                    new Map
+                    {
+                        { "registrationName", "onMessage" },
+                    }
+                },
             };
         }
 
@@ -262,10 +269,6 @@ namespace ReactNative.UIManager
                             }
                         },
                     }
-                },
-                {
-                    "Dimensions",
-                    GetDimensions()
                 },
                 {
                     "StyleConstants",

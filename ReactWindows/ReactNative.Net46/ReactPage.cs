@@ -1,11 +1,13 @@
-﻿using System;
+using Newtonsoft.Json.Linq;
+using ReactNative.Bridge;
+using ReactNative.Common;
+using ReactNative.Modules.Core;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using ReactNative.Bridge;
-using ReactNative.Modules.Core;
 
 namespace ReactNative
 {
@@ -14,7 +16,7 @@ namespace ReactNative
     /// </summary>
     public abstract class ReactPage : Page, IAsyncDisposable
     {
-        private readonly Lazy<IReactInstanceManager> _reactInstanceManager;
+        private readonly Lazy<ReactInstanceManager> _reactInstanceManager;
         private readonly Lazy<ReactRootView> _rootView;
 
         /// <summary>
@@ -22,10 +24,8 @@ namespace ReactNative
         /// </summary>
         protected ReactPage()
         {
-            _reactInstanceManager = new Lazy<IReactInstanceManager>(() =>
+            _reactInstanceManager = new Lazy<ReactInstanceManager>(() =>
             {
-                DispatcherHelpers.CurrentDispatcher = base.Dispatcher;
-
                 var reactInstanceManager = CreateReactInstanceManager();
 
                 return reactInstanceManager;
@@ -41,7 +41,7 @@ namespace ReactNative
             });
         }
 
-        private IReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
+        private ReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
 
         /// <summary>
         /// The custom path of the bundle file.
@@ -75,6 +75,17 @@ namespace ReactNative
         }
 
         /// <summary>
+        /// Instantiates the JavaScript executor.
+        /// </summary>
+        public virtual Func<IJavaScriptExecutor> JavaScriptExecutorFactory
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// The name of the main component registered from JavaScript.
         /// </summary>
         public abstract string MainComponentName { get; }
@@ -100,8 +111,18 @@ namespace ReactNative
         /// <param name="arguments">The launch arguments.</param>
         public void OnCreate(string[] arguments)
         {
+            OnCreate(arguments, default(JObject));
+        }
+
+        /// <summary>
+        /// Called when the application is first initialized.
+        /// </summary>
+        /// <param name="arguments">The launch arguments.</param>
+        /// <param name="initialProps">The initialProps.</param>
+        public void OnCreate(string[] arguments, JObject initialProps)
+        {
             ApplyArguments(arguments);
-            RootView.StartReactApplication(ReactInstanceManager, MainComponentName);
+            RootView.StartReactApplication(ReactInstanceManager, MainComponentName, initialProps);
 
             RootView.AddHandler(Keyboard.KeyDownEvent, (KeyEventHandler)OnAcceleratorKeyActivated);
 
@@ -134,7 +155,7 @@ namespace ReactNative
         /// </summary>
         public async Task DisposeAsync()
         {
-            RootView?.RemoveHandler(Keyboard.KeyDownEvent, (KeyEventHandler) OnAcceleratorKeyActivated);
+            RootView?.RemoveHandler(Keyboard.KeyDownEvent, (KeyEventHandler)OnAcceleratorKeyActivated);
 
             if (_reactInstanceManager.IsValueCreated)
             {
@@ -186,14 +207,15 @@ namespace ReactNative
             }
         }
 
-        private IReactInstanceManager CreateReactInstanceManager()
+        private ReactInstanceManager CreateReactInstanceManager()
         {
-            var builder = new ReactInstanceManager.Builder
+            var builder = new ReactInstanceManagerBuilder
             {
                 UseDeveloperSupport = UseDeveloperSupport,
-                InitialLifecycleState = LifecycleState.Resumed,
+                InitialLifecycleState = LifecycleState.BeforeCreate,
                 JavaScriptBundleFile = JavaScriptBundleFile,
                 JavaScriptMainModuleName = JavaScriptMainModuleName,
+                JavaScriptExecutorFactory = JavaScriptExecutorFactory,
             };
 
             builder.Packages.AddRange(Packages);
@@ -212,14 +234,19 @@ namespace ReactNative
                 return;
             }
 
-            if (arguments.Length % 2 != 0)
+            var index = Array.IndexOf(arguments, "remoteDebugging");
+            if (index < 0)
             {
-                throw new ArgumentException("Expected even number of arguments.", nameof(arguments));
+                return;
             }
 
-            var index = Array.IndexOf(arguments, "remoteDebugging");
-            var isRemoteDebuggingEnabled = default(bool);
-            if (index % 2 == 0 && bool.TryParse(arguments[index + 1], out isRemoteDebuggingEnabled))
+            if (arguments.Length <= index + 1)
+            {
+                throw new ArgumentException("Expected value for remoteDebugging argument.", nameof(arguments));
+            }
+
+            bool isRemoteDebuggingEnabled;
+            if (bool.TryParse(arguments[index + 1], out isRemoteDebuggingEnabled))
             {
                 ReactInstanceManager.DevSupportManager.IsRemoteDebuggingEnabled = isRemoteDebuggingEnabled;
             }

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCLStorage;
 using ReactNative.Bridge;
@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 
 namespace ReactNative.Modules.Storage
 {
-    class AsyncStorageModule : NativeModuleBase, ILifecycleEventListener
+    class AsyncStorageModule : NativeModuleBase
     {
         private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1, 1);
-
-        private IFolder _cachedFolder;
 
         public override string Name
         {
@@ -229,7 +227,6 @@ namespace ReactNative.Modules.Storage
                 if (storageFolder != null)
                 {
                     await storageFolder.DeleteAsync().ConfigureAwait(false);
-                    _cachedFolder = null;
                 }
             }
             finally
@@ -270,15 +267,7 @@ namespace ReactNative.Modules.Storage
             callback.Invoke(null, keys);
         }
 
-        public void OnSuspend()
-        {
-        }
-
-        public void OnResume()
-        {
-        }
-
-        public void OnDestroy()
+        public override void OnReactInstanceDispose()
         {
             _mutex.Dispose();
         }
@@ -286,15 +275,17 @@ namespace ReactNative.Modules.Storage
         private async Task<string> GetAsync(string key)
         {
             var storageFolder = await GetAsyncStorageFolder(false).ConfigureAwait(false);
-            if (storageFolder != null)
+            if (storageFolder == null)
             {
-                var fileName = AsyncStorageHelpers.GetFileName(key);
+                return null;
+            }
+
+            var fileName = AsyncStorageHelpers.GetFileName(key);
+            var existsCheck = await storageFolder.CheckExistsAsync(fileName).ConfigureAwait(false);
+            if (existsCheck == ExistenceCheckResult.FileExists)
+            {
                 var storageItem = await storageFolder.GetFileAsync(fileName).ConfigureAwait(false);
-                if (storageItem != null)
-                {
-                    var file = await storageFolder.GetFileAsync(fileName).ConfigureAwait(false);
-                    return await FileExtensions.ReadAllTextAsync(file).ConfigureAwait(false);
-                }
+                return await FileExtensions.ReadAllTextAsync(storageItem).ConfigureAwait(false);
             }
 
             return null;
@@ -323,14 +314,17 @@ namespace ReactNative.Modules.Storage
         private async Task<JObject> RemoveAsync(string key)
         {
             var storageFolder = await GetAsyncStorageFolder(false).ConfigureAwait(false);
-            if (storageFolder != null)
+            if (storageFolder == null)
             {
-                var fileName = AsyncStorageHelpers.GetFileName(key);
+                return null;
+            }
+
+            var fileName = AsyncStorageHelpers.GetFileName(key);
+            var existsCheck = await storageFolder.CheckExistsAsync(fileName).ConfigureAwait(false);
+            if (existsCheck == ExistenceCheckResult.FileExists)
+            {
                 var storageItem = await storageFolder.GetFileAsync(fileName).ConfigureAwait(false);
-                if (storageItem != null)
-                {
-                    await storageItem.DeleteAsync().ConfigureAwait(false);
-                }
+                await storageItem.DeleteAsync().ConfigureAwait(false);
             }
 
             return null;
@@ -346,22 +340,18 @@ namespace ReactNative.Modules.Storage
 
         private async Task<IFolder> GetAsyncStorageFolder(bool createIfNotExists)
         {
-            if (_cachedFolder == null)
+            var localFolder = FileSystem.Current.LocalStorage;
+            var existsCheck = await localFolder.CheckExistsAsync(AsyncStorageHelpers.DirectoryName).ConfigureAwait(false);
+            if (existsCheck == ExistenceCheckResult.FolderExists)
             {
-                var localFolder = FileSystem.Current.LocalStorage;
-
-                if (localFolder.CheckExistsAsync(AsyncStorageHelpers.DirectoryName).Result == ExistenceCheckResult.FolderExists)
-                {
-                    _cachedFolder = localFolder;
-                }
-                else
-                {
-                    _cachedFolder = await localFolder.CreateFolderAsync(AsyncStorageHelpers.DirectoryName, CreationCollisionOption.OpenIfExists);
-                }
+                return await localFolder.GetFolderAsync(AsyncStorageHelpers.DirectoryName).ConfigureAwait(false);
+            }
+            else if (createIfNotExists)
+            {
+                return await localFolder.CreateFolderAsync(AsyncStorageHelpers.DirectoryName, CreationCollisionOption.OpenIfExists).ConfigureAwait(false);
             }
 
-            return _cachedFolder;
+            return null;
         }
-
     }
 }

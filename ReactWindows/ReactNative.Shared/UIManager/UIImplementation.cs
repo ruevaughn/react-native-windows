@@ -1,4 +1,4 @@
-﻿using Facebook.CSSLayout;
+using Facebook.Yoga;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Modules.I18N;
@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using static System.FormattableString;
 
 namespace ReactNative.UIManager
@@ -29,6 +30,7 @@ namespace ReactNative.UIManager
         private readonly UIViewOperationQueue _operationsQueue;
         private readonly ShadowNodeRegistry _shadowNodeRegistry;
         private readonly NativeViewHierarchyOptimizer _nativeViewHierarchyOptimizer;
+        private readonly ReactContext _reactContext;
         private readonly EventDispatcher _eventDispatcher;
 
         /// <summary>
@@ -37,31 +39,40 @@ namespace ReactNative.UIManager
         /// <param name="reactContext">The React context.</param>
         /// <param name="viewManagers">The view managers.</param>
         /// <param name="eventDispatcher">The event dispatcher.</param>
-        public UIImplementation(ReactContext reactContext, IReadOnlyList<IViewManager> viewManagers, EventDispatcher eventDispatcher)
+        public UIImplementation(
+            ReactContext reactContext, 
+            IReadOnlyList<IViewManager> viewManagers, 
+            EventDispatcher eventDispatcher)
             : this(reactContext, new ViewManagerRegistry(viewManagers), eventDispatcher)
         {
         }
 
-        private UIImplementation(ReactContext reactContext, ViewManagerRegistry viewManagers, EventDispatcher eventDispatcher)
+        private UIImplementation(
+            ReactContext reactContext, 
+            ViewManagerRegistry viewManagers,
+            EventDispatcher eventDispatcher)
             : this(
-                  viewManagers,
-                  new UIViewOperationQueue(reactContext, 
-                                           new NativeViewHierarchyManager(viewManagers)), 
-                                           eventDispatcher)
+                reactContext,
+                viewManagers,
+                new UIViewOperationQueue(reactContext, new NativeViewHierarchyManager(viewManagers)), 
+                eventDispatcher)
         {
         }
 
         /// <summary>
         /// Instantiates the <see cref="UIImplementation"/>.
         /// </summary>
+        /// <param name="reactContext">The React context.</param>
         /// <param name="viewManagers">The view managers.</param>
         /// <param name="operationsQueue">The operations queue.</param>
         /// <param name="eventDispatcher">The event dispatcher.</param>
         protected UIImplementation(
+            ReactContext reactContext,
             ViewManagerRegistry viewManagers,
             UIViewOperationQueue operationsQueue,
             EventDispatcher eventDispatcher)
         {
+            _reactContext = reactContext;
             _viewManagers = viewManagers;
             _operationsQueue = operationsQueue;
             _shadowNodeRegistry = new ShadowNodeRegistry();
@@ -89,8 +100,8 @@ namespace ReactNative.UIManager
             var rootCssNode = CreateRootShadowNode();
             rootCssNode.ReactTag = tag;
             rootCssNode.ThemedContext = context;
-            rootCssNode.Width = (float)width;
-            rootCssNode.Height = (float)height;
+            rootCssNode.StyleWidth = (float)width;
+            rootCssNode.StyleHeight = (float)height;
             _shadowNodeRegistry.AddRootNode(rootCssNode);
 
             // Register it with the NativeViewHierarchyManager.
@@ -120,8 +131,8 @@ namespace ReactNative.UIManager
             double newHeight)
         {
             var rootCssNode = _shadowNodeRegistry.GetNode(rootViewTag);
-            rootCssNode.Width = (float)newWidth;
-            rootCssNode.Height = (float)newHeight;
+            rootCssNode.StyleWidth = (float)newWidth;
+            rootCssNode.StyleHeight = (float)newHeight;
 
             // If we're in the middle of a batch, the change will be
             // automatically dispatched at the end of the batch. The event
@@ -209,10 +220,23 @@ namespace ReactNative.UIManager
         /// <remarks>
         /// Make sure you know what you're doing before calling this method :)
         /// </remarks>
-        public void SynchronouslyUpdateViewOnDispatcherThread(int tag, ReactStylesDiffMap props)
+        public bool SynchronouslyUpdateViewOnDispatcherThread(int tag, ReactStylesDiffMap props)
         {
             DispatcherHelpers.AssertOnDispatcher();
-            _operationsQueue.NativeViewHierarchyManager.UpdateProperties(tag, props);
+
+            // First check if the view exists, as the views are created in
+            // batches, and native modules attempting to synchronously interact
+            // with views may attempt to update properties before the batch has
+            // been processed.
+            if (_operationsQueue.NativeViewHierarchyManager.ViewExists(tag))
+            {
+                _operationsQueue.NativeViewHierarchyManager.UpdateProperties(tag, props);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -547,43 +571,9 @@ namespace ReactNative.UIManager
         /// <param name="batchId">The batch identifier.</param>
         public void DispatchViewUpdates(int batchId)
         {
-            foreach (var tag in _shadowNodeRegistry.RootNodeTags)
-            {
-                var cssRoot = _shadowNodeRegistry.GetNode(tag);
-                NotifyBeforeOnLayoutRecursive(cssRoot);
-                CalculateRootLayout(cssRoot);
-                ApplyUpdatesRecursive(cssRoot);
-            }
-
+            UpdateViewHierarchy();
             _nativeViewHierarchyOptimizer.OnBatchComplete();
             _operationsQueue.DispatchViewUpdates(batchId);
-        }
-
-        /// <summary>
-        /// Sets a JavaScript responder for a view.
-        /// </summary>
-        /// <param name="reactTag">The view ID.</param>
-        /// <param name="blockNativeResponder">
-        /// Flag to signal if the native responder should be blocked.
-        /// </param>
-        public void SetJavaScriptResponder(int reactTag, bool blockNativeResponder)
-        {
-            AssertViewExists(reactTag);
-            var node = _shadowNodeRegistry.GetNode(reactTag);
-            while (node.IsVirtual || node.IsLayoutOnly)
-            {
-                node = node.Parent;
-            }
-
-            _operationsQueue.EnqueueSetJavaScriptResponder(node.ReactTag, reactTag, blockNativeResponder);
-        }
-
-        /// <summary>
-        /// Clears the JavaScript responder.
-        /// </summary>
-        public void ClearJavaScriptResponder()
-        {
-            _operationsQueue.EnqueueClearJavaScriptResponder();
         }
 
         /// <summary>
@@ -621,6 +611,15 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
+        /// Enqueues UIBlock to be executed.
+        /// </summary>
+        /// <param name="block">The UI block.</param>
+        public void AddUIBlock(IUIBlock block)
+        {
+            _operationsQueue.EnqueueUIBlock(block);
+        }
+
+        /// <summary>
         /// Called when the host receives the suspend event.
         /// </summary>
         public void OnSuspend()
@@ -639,9 +638,20 @@ namespace ReactNative.UIManager
         /// <summary>
         /// Called when the host is shutting down.
         /// </summary>
-        public void OnShutdown()
+        public void OnDestroy()
         {
-            _operationsQueue.OnShutdown();
+            _operationsQueue.OnDestroy();
+        }
+
+        private void UpdateViewHierarchy()
+        {
+            foreach (var tag in _shadowNodeRegistry.RootNodeTags)
+            {
+                var cssRoot = _shadowNodeRegistry.GetNode(tag);
+                NotifyBeforeOnLayoutRecursive(cssRoot);
+                CalculateRootLayout(cssRoot);
+                ApplyUpdatesRecursive(cssRoot, 0f, 0f);
+            }
         }
 
         private void HandleCreateView(ReactShadowNode cssNode, int rootViewTag, ReactStylesDiffMap styles)
@@ -668,7 +678,7 @@ namespace ReactNative.UIManager
             var rootCssNode = new ReactShadowNode();
             if (I18NUtil.IsRightToLeft)
             {
-                rootCssNode.Direction = CSSDirection.RTL;
+                rootCssNode.LayoutDirection = YogaDirection.RTL;
             }
 
             rootCssNode.ViewClass = "Root";
@@ -693,14 +703,20 @@ namespace ReactNative.UIManager
 
         private void RemoveShadowNode(ReactShadowNode nodeToRemove)
         {
+            RemoveShadowNodeRecursive(nodeToRemove);
+            nodeToRemove.Dispose();
+        }
+
+        private void RemoveShadowNodeRecursive(ReactShadowNode nodeToRemove)
+        {
             _nativeViewHierarchyOptimizer.HandleRemoveNode(nodeToRemove);
             _shadowNodeRegistry.RemoveNode(nodeToRemove.ReactTag);
             for (var i = nodeToRemove.ChildCount - 1; i >= 0; --i)
             {
-                RemoveShadowNode(nodeToRemove.GetChildAt(i));
+                RemoveShadowNodeRecursive(nodeToRemove.GetChildAt(i));
             }
 
-            nodeToRemove.RemoveAllChildren();
+            nodeToRemove.RemoveAndDisposeAllChildren();
         }
 
         private void MeasureLayout(int tag, int ancestorTag, double[] outputBuffer)
@@ -842,7 +858,10 @@ namespace ReactNative.UIManager
             }
         }
 
-        private void ApplyUpdatesRecursive(ReactShadowNode cssNode)
+        private void ApplyUpdatesRecursive(
+            ReactShadowNode cssNode,
+            float absoluteX,
+            float absoluteY)
         {
             if (!cssNode.HasUpdates)
             {
@@ -853,26 +872,34 @@ namespace ReactNative.UIManager
             {
                 for (var i = 0; i < cssNode.ChildCount; ++i)
                 {
-                    ApplyUpdatesRecursive(cssNode.GetChildAt(i));
+                    ApplyUpdatesRecursive(
+                        cssNode.GetChildAt(i),
+                        absoluteX + cssNode.LayoutX,
+                        absoluteY + cssNode.LayoutY);
                 }
             }
 
             var tag = cssNode.ReactTag;
             if (!_shadowNodeRegistry.IsRootNode(tag))
             {
-                cssNode.DispatchUpdates(
+                var frameDidChange = cssNode.DispatchUpdates(
+                    absoluteX,
+                    absoluteY,
                     _operationsQueue,
                     _nativeViewHierarchyOptimizer);
 
-                if (cssNode.ShouldNotifyOnLayout)
+                if (frameDidChange && cssNode.ShouldNotifyOnLayout)
                 {
-                    _eventDispatcher.DispatchEvent(
-                        OnLayoutEvent.Obtain(
-                            tag,
-                            cssNode.LayoutX,
-                            cssNode.LayoutY,
-                            cssNode.LayoutWidth,
-                            cssNode.LayoutHeight));
+                    // Dispatch event from non-layout thread to avoid queueing
+                    // main dispatcher callbacks from the layout thread
+                    var task = Task.Run(() =>
+                        _eventDispatcher.DispatchEvent(
+                            OnLayoutEvent.Obtain(
+                                tag,
+                                cssNode.ScreenX,
+                                cssNode.ScreenY,
+                                cssNode.ScreenWidth,
+                                cssNode.ScreenHeight)));
                 }
             }
 

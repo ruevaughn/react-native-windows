@@ -11,9 +11,12 @@
  */
 'use strict';
 
+const EdgeInsetsPropType = require('EdgeInsetsPropType');
 const NativeMethodsMixin = require('NativeMethodsMixin');
 const Platform = require('Platform');
+const PropTypes = require('prop-types');
 const React = require('React');
+const createReactClass = require('create-react-class');
 const ReactNativeViewAttributes = require('ReactNativeViewAttributes');
 const StyleSheetPropType = require('StyleSheetPropType');
 const TextStylePropTypes = require('TextStylePropTypes');
@@ -68,57 +71,68 @@ const viewConfig = {
  * ```
  */
 
-const Text = React.createClass({
+const Text = createReactClass({
+  displayName: 'Text',
+
   propTypes: {
     /**
      * Line Break mode. Works only with numberOfLines.
      * clip is working only for iOS
      */
-    lineBreakMode: React.PropTypes.oneOf(['head', 'middle', 'tail', 'clip']),
+    lineBreakMode: PropTypes.oneOf(['head', 'middle', 'tail', 'clip']),
     /**
      * Used to truncate the text with an ellipsis after computing the text
      * layout, including line wrapping, such that the total number of lines
      * does not exceed this number.
      */
-    numberOfLines: React.PropTypes.number,
+    numberOfLines: PropTypes.number,
     /**
      * Invoked on mount and layout changes with
      *
      *   `{nativeEvent: {layout: {x, y, width, height}}}`
      */
-    onLayout: React.PropTypes.func,
+    onLayout: PropTypes.func,
     /**
      * This function is called on press.
      */
-    onPress: React.PropTypes.func,
+    onPress: PropTypes.func,
     /**
      * This function is called on long press.
      */
-    onLongPress: React.PropTypes.func,
+    onLongPress: PropTypes.func,
+      /**
+       * When the scroll view is disabled, this defines how far your touch may
+       * move off of the button, before deactivating the button. Once deactivated,
+       * try moving it back and you'll see that the button is once again
+       * reactivated! Move it back and forth several times while the scroll view
+       * is disabled. Ensure you pass in a constant to reduce memory allocations.
+       */
+    pressRetentionOffset: EdgeInsetsPropType,
     /**
      * Lets the user select text, to use the native copy and paste functionality.
      *
      * @platform android
      * @platform windows
      */
-    selectable: React.PropTypes.bool,
+    selectable: PropTypes.bool,
     /**
      * When true, no visual change is made when text is pressed down. By
      * default, a gray oval highlights the text on press down.
      * @platform ios
      */
-    suppressHighlighting: React.PropTypes.bool,
+    suppressHighlighting: PropTypes.bool,
     style: stylePropType,
     /**
      * Used to locate this view in end-to-end tests.
      */
-    testID: React.PropTypes.string,
+    testID: PropTypes.string,
     /**
      * Specifies should fonts scale to respect Text Size accessibility setting on iOS.
      * @platform ios
      */
-    allowFontScaling: React.PropTypes.bool,
+    allowFontScaling: PropTypes.bool,
   },
+
   getDefaultProps(): Object {
     return {
       accessible: true,
@@ -126,38 +140,48 @@ const Text = React.createClass({
       lineBreakMode: 'tail',
     };
   },
+
   getInitialState: function(): Object {
     return merge(Touchable.Mixin.touchableGetInitialState(), {
       isHighlighted: false,
     });
   },
+
   mixins: [NativeMethodsMixin],
   viewConfig: viewConfig,
+
   getChildContext(): Object {
     return {isInAParentText: true};
   },
+
   childContextTypes: {
-    isInAParentText: React.PropTypes.bool
+    isInAParentText: PropTypes.bool
   },
+
   contextTypes: {
-    isInAParentText: React.PropTypes.bool
+    isInAParentText: PropTypes.bool
   },
+
   /**
    * Only assigned if touch is needed.
    */
   _handlers: (null: ?Object),
+
   _hasPressHandler(): boolean {
     return !!this.props.onPress || !!this.props.onLongPress;
   },
+
   /**
    * These are assigned lazily the first time the responder is set to make plain
    * text nodes as cheap as possible.
    */
   touchableHandleActivePressIn: (null: ?Function),
+
   touchableHandleActivePressOut: (null: ?Function),
   touchableHandlePress: (null: ?Function),
   touchableHandleLongPress: (null: ?Function),
   touchableGetPressRectOffset: (null: ?Function),
+
   render(): ReactElement<any> {
     let newProps = this.props;
     if (this.props.onStartShouldSetResponder || this._hasPressHandler()) {
@@ -202,7 +226,7 @@ const Text = React.createClass({
               };
 
               this.touchableGetPressRectOffset = function(): RectOffset {
-                return PRESS_RECT_OFFSET;
+                return this.props.pressRetentionOffset || PRESS_RECT_OFFSET;
               };
             }
             return setResponder;

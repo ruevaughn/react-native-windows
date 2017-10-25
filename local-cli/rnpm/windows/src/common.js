@@ -12,14 +12,12 @@
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
-const fetch = require('node-fetch');
-const HttpsProxyAgent = require('https-proxy-agent');
+const Registry = require('npm-registry');
+const child_process = require('child_process');
+const validUrl = require('valid-url');
 
-const proxyUrl = process.env.https_proxy || process.env.HTTPS_PROXY;
-const options  = {};
-if(proxyUrl) {
-  options.agent = new HttpsProxyAgent(proxyUrl);
-}
+let npmConfReg = child_process.execSync('npm config get registry').toString().trim();
+let NPM_REGISTRY_URL = validUrl.is_uri(npmConfReg) ? npmConfReg : 'http://registry.npmjs.org';
 
 const REACT_NATIVE_PACKAGE_JSON_PATH = function() {
   return path.resolve(
@@ -30,26 +28,38 @@ const REACT_NATIVE_PACKAGE_JSON_PATH = function() {
   );
 };
 
+const npm = new Registry({registry: NPM_REGISTRY_URL});
+
 function getLatestVersion() {
-  return fetch('https://registry.npmjs.org/react-native-windows?version=latest', options)
-    .then(result => result && result.ok && result.json())
-    .then(result => result.version)
+  return new Promise(function (resolve, reject) {
+    npm.packages.release('react-native-windows', 'latest', (err, releases) => {
+      if (err) {
+        reject(err);
+      } else if (!releases || releases.length === 0) {
+        reject(new Error('Could not find react-native-windows@latest.'));
+      } else {
+        resolve(releases[0].version);
+      }
+    });
+  });
 }
 
 function getMatchingVersion(version) {
-  console.log(`Checking for react-native-windows version matching ${version}...`)
-  return fetch(`https://registry.npmjs.org/react-native-windows?version=${version}`, options)
-    .then(result => {
-      if (result && result.ok) {
-        return result.json().then(pkg => pkg.version);
+  console.log(`Checking for react-native-windows version matching ${version}...`);
+  return new Promise(function (resolve, reject) {
+    npm.packages.range('react-native-windows', version, (err, release) => {
+      if (err || !release) {
+        return getLatestVersion()
+          .then(latestVersion => {
+            reject(new Error(`Could not find react-native-windows@${version}. ` +
+              `Latest version of react-native-windows is ${latestVersion}, try switching to ` +
+              `react-native@${semver.major(latestVersion)}.${semver.minor(latestVersion)}.*.`));
+            }).catch(error => reject(new Error(`Could not find react-native-windows@${version}.`)));
       } else {
-        return getLatestVersion().then(latestVersion => {
-          throw new Error(`Could not find react-native-windows@${version}. ` +
-            `Latest version of react-native-windows is ${latestVersion}, try switching to ` +
-            `react-native@${semver.major(latestVersion)}.${semver.minor(latestVersion)}.*.`);
-        });
+        resolve(release.version);
       }
     });
+  });
 }
 
 const getInstallPackage = function (version) {
@@ -71,7 +81,7 @@ const getInstallPackage = function (version) {
   } else {
     return Promise.resolve(version);
   }
-}
+};
 
 const getReactNativeVersion = function () {
   console.log('Reading react-native version from node_modules...');
@@ -79,15 +89,27 @@ const getReactNativeVersion = function () {
     const version = JSON.parse(fs.readFileSync(REACT_NATIVE_PACKAGE_JSON_PATH(), 'utf-8')).version;
     return `${semver.major(version)}.${semver.minor(version)}.*`;
   }
-}
+};
 
 const getReactNativeAppName = function () {
   console.log('Reading application name from package.json...');
   return JSON.parse(fs.readFileSync('package.json', 'utf8')).name;
-}
+};
+
+/**
+ * Check that 'react-native init' itself used yarn to install React Native.
+ * When using an old global react-native-cli@1.0.0 (or older), we don't want
+ * to install React Native with npm, and React + Jest with yarn.
+ * Let's be safe and not mix yarn and npm in a single project.
+ * @param projectDir e.g. /Users/martin/AwesomeApp
+ */
+const isGlobalCliUsingYarn = function(projectDir) {
+  return fs.existsSync(path.join(projectDir, 'yarn.lock'));
+};
 
 module.exports = {
   getInstallPackage,
   getReactNativeVersion,
-  getReactNativeAppName
-}
+  getReactNativeAppName,
+  isGlobalCliUsingYarn
+};

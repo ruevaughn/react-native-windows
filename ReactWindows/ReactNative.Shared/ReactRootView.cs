@@ -1,4 +1,5 @@
-﻿using ReactNative.Bridge;
+﻿using Newtonsoft.Json.Linq;
+using ReactNative.Bridge;
 using ReactNative.Touch;
 using ReactNative.UIManager;
 using System;
@@ -20,11 +21,20 @@ namespace ReactNative
     /// </summary>
     public class ReactRootView : SizeMonitoringCanvas
     {
-        private IReactInstanceManager _reactInstanceManager;
+        private ReactInstanceManager _reactInstanceManager;
         private string _jsModuleName;
+        private JObject _initialProps;
 
         private bool _wasMeasured;
         private bool _attachScheduled;
+
+        /// <summary>
+        /// Instantiates the <see cref="ReactRootView"/>.
+        /// </summary>
+        public ReactRootView()
+        {
+            TouchHandler = new TouchHandler(this);
+        }
 
         /// <summary>
         /// Gets the JavaScript module name.
@@ -43,7 +53,17 @@ namespace ReactNative
         internal TouchHandler TouchHandler
         {
             get;
-            set;
+        }
+
+        /// <summary>
+        /// Get the initialProps
+        /// </summary>
+        internal JObject InitialProps
+        {
+            get
+            {
+                return _initialProps;
+            }
         }
 
         /// <summary>
@@ -57,7 +77,25 @@ namespace ReactNative
         /// The React instance manager.
         /// </param>
         /// <param name="moduleName">The module name.</param>
-        public void StartReactApplication(IReactInstanceManager reactInstanceManager, string moduleName)
+        public void StartReactApplication(ReactInstanceManager reactInstanceManager, string moduleName)
+        {
+            StartReactApplication(reactInstanceManager, moduleName, default(JObject));
+        }
+
+        /// <summary>
+        /// Schedule rendering of the React component rendered by the 
+        /// JavaScript application from the given JavaScript module 
+        /// <paramref name="moduleName"/> using the provided
+        /// <paramref name="reactInstanceManager"/> to attach to the JavaScript context of that manager.
+        /// Extra parameter
+        /// <paramref name="initialProps"/> can be used to pass initial properties for the react component.
+        /// </summary>
+        /// <param name="reactInstanceManager">
+        /// The React instance manager.
+        /// </param>
+        /// <param name="moduleName">The module name.</param>
+        /// <param name="initialProps">The initialProps</param>
+        public void StartReactApplication(ReactInstanceManager reactInstanceManager, string moduleName, JObject initialProps)
         {
             DispatcherHelpers.AssertOnDispatcher();
 
@@ -68,6 +106,7 @@ namespace ReactNative
 
             _reactInstanceManager = reactInstanceManager;
             _jsModuleName = moduleName;
+            _initialProps = initialProps;
 
             if (!_reactInstanceManager.HasStartedCreatingInitialContext)
             {

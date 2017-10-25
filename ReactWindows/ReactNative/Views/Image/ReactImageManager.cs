@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Uwp.UI;
+﻿using ImagePipeline.Core;
+using ImagePipeline.Request;
 using Newtonsoft.Json.Linq;
 using ReactNative.Collections;
 using ReactNative.Modules.Image;
@@ -6,13 +7,6 @@ using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reactive.Disposables;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
-using Windows.Storage.Streams;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -25,9 +19,6 @@ namespace ReactNative.Views.Image
     /// </summary>
     public class ReactImageManager : BaseViewManager<Border, ReactImageShadowNode>
     {
-        private readonly Dictionary<int, SerialDisposable> _disposables =
-            new Dictionary<int, SerialDisposable>();
-
         private readonly Dictionary<int, List<KeyValuePair<string, double>>> _imageSources =
             new Dictionary<int, List<KeyValuePair<string, double>>>();
 
@@ -51,7 +42,7 @@ namespace ReactNative.Views.Image
         /// <summary>
         /// This method should return the <see cref="ReactImageShadowNode"/>
         /// which will be then used for measuring the position and size of the
-        /// view. 
+        /// view.
         /// </summary>
         /// <returns>The shadow node instance.</returns>
         public override ReactImageShadowNode CreateShadowNodeInstance()
@@ -204,7 +195,7 @@ namespace ReactNative.Views.Image
                 }
             }
         }
-        
+
         /// <summary>
         /// The border radius of the <see cref="ReactRootView"/>.
         /// </summary>
@@ -264,7 +255,7 @@ namespace ReactNative.Views.Image
         }
 
         /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
+        /// Called when view is detached from view hierarchy and allows for
         /// additional cleanup.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
@@ -273,17 +264,7 @@ namespace ReactNative.Views.Image
         {
             base.OnDropViewInstance(reactContext, view);
 
-            var tag = view.GetTag();
-            var disposable = default(SerialDisposable);
-            if (_disposables.TryGetValue(tag, out disposable))
-            {
-                disposable.Dispose();
-                _disposables.Remove(tag);
-            }
-
-            _imageSources.Remove(tag);
-            _tintColors.Remove(tag);
-            _backgroundColors.Remove(tag);
+            _imageSources.Remove(view.GetTag());
         }
 
         /// <summary>
@@ -353,72 +334,31 @@ namespace ReactNative.Views.Image
         private async void SetUriFromSingleSource(Border view, string source, Color? tintColor, Color? backgroundColor)
         {
             var imageBrush = (ImageBrush)view.Background;
-            var tag = view.GetTag();
-
-            var disposable = default(SerialDisposable);
-            if (!_disposables.TryGetValue(tag, out disposable))
+            OnImageStatusUpdate(view, ImageLoadStatus.OnLoadStart, default(ImageMetadata));
+            try
             {
-                disposable = new SerialDisposable();
-                _disposables.Add(tag, disposable);
-            }
+                var imagePipeline = ImagePipelineFactory.Instance.GetImagePipeline();
+                var image = default(BitmapSource);
+                var uri = new Uri(source);
 
-            if (BitmapImageHelpers.IsBase64Uri(source))
-            {
-                var image = new BitmapImage();
-
-                disposable.Disposable = image.GetStreamLoadObservable().Subscribe(
-                    status => OnImageStatusUpdate(view, status.LoadStatus, status.Metadata),
-                    _ => OnImageFailed(view));
-
-                using (var stream = await BitmapImageHelpers.GetStreamAsync(source))
+                // Remote images
+                if (source.StartsWith("http:") || source.StartsWith("https:"))
                 {
-                    await image.SetSourceAsync(stream);
+                    image = await imagePipeline.FetchEncodedBitmapImageAsync(uri);
+                }
+                else // Base64 or local images
+                {
+                    image = await imagePipeline.FetchDecodedBitmapImageAsync(ImageRequest.FromUri(uri));
                 }
 
+                var metadata = new ImageMetadata(source, image.PixelWidth, image.PixelHeight);
+                OnImageStatusUpdate(view, ImageLoadStatus.OnLoad, metadata);
                 imageBrush.ImageSource = image;
+                OnImageStatusUpdate(view, ImageLoadStatus.OnLoadEnd, metadata);
             }
-            else if (BitmapImageHelpers.IsHttpUri(source))
+            catch
             {
-                OnImageStatusUpdate(view, ImageLoadStatus.OnLoadStart, default(ImageMetadata));
-                try
-                {
-                    var image = await ImageCache.Instance.GetFromCacheAsync(new Uri(source), true);
-                    var metadata = new ImageMetadata(source, image.PixelWidth, image.PixelHeight);
-                    OnImageStatusUpdate(view, ImageLoadStatus.OnLoad, metadata);
-                    if (tintColor == null && backgroundColor == null)
-                        imageBrush.ImageSource = image;
-                    else
-                    {
-                        using (var stream = await CreateStreamFromHttpUri(source))
-                        {
-                            imageBrush.ImageSource = await ColorizeBitmap(stream, tintColor, backgroundColor);
-                        }
-                    }
-                    OnImageStatusUpdate(view, ImageLoadStatus.OnLoadEnd, metadata);
-                }
-                catch
-                {
-                    OnImageFailed(view);
-                }
-            }
-            else
-            {
-                if (tintColor != null || backgroundColor != null)
-                {
-                    using (var stream = await CreateStreamFromAppUri(source))
-                    {
-                        imageBrush.ImageSource = await ColorizeBitmap(stream, tintColor, backgroundColor);
-                    }
-                }
-                else
-                {
-                    var image = new BitmapImage();
-                    disposable.Disposable = image.GetUriLoadObservable().Subscribe(
-                    status => OnImageStatusUpdate(view, status.LoadStatus, status.Metadata),
-                        _ => OnImageFailed(view));
-                    image.UriSource = new Uri(source);
-                    imageBrush.ImageSource = image;
-                }
+                OnImageFailed(view);
             }
         }
 
@@ -449,7 +389,7 @@ namespace ReactNative.Views.Image
             var decoder = await BitmapDecoder.CreateAsync(stream);
 
             var pixelData = await decoder.GetPixelDataAsync(
-                BitmapPixelFormat.Bgra8, // WriteableBitmap uses BGRA format 
+                BitmapPixelFormat.Bgra8, // WriteableBitmap uses BGRA format
                 BitmapAlphaMode.Premultiplied,
                 new BitmapTransform(),
                 ExifOrientationMode.RespectExifOrientation,

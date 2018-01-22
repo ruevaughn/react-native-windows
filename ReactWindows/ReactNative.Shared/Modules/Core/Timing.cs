@@ -294,8 +294,29 @@ namespace ReactNative.Modules.Core
             if (sendIdleEvents)
             {
                 var frameStartTime = frameTime - s_frameDuration;
+
+                // Number of days in a non-leap year
+                const int DaysPerYear = 365;
+                // Number of days in 4 years
+                const int DaysPer4Years = DaysPerYear * 4 + 1;       // 1461
+                // Number of days in 100 years
+                const int DaysPer100Years = DaysPer4Years * 25 - 1;  // 36524
+                // Number of days in 400 years
+                const int DaysPer400Years = DaysPer100Years * 4 + 1; // 146097
+
+                // Number of days from 1/1/0001 to 12/31/1600
+                const int DaysTo1601 = DaysPer400Years * 4;          // 584388
+                // Number of days from 1/1/0001 to 12/30/1899
+                const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
+                // Number of days from 1/1/0001 to 12/31/1969
+                const int DaysTo1970 = DaysPer400Years * 4 + DaysPer100Years * 3 + DaysPer4Years * 17 + DaysPerYear;
+                const long UnixEpochTicks = TimeSpan.TicksPerDay * DaysTo1970; // 621,355,968,000,000,000
+                const long UnixEpochMilliseconds = UnixEpochTicks / TimeSpan.TicksPerMillisecond; // 62,135,596,800,000
+                long milliseconds = frameStartTime.UtcDateTime.Ticks / TimeSpan.TicksPerMillisecond;
+                var unixTimeMilliSeconds = milliseconds - UnixEpochMilliseconds;
+                
                 Context.GetJavaScriptModule<JSTimers>()
-                    .callIdleCallbacks(frameStartTime.ToUnixTimeMilliseconds());
+                    .callIdleCallbacks(unixTimeMilliSeconds);
             }
         }
 

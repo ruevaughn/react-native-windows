@@ -21,16 +21,16 @@ namespace ReactNative.Views.Text
             return s_instance.Visit(node);
         }
 
-        protected override Inline VisitCore(ReactShadowNode node)
-        {
-            var textNode = node as ReactInlineShadowNode;
-            if (textNode != null)
-            {
-                return base.VisitCore(node);
-            }
-
-            return Make(node, Array.Empty<Inline>());
-        }
+        // protected override Inline VisitCore(ReactShadowNode node)
+        // {
+        //     var textNode = node as ReactInlineShadowNode;
+        //     if (textNode != null)
+        //     {
+        //         return base.VisitCore(node);
+        //     }
+        //
+        //     return Make(node, Array.Empty<Inline>());
+        // }
 
         protected sealed override Inline Make(ReactShadowNode node, IList<Inline> children)
         {
@@ -50,10 +50,10 @@ namespace ReactNative.Views.Text
                 Width = node.StyleWidth.Value,
                 Height = node.StyleHeight.Value,
             };
-            
+
             return new InlineUIContainer
             {
-                Child = rectangle,                    
+                Child = rectangle,
             };
         }
     }

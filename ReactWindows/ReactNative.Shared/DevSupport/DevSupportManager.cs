@@ -657,11 +657,6 @@ namespace ReactNative.DevSupport
             return false;
         }
 
-        // private Task ReloadJavaScriptFromFileAsync(CancellationToken token)
-        // {
-        //     return new Task(() => _reactInstanceCommandsHandler.OnBundleFileReloadRequest(), token);
-        // }
-
 #if WINDOWS_UWP
         private void RegisterDevOptionsMenuTriggers()
         {

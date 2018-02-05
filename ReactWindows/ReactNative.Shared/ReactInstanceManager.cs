@@ -463,9 +463,7 @@ namespace ReactNative
             using (_suspendCancellation?.Token.Register(cancellationDisposable.Dispose))
             {
                 _pendingInitializationTasks++;
-                var taskCompleted = new Task(() => { });
-                taskCompleted.Start();
-                var contextInitializationTask = _contextInitializationTask ?? taskCompleted;
+                var contextInitializationTask = _contextInitializationTask ?? (Task)Task.FromResult(0);
                 _contextInitializationTask = contextInitializationTask.ContinueWith(async task =>
                 {
                     try

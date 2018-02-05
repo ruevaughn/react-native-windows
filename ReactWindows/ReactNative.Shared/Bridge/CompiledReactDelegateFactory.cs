@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using ReactNative.Reflection;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -113,10 +114,12 @@ namespace ReactNative.Bridge
                             s_stringFormat,
                             Expression.Constant(CultureInfo.InvariantCulture),
                             Expression.Constant($"Module '{module.Name}' method '{method.Name}' got '{{0}}' arguments, expected '{argc}'."),
-                            Expression.Convert(
-                                Expression.MakeMemberAccess(jsArgumentsParameter, s_countProperty),
-                                typeof(object)
-                            )
+                            Expression.NewArrayInit(typeof(object), new List<Expression>() {
+                                Expression.Convert(
+                                    Expression.MakeMemberAccess(jsArgumentsParameter, s_countProperty),
+                                    typeof(object)
+                                )
+                            })
                         ),
                         Expression.Constant(jsArgumentsParameter.Name)
                     )

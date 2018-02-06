@@ -21,7 +21,6 @@ namespace ReactNative.Views.TextInput
         internal const int FocusTextInput = 1;
         internal const int BlurTextInput = 2;
 
-        private bool _onSelectionChange;
         private bool? _blurOnSubmit;
 
         internal static readonly Color DefaultTextBoxBorder = Color.FromArgb(255, 122, 122, 122);
@@ -565,9 +564,9 @@ namespace ReactNative.Views.TextInput
             var controlModifier = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
             var blurOnSubmit = (_blurOnSubmit.HasValue && _blurOnSubmit.Value);
 
+            var textBox = (ReactTextBox)sender;
             if (e.Key == Key.Enter && !shiftModifier)
             {
-                var textBox = (ReactTextBox)sender;
                 if (!textBox.AcceptsReturn || blurOnSubmit || controlModifier)
                 {
                     e.Handled = true;

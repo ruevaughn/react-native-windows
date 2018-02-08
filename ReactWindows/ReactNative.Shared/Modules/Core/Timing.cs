@@ -304,10 +304,12 @@ namespace ReactNative.Modules.Core
                 // Number of days in 400 years
                 const int DaysPer400Years = DaysPer100Years * 4 + 1; // 146097
 
+#pragma warning disable CS0219 // Variable is assigned but its value is never used
                 // Number of days from 1/1/0001 to 12/31/1600
                 const int DaysTo1601 = DaysPer400Years * 4;          // 584388
                 // Number of days from 1/1/0001 to 12/30/1899
                 const int DaysTo1899 = DaysPer400Years * 4 + DaysPer100Years * 3 - 367;
+#pragma warning restore CS0219 // Variable is assigned but its value is never used
                 // Number of days from 1/1/0001 to 12/31/1969
                 const int DaysTo1970 = DaysPer400Years * 4 + DaysPer100Years * 3 + DaysPer4Years * 17 + DaysPerYear;
                 const long UnixEpochTicks = TimeSpan.TicksPerDay * DaysTo1970; // 621,355,968,000,000,000

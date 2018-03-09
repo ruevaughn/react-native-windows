@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCLStorage;
 using ReactNative.Bridge;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using ReactNative.Shared.Chakra;
 
 namespace ReactNative.Chakra.Executor
 {
@@ -59,24 +60,32 @@ namespace ReactNative.Chakra.Executor
             if (arguments == null)
                 throw new ArgumentNullException(nameof(arguments));
 
-            var moduleNameValue = JavaScriptValue.FromString(moduleName);
-            moduleNameValue.AddRef();
-            var methodNameValue = JavaScriptValue.FromString(methodName);
-            methodNameValue.AddRef();
-            var argumentsValue = ConvertJson(arguments);
-            argumentsValue.AddRef();
+            JToken flushedQueue;
+            try
+            {
+                var moduleNameValue = JavaScriptValue.FromString(moduleName);
+                moduleNameValue.AddRef();
+                var methodNameValue = JavaScriptValue.FromString(methodName);
+                methodNameValue.AddRef();
+                var argumentsValue = ConvertJson(arguments);
+                argumentsValue.AddRef();
 
-            var callArguments = new JavaScriptValue[4];
-            callArguments[0] = EnsureGlobalObject();
-            callArguments[1] = moduleNameValue;
-            callArguments[2] = methodNameValue;
-            callArguments[3] = argumentsValue;
-            var method = EnsureCallFunction();
-            var flushedQueue = ConvertJson(method.CallFunction(callArguments));
+                var callArguments = new JavaScriptValue[4];
+                callArguments[0] = EnsureGlobalObject();
+                callArguments[1] = moduleNameValue;
+                callArguments[2] = methodNameValue;
+                callArguments[3] = argumentsValue;
+                var method = EnsureCallFunction();
+                flushedQueue = ConvertJson(method.CallFunction(callArguments));
 
-            argumentsValue.Release();
-            methodNameValue.Release();
-            moduleNameValue.Release();
+                argumentsValue.Release();
+                methodNameValue.Release();
+                moduleNameValue.Release();
+            }
+            catch (JavaScriptException ex)
+            {
+                throw new JavaScriptCallFunctionException(moduleName, methodName, arguments, ex);
+            }
 
             return flushedQueue;
         }

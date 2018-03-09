@@ -3,7 +3,7 @@ namespace ReactNative.Chakra
     /// <summary>
     ///     A script exception.
     /// </summary>
-    public sealed class JavaScriptScriptException : JavaScriptException
+    public sealed partial class JavaScriptScriptException : JavaScriptException
     {
         /// <summary>
         /// The error.

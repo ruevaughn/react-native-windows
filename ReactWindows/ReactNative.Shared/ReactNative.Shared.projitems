@@ -73,6 +73,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\Executor\LogLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptBackgroundWorkItemCallback.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptBeforeCollectCallback.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptCallFunctionException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptEngineException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptErrorCode.cs" />

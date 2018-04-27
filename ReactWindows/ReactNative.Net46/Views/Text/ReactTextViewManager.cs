@@ -190,7 +190,13 @@ namespace ReactNative.Views.Text
                 TextWrapping = TextWrapping.Wrap,
                 TextTrimming = TextTrimming.CharacterEllipsis,
             };
-
+            //Text rendering improving
+            textBlock.SetValue(TextOptions.TextFormattingModeProperty, TextFormattingMode.Ideal);
+            textBlock.SetValue(TextOptions.TextRenderingModeProperty, TextRenderingMode.ClearType);
+            textBlock.SetValue(TextOptions.TextHintingModeProperty, TextHintingMode.Fixed);
+            textBlock.SetValue(RenderOptions.ClearTypeHintProperty, ClearTypeHint.Enabled);
+            textBlock.UseLayoutRounding = true;
+            //
             textBlock.SetReactCompoundView(s_compoundView);
 
             return textBlock;

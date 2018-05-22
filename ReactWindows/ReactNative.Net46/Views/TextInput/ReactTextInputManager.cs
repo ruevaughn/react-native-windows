@@ -2,6 +2,7 @@
 using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
+using ReactNative.Views.Extensions;
 using ReactNative.Views.Text;
 using System;
 using System.Collections.Generic;
@@ -423,7 +424,7 @@ namespace ReactNative.Views.TextInput
             }
             else if (commandId == BlurTextInput)
             {
-                Keyboard.ClearFocus();
+                view.Blur();
             }
         }
 
@@ -584,7 +585,7 @@ namespace ReactNative.Views.TextInput
                     e.Handled = true;
                     if (blurOnSubmit)
                     {
-                        Keyboard.ClearFocus();
+                        textBox.Blur();
                     }
                     textBox.GetReactContext()
                         .GetNativeModule<UIManagerModule>()

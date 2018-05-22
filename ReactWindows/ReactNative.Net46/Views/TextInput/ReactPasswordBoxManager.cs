@@ -2,6 +2,7 @@
 using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
+using ReactNative.Views.Extensions;
 using ReactNative.Views.Text;
 using System;
 using System.Collections.Generic;
@@ -358,7 +359,7 @@ namespace ReactNative.Views.TextInput
             }
             else if (commandId == ReactTextInputManager.BlurTextInput)
             {
-                Keyboard.ClearFocus();
+                view.Blur();
             }
         }
 

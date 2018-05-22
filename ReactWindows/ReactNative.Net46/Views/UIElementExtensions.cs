@@ -19,17 +19,17 @@ namespace ReactNative.Views.Extensions
                 return;
             }
 
-            var window = FocusManager.GetFocusScope(uiElement) as Window;
+            var focusScope = FocusManager.GetFocusScope(uiElement);
 
-            if (window != null)
+            var inputElement = focusScope as IInputElement;
+
+            if (inputElement != null && !inputElement.Equals(uiElement))
             {
-                FocusManager.SetFocusedElement(window, window);
+                FocusManager.SetFocusedElement(focusScope, inputElement);
             }
             else
             {
-                var tRequest = new TraversalRequest(FocusNavigationDirection.Next);
-
-                uiElement.MoveFocus(tRequest);
+                FocusManager.SetFocusedElement(focusScope, null);
             }
         }
     }

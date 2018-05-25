@@ -932,9 +932,13 @@ namespace ReactNative.Views.TextInput
                 var scrollContent = getUIElement(adornedElement, typeof(ScrollContentPresenter)) as ScrollContentPresenter;
 
                 if (scrollContent != null)
+                {
                     adornerLayer.Add(new PlaceholderAdorner(scrollContent, textBox));
+                }
                 else
+                {
                     adornerLayer.Add(new PlaceholderAdorner(textBox, textBox));
+                }
 
                 return;
             }
@@ -946,9 +950,13 @@ namespace ReactNative.Views.TextInput
                 //Get ScrollContentPresenter for ReactTextBox
                 var scrollContent = getUIElement(adornedElement, typeof(ScrollContentPresenter)) as ScrollContentPresenter;
                 if (scrollContent != null)
+                {
                     adornerLayer.Add(new PlaceholderAdorner(scrollContent, richTextBox));
+                }
                 else
+                {
                     adornerLayer.Add(new PlaceholderAdorner(richTextBox, richTextBox));
+                }
                 return;
             }
 
@@ -959,9 +967,13 @@ namespace ReactNative.Views.TextInput
                 var scrollContent = getUIElement(adornedElement, typeof(ScrollContentPresenter)) as ScrollContentPresenter;
 
                 if (scrollContent != null)
+                {
                     adornerLayer.Add(new PlaceholderAdorner(scrollContent, passwordBox));
+                }
                 else
+                {
                     adornerLayer.Add(new PlaceholderAdorner(passwordBox, passwordBox));
+                }
                 return;
             }
 

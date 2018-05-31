@@ -1,4 +1,4 @@
-﻿using ReactNative;
+using ReactNative;
 using ReactNative.Modules.Core;
 using ReactNative.Shell;
 using System;
@@ -10,7 +10,7 @@ namespace Playground.Net46
     {
         public override string MainComponentName => "Playground.Net46";
 
-        public override string JavaScriptMainModuleName => "ReactWindows/Playground.Net46/index.windows";
+        public override string JavaScriptMainModuleName => "ReactWindows/Playground.Net46/index.windows.placeholder";
 
 #if BUNDLE
         public override string JavaScriptBundleFile => AppDomain.CurrentDomain.BaseDirectory + "ReactAssets/index.windows.bundle";

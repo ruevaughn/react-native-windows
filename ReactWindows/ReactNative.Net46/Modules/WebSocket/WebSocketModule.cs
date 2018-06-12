@@ -1,116 +1,70 @@
 ﻿using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
+using ReactNative.Collections;
 using ReactNative.Common;
 using ReactNative.Modules.Core;
 using ReactNative.Tracing;
 using System;
 using System.Collections.Generic;
-
+using WebSocketSharp;
 
 namespace ReactNative.Modules.WebSocket
 {
-    /// <summary>
-    /// Modules that implements WebSocket client interface.
-    /// </summary>
-    public class WebSocketModule : ReactContextNativeModuleBase
+    class WebSocketModule : ReactContextNativeModuleBase
     {
-        private readonly IWebSocketClient _webSocketClient;
-        private readonly IDictionary<int, IWebSocketClient> _webSocketConnections = new Dictionary<int, IWebSocketClient>();
+        private readonly IDictionary<int, WebSocketSharp.WebSocket> _webSocketConnections = new Dictionary<int, WebSocketSharp.WebSocket>();
+
         private readonly object locker = new object();
 
         #region Constructor(s)
 
-        /// <summary>
-        /// Instantiates the <see cref="WebSocketModule"/>.
-        /// </summary>
-        /// <param name="reactContext">The React context.</param>
         public WebSocketModule(ReactContext reactContext)
-            : this(new DefaultWebSocketClient(), reactContext)
-        {
-        }
-
-        /// <summary>
-        /// Instantiates the <see cref="WebSocketModule"/>.
-        /// </summary>
-        /// <param name="webSocketClient">The websocket client implementation</param>
-        /// <param name="reactContext">The React context.</param>
-        public WebSocketModule(IWebSocketClient webSocketClient, ReactContext reactContext)
             : base(reactContext)
         {
-            if (webSocketClient == null)
-            {
-                throw new ArgumentNullException(nameof(webSocketClient));
-            }
-
-            this._webSocketClient = webSocketClient;
         }
 
         #endregion
 
         #region NativeModuleBase Overrides
-        
-        /// <summary>
-        /// Gets the name of the native module.
-        /// </summary>
+
         public override string Name => "WebSocketModule";
 
         #endregion
 
         #region Public Methods
 
-        /// <summary>
-        /// Start connection to server
-        /// </summary>
-        /// <param name="url"><see cref="string"/> that repersent URL of the server</param>
-        /// <param name="protocols">protocols that used (may be null)</param>
-        /// <param name="options">options JSON based string that provides additional
-        /// connection options, like Origin for example.</param>
-        /// <param name="id">the ID of the socket is used to identify connection.</param>
         [ReactMethod]
         public void connect(string url, string[] protocols, JObject options, int id)
         {
-            this._webSocketClient.OnMessage += (sender, args) =>
+            var webSocket = new WebSocketSharp.WebSocket(url);
+
+            webSocket.OnMessage += (sender, args) =>
             {
                 OnMessageReceived(id, sender, args);
             };
 
-            this._webSocketClient.OnOpen += (sender, args) =>
+            webSocket.OnOpen += (sender, args) =>
             {
-                OnOpen(id, this._webSocketClient, args);
+                OnOpen(id, webSocket, args);
             };
 
-            this._webSocketClient.OnError += (sender, args) =>
+            webSocket.OnError += (sender, args) =>
             {
                 OnError(id, args);
             };
 
-            this._webSocketClient.OnClose += (sender, args) =>
+            webSocket.OnClose += (sender, args) =>
             {
                 OnClosed(id, sender, args);
             };
 
-            try
-            {
-                InitializeInBackground(this._webSocketClient, url, options);
-            }
-            catch(Exception e) // in case if URL is not valid
-            {
-                OnError(id, new ErrorEventArgs("Cannot connect", e));
-            }
+            InitializeInBackground(url, webSocket, options);
         }
 
-        /// <summary>
-        /// Closes connection to websocket
-        /// </summary>
-        /// <param name="code">Code that will be sent to the server that indicates the reason of 
-        /// disconnection.
-        /// </param>
-        /// <param name="reason"><see cref="string"/> that may be send to extend the reson. </param>
-        /// <param name="id">the ID of the socket that will be closed</param>
         [ReactMethod]
         public void close(ushort code, string reason, int id)
         {
-            IWebSocketClient webSocket;
+            WebSocketSharp.WebSocket webSocket;
 
             lock (this.locker)
             {
@@ -145,11 +99,6 @@ namespace ReactNative.Modules.WebSocket
             }
         }
 
-        /// <summary>
-        /// Sends message to the server
-        /// </summary>
-        /// <param name="message"><see cref="string"/> that contains the message that should be sent.</param>
-        /// <param name="id">the ID of the socket that will be used</param>
         [ReactMethod]
         public void send(string message, int id)
         {
@@ -160,7 +109,7 @@ namespace ReactNative.Modules.WebSocket
 
         #region Event Handlers
 
-        private void OnOpen(int id, IWebSocketClient webSocket, EventArgs args)
+        private void OnOpen(int id, WebSocketSharp.WebSocket webSocket, EventArgs args)
         {
             if (webSocket != null)
             {
@@ -203,7 +152,7 @@ namespace ReactNative.Modules.WebSocket
             }
         }
 
-        private void OnError(int id, ErrorEventArgs args)
+        private void OnError(int id, WebSocketSharp.ErrorEventArgs args)
         {
             lock (this.locker)
             {
@@ -234,18 +183,33 @@ namespace ReactNative.Modules.WebSocket
 
         #region Private Methods
 
-        private void InitializeInBackground(IWebSocketClient webSocket, string url, JObject options)
+        private void InitializeInBackground(string url, WebSocketSharp.WebSocket webSocket, JObject options)
         {
             var parsedOptions = new WebSocketOptions(options);
+            ProxyHelper proxy = null;
+
+            if (parsedOptions.UseDefaultProxy)
+            {
+                proxy = new ProxyHelper(new Uri(url));
+            }
+            else
+            {
+                proxy = new ProxyHelper(parsedOptions);
+            }
+
+            if (proxy != null && !proxy.IsBypassed)
+            {
+                webSocket.SetProxy(proxy.ProxyAddress, proxy.UserName, proxy.Password);
+            }
 
             webSocket.Origin = parsedOptions.Origin;
 
-            webSocket.Connect(url);
+            webSocket.Connect();
         }
 
         private void SendMessageInBackground(int id, string message)
         {
-            IWebSocketClient webSocket;
+            WebSocketSharp.WebSocket webSocket;
 
             lock (this.locker)
             {
@@ -259,12 +223,12 @@ namespace ReactNative.Modules.WebSocket
                 }
             }
 
-            webSocket?.SendAsync(message);
+            webSocket?.SendAsync(message, null);
         }
 
         private void SendMessageInBackground(int id, byte[] message)
         {
-            IWebSocketClient webSocket;
+            WebSocketSharp.WebSocket webSocket;
 
             lock (this.locker)
             {
@@ -278,7 +242,7 @@ namespace ReactNative.Modules.WebSocket
                 }
             }
 
-            webSocket?.SendAsync(message);
+            webSocket?.SendAsync(message, null);
         }
 
         private void SendEvent(string eventName, JObject parameters)

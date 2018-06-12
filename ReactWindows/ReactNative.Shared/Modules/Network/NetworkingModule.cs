@@ -16,6 +16,7 @@ using Windows.Web.Http.Filters;
 #else
 using PCLStorage;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using HttpMultipartFormDataContent = System.Net.Http.MultipartFormDataContent;
 using HttpStreamContent = System.Net.Http.StreamContent;
@@ -479,12 +480,24 @@ namespace ReactNative.Modules.Network
 
         private static IHttpClient CreateDefaultHttpClient()
         {
+#if WINDOWS_UWP
             return new DefaultHttpClient(
                 new HttpClient(
                     new HttpBaseProtocolFilter
                     {
                         AllowAutoRedirect = false,
                     }));
+#else
+            var httpClientHandler = new HttpClientHandler
+            {
+                Proxy =  WebRequest.GetSystemWebProxy(),
+                AllowAutoRedirect = false
+            };
+            httpClientHandler.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+
+            var httpClient = new HttpClient(httpClientHandler);
+            return new DefaultHttpClient(httpClient);
+#endif
         }
     }
 }

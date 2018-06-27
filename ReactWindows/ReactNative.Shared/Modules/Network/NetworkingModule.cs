@@ -55,6 +55,9 @@ namespace ReactNative.Modules.Network
         internal NetworkingModule(IHttpClient client, ReactContext reactContext)
             : base(reactContext)
         {
+#if !WINDOWS_UWP
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+#endif
             _client = client;
             _tasks = new TaskCancellationManager<int>();
         }

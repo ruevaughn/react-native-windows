@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 namespace ReactNative.Tracing
@@ -8,10 +8,13 @@ namespace ReactNative.Tracing
     /// </summary>
     public sealed class LoggingActivity : IDisposable
     {
-        private readonly TraceSource _target;
+        private  TraceSource _target;
+        //private TraceSource traceSource;
         private readonly int _tag;
         private readonly string _eventName;
         private readonly SourceLevels _level;
+        private readonly TraceWriter _traceWriter;
+        private readonly LoggingFields LoggingFields;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoggingActivity"/> class.
@@ -20,12 +23,25 @@ namespace ReactNative.Tracing
         /// <param name="tag"></param>
         /// <param name="eventName"></param>
         /// <param name="level"></param>
-        public LoggingActivity(TraceSource target, int tag, string eventName, SourceLevels level)
+        /// <param name="traceWriter"></param>
+        /// <param name="loggingFields"></param>
+        public LoggingActivity(TraceSource target, int tag, string eventName, SourceLevels level, TraceWriter traceWriter, LoggingFields loggingFields)
         {
             _target = target;
             _tag = tag;
             _eventName = eventName;
             _level = level;
+            _traceWriter = traceWriter;
+            this.LoggingFields = loggingFields;
+            if (this.IsEnabled())
+            {
+                _traceWriter?.TraceWrite(_tag, _eventName, $"{TraceEventType.Start}{Environment.NewLine}{this.GetFieldsString()}");
+            }
+        }
+
+        private string GetFieldsString()
+        {
+            return this.LoggingFields.IsEmpty ? String.Empty : $"Fields:{Environment.NewLine}{LoggingFields}";
         }
 
         /// <inheritdoc />
@@ -33,7 +49,7 @@ namespace ReactNative.Tracing
         {
             if (this.IsEnabled())
             {
-                _target.TraceEvent(TraceEventType.Information, _tag, _eventName);
+                _traceWriter?.TraceWrite(_tag, _eventName, TraceEventType.Stop.ToString());
             }
         }
 
@@ -50,7 +66,6 @@ namespace ReactNative.Tracing
                 case SourceLevels.All:
                     return true;
             }
-
             return _target.Switch.Level >= _level;
         }
     }

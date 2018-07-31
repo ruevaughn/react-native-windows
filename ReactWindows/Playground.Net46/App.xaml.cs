@@ -1,4 +1,8 @@
-﻿using System;
+using Playground.Net46.Properties;
+using ReactNative.Tracing;
+using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -12,12 +16,15 @@ namespace Playground.Net46
     {
         private readonly AppReactPage _reactPage = new AppReactPage();
 
+        private TraceSource traceSource;
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
         public App()
         {
+            
         }
 
         /// <summary>
@@ -28,6 +35,7 @@ namespace Playground.Net46
         {
             base.OnStartup(e);
             OnCreate(e.Args);
+           
         }
 
         /// <summary>
@@ -49,7 +57,6 @@ namespace Playground.Net46
                     Width = 1024,
                     WindowStartupLocation = WindowStartupLocation.CenterScreen
                 };
-
                 Application.Current.MainWindow = shellWindow;
             }
 
@@ -74,6 +81,7 @@ namespace Playground.Net46
 
                 // Place the frame in the current Window
                 shellWindow.Content = rootFrame;
+                
             }
 
             if (rootFrame.Content == null)
@@ -83,6 +91,8 @@ namespace Playground.Net46
                 // parameter
                 rootFrame.Content = _reactPage;
             }
+
+            RNWTraceListener rnwTraceListener = new RNWTraceListenerBuilder("Tracer", Settings.Default.TraceSwitchValue).Build();
 
             // Ensure the current window is active
             shellWindow.Activate();

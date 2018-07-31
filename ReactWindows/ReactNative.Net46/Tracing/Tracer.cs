@@ -1,4 +1,4 @@
-﻿#define TRACE
+#define TRACE
 
 using System;
 using System.Diagnostics;
@@ -42,11 +42,11 @@ namespace ReactNative.Tracing
         {
             if (Instance.Switch.Level != SourceLevels.Off)
             {
-                return new LoggingActivityBuilder(Instance, tag, eventName, SourceLevels.Information);
+                return new LoggingActivityBuilder(Instance, tag, eventName, SourceLevels.All, new TraceWriter(ActivityTrace));
             }
 
             return EmptyLoggingActivityBuilder ??
-                   (EmptyLoggingActivityBuilder = new LoggingActivityBuilder(Instance, 0, "None", SourceLevels.Off));
+                   (EmptyLoggingActivityBuilder = new LoggingActivityBuilder(Instance, 0, "None", SourceLevels.Off, new TraceWriter(ActivityTrace)));
         }
 
         /// <summary>
@@ -56,7 +56,17 @@ namespace ReactNative.Tracing
         /// <param name="eventName">The event name.</param>
         public static void Write(int tag, string eventName)
         {
-            Instance.TraceData(TraceEventType.Information, tag, eventName, tag);
+            Write(tag, eventName, tag.ToString());
+        }
+
+        public static void Write(int tag, string eventName, string data)
+        {
+            Instance.TraceData(TraceEventType.Warning, tag, eventName, data);
+        }
+
+        private static void ActivityTrace(int tag, string eventName, string data)
+        {
+            Instance.TraceData(TraceEventType.Information, tag, eventName, data);
         }
 
         /// <summary>
@@ -67,7 +77,7 @@ namespace ReactNative.Tracing
         /// <param name="ex">The exception.</param>
         public static void Error(int tag, string eventName, Exception ex)
         {
-            Instance.TraceData(TraceEventType.Error, tag, ex != null
+                Instance.TraceData(TraceEventType.Error, tag, ex != null
                 ? $"{eventName} - {ex}"
                 : $"{eventName}",
                 tag);

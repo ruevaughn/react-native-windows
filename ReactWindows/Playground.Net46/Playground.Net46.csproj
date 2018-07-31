@@ -148,16 +148,31 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="AppReactPage.cs" />
+    <Compile Include="CustomLogFile.cs" />
+    <Compile Include="ICustomLogFile.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="RNWTraceListenerBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RNWTraceListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReactNative.Net46\ReactNative.Net46.csproj">

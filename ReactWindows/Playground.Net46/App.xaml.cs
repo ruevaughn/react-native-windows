@@ -92,8 +92,6 @@ namespace Playground.Net46
                 rootFrame.Content = _reactPage;
             }
 
-            RNWTraceListener rnwTraceListener = new RNWTraceListenerBuilder("Tracer", Settings.Default.TraceSwitchValue).Build();
-
             // Ensure the current window is active
             shellWindow.Activate();
         }

@@ -31,5 +31,14 @@ namespace Playground.Net46.Properties {
                 return ((global::System.Diagnostics.SourceLevels)(this["TraceSwitchValue"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("c:\\temp")]
+        public string LoggingOutputDirectory {
+            get {
+                return ((string)(this["LoggingOutputDirectory"]));
+            }
+        }
     }
 }

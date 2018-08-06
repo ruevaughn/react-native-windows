@@ -1,43 +1,85 @@
-using log4net;
 using System;
-using System.Diagnostics;
-using System.Xml.Linq;
+using System.IO;
+using log4net;
+using log4net.Appender;
+using log4net.Config;
+using log4net.Core;
+using log4net.Filter;
+using log4net.Layout;
+using log4net.Repository;
 
 namespace Playground.Net46
 {
-    public class RNWTraceListener : TraceListener
+    public class RNWTraceListener : AbstractTraceSourceTraceListener
     {
-        private const string RollingFileAppenderName = "RNWRollingFileAppender";
+        protected string LoggingOutputDirectory = String.Empty;
+
+        private string rollingFileAppenderName = "RNWCustomRollingFileAppender";
+        protected override string RollingFileAppenderName => rollingFileAppenderName;
+
+        private string logRecordHeader = "RNWLog";
+        protected override string LogRecordHeader => logRecordHeader;
 
         private ILog _log;
-        private string LoggingOutputDirectory = String.Empty;
+        private ILog _log2;
 
-        public override void Write(string message)
+        protected override ILog LogInctance => _log;
+
+        protected override ILog LogInctance2 => _log2;
+
+        public  RNWTraceListener(string initializeData):base(initializeData)
         {
         }
 
-        public override void WriteLine(string message)
+        protected override void InitializeLogger(string loggingOutputDirectory)
         {
-        }
+            if (loggingOutputDirectory == null)
+            {
+                throw new ArgumentNullException(nameof(loggingOutputDirectory));
+            }
 
-        public RNWTraceListener()
-        {
-            this.InitializeLogger();
-        }
+            //checking path valid
+            if (!Directory.Exists(loggingOutputDirectory))
+            {
+                throw new ArgumentException($"Wrong value for {nameof(loggingOutputDirectory)}. Folder isn't exist");
+            }
 
-        private void InitializeLogger()
-        {
-            this.LoggingOutputDirectory = Properties.Settings.Default.LoggingOutputDirectory;
-
-            this._log = LogManager.GetLogger("RNWLog");
-
+            this.LoggingOutputDirectory = loggingOutputDirectory;
             string path = String.Format("{0}-{1}-{2}-{3}{4}", "RNW", DateTime.Now.Month.ToString("00")
                                    , DateTime.Now.Day.ToString("00")
                                    , DateTime.Now.Year.ToString(), ".log");
+            string path2 = String.Format("{0}-{1}-{2}-{3}{4}", "RNW_2_", DateTime.Now.Month.ToString("00")
+                                   , DateTime.Now.Day.ToString("00")
+                                   , DateTime.Now.Year.ToString(), ".log");
 
-            this.ChangeFilePath(RollingFileAppenderName, path);
+            LevelMatchFilter filter = new LevelMatchFilter();
+            filter.LevelToMatch = Level.All;
+            filter.ActivateOptions();
+
+            RollingFileAppender appender = new RollingFileAppender();
+            appender.File = System.IO.Path.Combine(String.IsNullOrEmpty(this.LoggingOutputDirectory) ? appender.File : this.LoggingOutputDirectory, path);
+            appender.MaxFileSize = 10485760; //10mb
+            appender.MaxSizeRollBackups = 3;
+            appender.ImmediateFlush = true;
+            appender.AppendToFile = true;
+            appender.RollingStyle = RollingFileAppender.RollingMode.Composite;
+            appender.LockingModel = new FileAppender.MinimalLock();
+            appender.Name = RollingFileAppenderName;
+            appender.AddFilter(filter);
+            appender.Layout = new PatternLayout("%message%newline");
+            appender.ActivateOptions();
+
+            ILoggerRepository repository = LoggerManager.CreateRepository("RNWLoggingRepository");
+            BasicConfigurator.Configure(repository, appender);
+
+            this._log = LogManager.GetLogger("RNWLoggingRepository", "RNWLog");
+
+            //Another log from config file - only for demo. Should be deleted fro prod
+            this._log2 = LogManager.GetLogger("RNWLog2");
+            this.ChangeFilePath("RNWRollingFileAppender", path2);
         }
 
+        //needs only for demo another log file. Should be deleted fro prod
         private void ChangeFilePath(string appenderName, string newFilename)
         {
             log4net.Repository.ILoggerRepository repository = log4net.LogManager.GetRepository();
@@ -49,70 +91,6 @@ namespace Playground.Net46
                     fileAppender.File = System.IO.Path.Combine(String.IsNullOrEmpty(this.LoggingOutputDirectory) ? fileAppender.File : this.LoggingOutputDirectory, newFilename);
                     fileAppender.ActivateOptions();
                 }
-            }
-        }
-
-        private string getEventCacheString(TraceEventCache eventCache, TraceEventType eventType)
-        {
-            return 
-                (eventType <= TraceEventType.Error
-                ? $"Call stack: {eventCache.Callstack}{Environment.NewLine}{Environment.NewLine}"
-                : String.Empty);
-        }
-
-        private void SaveToLogXml(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
-        {
-            var eventCacheString = this.getEventCacheString(eventCache, eventType);
-
-            XDocument xDoc = new XDocument(
-                    new XElement("RNWLog",
-                         new XElement("Time", eventCache.DateTime.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff")),
-                         new XElement("ProcessId", eventCache.ProcessId),
-                         new XElement("Source", source),
-                         new XElement("EventType", eventType),
-                         new XElement("EventCache", eventCacheString),
-                         new XElement("Data", data)
-                    )
-                );
-
-            this.Log(eventType, xDoc.ToString());
-        }
-
-        private void Log(TraceEventType eventType, string message)
-        {
-            switch (eventType)
-            {
-                case TraceEventType.Information:
-                    _log?.Info(message);
-                    break;
-                case TraceEventType.Error:
-                    _log?.Error(message);
-                    break;
-                default:
-                    _log?.Info(message);
-                    break;
-            }
-        }
-
-        private void SaveToLog(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
-        {
-           string msg = $"Source: {source}{Environment.NewLine}"+
-                        this.getEventCacheString(eventCache, eventType)+
-                        $"EventType: {eventType}{Environment.NewLine}Data: {data}{Environment.NewLine}{Environment.NewLine}";
-
-            this.Log(eventType, msg);
-        }
-
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, object data)
-        {
-            this.SaveToLogXml(eventCache, source, eventType, id, data);
-        }
-
-        public override void TraceData(TraceEventCache eventCache, string source, TraceEventType eventType, int id, params object[] data)
-        {
-            if (data.Length > 0)
-            {
-                this.SaveToLogXml(eventCache, source, eventType, id, String.Join(" | ", data));
             }
         }
     }

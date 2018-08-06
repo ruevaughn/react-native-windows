@@ -157,9 +157,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="RNWTraceListener.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RNWTraceListener.cs" />
+    <Compile Include="AbstractTraceSourceTraceListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

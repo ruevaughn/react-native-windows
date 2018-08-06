@@ -22,23 +22,5 @@ namespace Playground.Net46.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Information")]
-        public global::System.Diagnostics.SourceLevels TraceSwitchValue {
-            get {
-                return ((global::System.Diagnostics.SourceLevels)(this["TraceSwitchValue"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\temp")]
-        public string LoggingOutputDirectory {
-            get {
-                return ((string)(this["LoggingOutputDirectory"]));
-            }
-        }
     }
 }

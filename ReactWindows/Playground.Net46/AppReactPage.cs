@@ -10,7 +10,7 @@ namespace Playground.Net46
     {
         public override string MainComponentName => "Playground.Net46";
 
-        public override string JavaScriptMainModuleName => "ReactWindows/Playground.Net46/index.windows.placeholder";
+        public override string JavaScriptMainModuleName => "ReactWindows/Playground.Net46/index.windows";
 
 #if BUNDLE
         public override string JavaScriptBundleFile => AppDomain.CurrentDomain.BaseDirectory + "ReactAssets/index.windows.bundle";

@@ -160,6 +160,9 @@
       <DependentUpon>RedBoxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="DevSupport\WebSocketJavaScriptExecutor.cs" />
+    <Compile Include="Tracing\LoggingActivity.cs" />
+    <Compile Include="Tracing\LoggingFields.cs" />
+    <Compile Include="Tracing\TraceWriter.cs" />
     <Compile Include="Views\UIElementExtensions.cs" />
     <Compile Include="Modules\Dialog\DialogModule.cs" />
     <Compile Include="Modules\Image\BitmapImageHelpers.cs" />
@@ -180,6 +183,7 @@
     <Compile Include="Touch\IOnInterceptTouchEventListener.cs" />
     <Compile Include="Touch\JavaScriptResponderHandler.cs" />
     <Compile Include="Touch\TouchHandler.cs" />
+    <Compile Include="Tracing\LoggingActivityBuilder.cs" />
     <Compile Include="Tracing\NullLoggingActivityBuilderExtensions.generated.cs">
       <DependentUpon>NullLoggingActivityBuilderExtensions.tt</DependentUpon>
       <AutoGen>True</AutoGen>

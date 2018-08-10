@@ -1,4 +1,4 @@
-﻿using ReactNative.UIManager.Annotations;
+using ReactNative.UIManager.Annotations;
 using System;
 #if WINDOWS_UWP
 using Windows.UI;
@@ -189,12 +189,22 @@ namespace ReactNative.UIManager
         protected override Border CreateViewInstance(ThemedReactContext reactContext)
         {
             var inner = CreateInnerElement(reactContext);
+#if !WINDOWS_UWP
             return new UIAutomationBorder
             {
                 BorderBrush = s_defaultBorderBrush,
                 Child = inner
             };
+#else
+            return new Border
+            {
+                BorderBrush = s_defaultBorderBrush,
+                Child = inner
+            };
+#endif
         }
+
+
 
         /// <summary>
         /// Creates a new view instance of type <typeparamref name="TFrameworkElement"/>.
@@ -253,6 +263,7 @@ namespace ReactNative.UIManager
         }
     }
 
+#if !WINDOWS_UWP
     /// <summary>
     /// Custom peer class deriving from FrameworkElementAutomationPeer
     /// </summary>
@@ -290,4 +301,5 @@ namespace ReactNative.UIManager
             return new ModifiedBorderAutomationPeer(this);
         }
     }
+#endif
 }

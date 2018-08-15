@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using PCLStorage;
 using ReactNative.Bridge;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -340,10 +341,20 @@ namespace ReactNative.Modules.Storage
 
         private async Task<JObject> SetAsync(string key, string value)
         {
-            var storageFolder = await GetAsyncStorageFolder(true).ConfigureAwait(false);
-            var file = await storageFolder.CreateFileAsync(AsyncStorageHelpers.GetFileName(key), CreationCollisionOption.ReplaceExisting).ConfigureAwait(false);
-            await FileExtensions.WriteAllTextAsync(file, value).ConfigureAwait(false);
-            return default(JObject);
+            try
+            {
+                var storageFolder = await GetAsyncStorageFolder(true).ConfigureAwait(false);
+                var file = await storageFolder.CreateFileAsync(AsyncStorageHelpers.GetFileName(key), CreationCollisionOption.OpenIfExists).ConfigureAwait(false);
+                await FileExtensions.WriteAllTextAsync(file, value).ConfigureAwait(false);
+                return default(JObject);
+            }
+            catch (Exception ex)
+            {
+                return new JObject {
+                                { "message", ex.Message },
+                                { "fileName", ex.ToString()}
+                            };
+            }
         }
 
         private async Task<IFolder> GetAsyncStorageFolder(bool createIfNotExists)

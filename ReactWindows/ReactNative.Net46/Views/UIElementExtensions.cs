@@ -19,19 +19,14 @@ namespace ReactNative.Views.Extensions
                 return;
             }
 
+
             var focusScope = FocusManager.GetFocusScope(uiElement);
-
-            var inputElement = focusScope as IInputElement;
-
-            if (inputElement != null && !inputElement.Equals(uiElement))
+            if (focusScope == null)
             {
-                FocusManager.SetFocusedElement(focusScope, inputElement);
+                return;
             }
-            else
-            {
-                FocusManager.SetFocusedElement(focusScope, null);
-            }
+
+            FocusManager.SetFocusedElement(focusScope, null);
         }
     }
-
 }

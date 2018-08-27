@@ -154,14 +154,6 @@ namespace ReactNative.Modules.WebSocket
 
         private void OnError(int id, WebSocketSharp.ErrorEventArgs args)
         {
-            lock (this.locker)
-            {
-                if (_webSocketConnections.ContainsKey(id))
-                {
-                    _webSocketConnections.Remove(id);
-                }
-            }
-
             SendEvent("websocketFailed", new JObject
             {
                 { "id", id },

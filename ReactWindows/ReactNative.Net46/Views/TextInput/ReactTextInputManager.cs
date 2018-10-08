@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -16,7 +17,7 @@ namespace ReactNative.Views.TextInput
     /// <summary>
     /// View manager for <see cref="ReactTextBox"/>.
     /// </summary>
-    class ReactTextInputManager : BaseViewManager<ReactTextBox, ReactTextInputShadowNode>
+    internal class ReactTextInputManager : BaseViewManager<ReactTextBox, ReactTextInputShadowNode>
     {
         internal const int FocusTextInput = 1;
         internal const int BlurTextInput = 2;
@@ -30,22 +31,12 @@ namespace ReactNative.Views.TextInput
         /// <summary>
         /// The name of the view manager.
         /// </summary>
-        public override string Name
-        {
-            get
-            {
-                return "RCTTextBox";
-            }
-        }
+        public override string Name => "RCTTextBox";
 
         /// <summary>
         /// The exported custom bubbling event types.
         /// </summary>
-        public override IReadOnlyDictionary<string, object> ExportedCustomBubblingEventTypeConstants
-        {
-            get
-            {
-                return new Dictionary<string, object>()
+        public override IReadOnlyDictionary<string, object> ExportedCustomBubblingEventTypeConstants => new Dictionary<string, object>()
                 {
                     {
                         "topSubmitEditing",
@@ -104,23 +95,15 @@ namespace ReactNative.Views.TextInput
                         }
                     },
                 };
-            }
-        }
 
         /// <summary>
         /// The commands map for the <see cref="ReactTextInputManager"/>.
         /// </summary>
-        public override IReadOnlyDictionary<string, object> CommandsMap
-        {
-            get
-            {
-                return new Dictionary<string, object>()
+        public override IReadOnlyDictionary<string, object> CommandsMap => new Dictionary<string, object>()
                 {
                     { "focusTextInput", FocusTextInput },
                     { "blurTextInput", BlurTextInput },
                 };
-            }
-        }
 
         /// <summary>
         /// Sets the font size on the <see cref="ReactTextBox"/>.
@@ -392,6 +375,18 @@ namespace ReactNative.Views.TextInput
             view.SelectTextOnFocus = selectTextOnFocus;
         }
 
+        /// <summary>
+        /// Sets autoCapitalize property. Can tell TextInput to automatically capitalize certain characters
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="mode">Mode <see cref="ReactNative.Views.TextInput.AutoCapitalizeMode"/></param>
+        [ReactProp("autoCapitalize")]
+        public void SetAutocapitalize(ReactTextBox view, string mode)
+        {
+            var binding = AutoCapitalize.GetBinder(AutoCapitalize.FromString(mode)); ;
+            view.SetBinding(TextBox.TextProperty, binding);
+        }
+
         [ReactProp("blurOnSubmit")]
         public void SetBlurOnSubmit(ReactTextBox view, bool blurOnSubmit)
         {
@@ -452,7 +447,7 @@ namespace ReactNative.Views.TextInput
                 {
                     return;
                 }
-                
+
                 view.TextChanged -= OnTextChanged;
 
                 if (_onSelectionChange)
@@ -570,7 +565,7 @@ namespace ReactNative.Views.TextInput
                       textBox.GetTag(),
                       textBox.Text));
         }
-        
+
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
             var shiftModifier = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;

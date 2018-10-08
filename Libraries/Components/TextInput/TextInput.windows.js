@@ -604,9 +604,6 @@ var TextInput = React.createClass({
         notSupported('autoCorrect');
       }
 
-      if (this.props.autoCapitalize) {
-        notSupported('autoCapitalize');
-      }
 
       if (this.props.multiline) {
         notSupported('multiline');
@@ -660,6 +657,7 @@ var TextInput = React.createClass({
           ref="input"
           style={[this.props.style]}
           autoCorrect={this.props.autoCorrect}
+          autoCapitalize={this.props.autoCapitalize}
           keyboardType={this.props.keyboardType}
           mostRecentEventCount={0}
           multiline={this.props.multiline}

@@ -163,6 +163,8 @@
     <Compile Include="Tracing\LoggingActivity.cs" />
     <Compile Include="Tracing\LoggingFields.cs" />
     <Compile Include="Tracing\TraceWriter.cs" />
+    <Compile Include="Views\TextInput\AutoCapitalize.cs" />
+    <Compile Include="Views\TextInput\AutoCapitalizeMultiConverter.cs" />
     <Compile Include="Views\UIElementExtensions.cs" />
     <Compile Include="Modules\Dialog\DialogModule.cs" />
     <Compile Include="Modules\Image\BitmapImageHelpers.cs" />

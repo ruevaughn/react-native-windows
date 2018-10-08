@@ -128,6 +128,7 @@
     <Compile Include="Modules\Storage\AsyncStorageModuleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UIManager\UIManagerModuleTests.cs" />
+    <Compile Include="Views\TextInput\AutoCapitalize.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

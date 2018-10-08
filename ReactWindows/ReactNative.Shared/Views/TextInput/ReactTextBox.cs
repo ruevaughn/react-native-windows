@@ -6,26 +6,24 @@ using Windows.UI.Xaml.Controls;
 #else
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 #endif
 
 namespace ReactNative.Views.TextInput
 {
-    class ReactTextBox : TextBox
+    internal class ReactTextBox : TextBox
     {
         private int _eventCount;
 
         public ReactTextBox()
         {
             SizeChanged += OnSizeChanged;
+
+            var binding = AutoCapitalize.GetBinder(AutoCapitalizeMode.Sentences);
+            SetBinding(TextBox.TextProperty, binding);
         }
 
-        public int CurrentEventCount
-        {
-            get
-            {
-                return _eventCount;
-            }
-        }
+        public int CurrentEventCount => _eventCount;
 
         public bool ClearTextOnFocus
         {

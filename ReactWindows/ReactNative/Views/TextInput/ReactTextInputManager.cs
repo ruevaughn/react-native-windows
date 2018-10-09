@@ -103,6 +103,21 @@ namespace ReactNative.Views.TextInput
                             }
                         }
                     },
+                    {
+                        "topKeyPress",
+                        new Dictionary<string, object>()
+                        {
+                            {
+                                "phasedRegistrationNames",
+                                new Dictionary<string, string>()
+                                {
+                                    { "bubbled" , "onKeyPress" },
+                                    { "captured" , "onKeyPressCapture" }
+                                }
+                            }
+                        }
+                    },
+
                 };
             }
         }
@@ -571,9 +586,9 @@ namespace ReactNative.Views.TextInput
         
         private void OnKeyDown(object sender, KeyRoutedEventArgs e)
         {
+            var textBox = (ReactTextBox)sender;
             if (e.Key == VirtualKey.Enter)
             {
-                var textBox = (ReactTextBox)sender;
                 if (!textBox.AcceptsReturn)
                 {
                     e.Handled = true;
@@ -585,6 +600,18 @@ namespace ReactNative.Views.TextInput
                                 textBox.GetTag(),
                                 textBox.Text));
                 }
+            }
+
+            if (!e.Handled)
+            {
+                textBox.GetReactContext()
+                    .GetNativeModule<UIManagerModule>()
+                    .EventDispatcher
+                    .DispatchEvent(
+                        new ReactTextInputKeyEvent(
+                            ReactTextInputKeyEvent.KeyPressEventString,
+                            textBox.GetTag(),
+                            e.Key));
             }
         }
 

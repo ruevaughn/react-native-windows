@@ -94,6 +94,20 @@ namespace ReactNative.Views.TextInput
                             }
                         }
                     },
+                    {
+                        "topKeyPress",
+                        new Dictionary<string, object>()
+                        {
+                            {
+                                "phasedRegistrationNames",
+                                new Dictionary<string, string>()
+                                {
+                                    { "bubbled" , "onKeyPress" },
+                                    { "captured" , "onKeyPressCapture" }
+                                }
+                            }
+                        }
+                    },
                 };
 
         /// <summary>
@@ -505,10 +519,14 @@ namespace ReactNative.Views.TextInput
         /// <returns></returns>
         protected override ReactTextBox CreateViewInstance(ThemedReactContext reactContext)
         {
-            return new ReactTextBox
+            var view = new ReactTextBox
             {
                 AcceptsReturn = false,
             };
+
+            var binding = AutoCapitalize.GetBinder(AutoCapitalizeMode.Sentences);
+            view.SetBinding(TextBox.TextProperty, binding);
+            return view;
         }
 
         /// <summary>
@@ -571,10 +589,10 @@ namespace ReactNative.Views.TextInput
             var shiftModifier = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
             var controlModifier = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
             var blurOnSubmit = (_blurOnSubmit.HasValue && _blurOnSubmit.Value);
+            var textBox = (ReactTextBox)sender;
 
             if (e.Key == Key.Enter && !shiftModifier)
             {
-                var textBox = (ReactTextBox)sender;
                 if (!textBox.AcceptsReturn || blurOnSubmit || controlModifier)
                 {
                     e.Handled = true;
@@ -590,6 +608,18 @@ namespace ReactNative.Views.TextInput
                                 textBox.GetTag(),
                                 textBox.Text));
                 }
+            }
+
+            if (!e.Handled)
+            {
+                textBox.GetReactContext()
+                    .GetNativeModule<UIManagerModule>()
+                    .EventDispatcher
+                    .DispatchEvent(
+                        new ReactTextInputKeyEvent(
+                            ReactTextInputKeyEvent.KeyPressEventString,
+                            textBox.GetTag(),
+                            e.Key));
             }
         }
 

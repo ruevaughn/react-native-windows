@@ -18,9 +18,6 @@ namespace ReactNative.Views.TextInput
         public ReactTextBox()
         {
             SizeChanged += OnSizeChanged;
-
-            var binding = AutoCapitalize.GetBinder(AutoCapitalizeMode.Sentences);
-            SetBinding(TextBox.TextProperty, binding);
         }
 
         public int CurrentEventCount => _eventCount;

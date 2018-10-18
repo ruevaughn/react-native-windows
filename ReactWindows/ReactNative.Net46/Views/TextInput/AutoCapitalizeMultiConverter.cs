@@ -9,11 +9,17 @@ namespace ReactNative.Views.TextInput
     /// </summary>
     public class AutoCapitalizeMultiConverter : IMultiValueConverter
     {
-        string source;
+        string source = null;
 
         /// <inheritedoc />
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
+            if (source == null)
+            {
+                var text = (values[0] as ReactTextBox)?.Text;
+                source = AutoCapitalize.Convert(text, culture, (AutoCapitalizeMode)parameter);
+            }
+
             return source;
         }
 

@@ -458,6 +458,9 @@ namespace ReactNative.Modules.Network
                     case "content-length":
                     case "content-type":
                         break;
+                    case "if-none-match":
+                        request.Headers.TryAddWithoutValidation(key, header[1]);
+                        break;
                     default:
                         request.Headers.Add(key, header[1]);
                         break;

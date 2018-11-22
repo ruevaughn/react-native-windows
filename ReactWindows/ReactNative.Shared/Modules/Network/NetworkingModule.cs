@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Collections;
 using ReactNative.Modules.Core;
@@ -58,6 +58,7 @@ namespace ReactNative.Modules.Network
 #if !WINDOWS_UWP
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 #endif
+            ServicePointManager.Expect100Continue = false;
             _client = client;
             _tasks = new TaskCancellationManager<int>();
         }

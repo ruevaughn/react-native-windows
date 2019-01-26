@@ -55,10 +55,6 @@ namespace ReactNative.Modules.Network
         internal NetworkingModule(IHttpClient client, ReactContext reactContext)
             : base(reactContext)
         {
-// #if !WINDOWS_UWP
-//             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-// #endif
-//             ServicePointManager.Expect100Continue = false;
             _client = client;
             _tasks = new TaskCancellationManager<int>();
         }
@@ -133,7 +129,7 @@ namespace ReactNative.Modules.Network
                 {
                     if (headerData.ContentType == null)
                     {
-                        OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false);
+                        OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false, url);
                         return;
                     }
 
@@ -143,11 +139,12 @@ namespace ReactNative.Modules.Network
                 {
                     if (headerData.ContentType == null)
                     {
-                        OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false);
+                        OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false, url);
                         return;
                     }
 
                     _tasks.AddAndInvokeAsync(requestId, token => ProcessRequestFromUriAsync(
+                        url,
                         requestId,
                         new Uri(uri),
                         useIncrementalUpdates,
@@ -188,6 +185,7 @@ namespace ReactNative.Modules.Network
                     try
                     {
                         await ProcessRequestAsync(
+                            url,
                             requestId,
                             useIncrementalUpdates,
                             timeout,
@@ -228,6 +226,7 @@ namespace ReactNative.Modules.Network
         }
 
         private async Task ProcessRequestFromUriAsync(
+            Uri url,
             int requestId,
             Uri uri,
             bool useIncrementalUpdates,
@@ -247,6 +246,7 @@ namespace ReactNative.Modules.Network
 #endif
             request.Content = new HttpStreamContent(inputStream);
             await ProcessRequestAsync(
+                url,
                 requestId,
                 useIncrementalUpdates,
                 timeout,
@@ -256,6 +256,7 @@ namespace ReactNative.Modules.Network
         }
 
         private async Task ProcessRequestAsync(
+            Uri url,
             int requestId,
             bool useIncrementalUpdates,
             int timeout,
@@ -289,7 +290,7 @@ namespace ReactNative.Modules.Network
                             using (stream)
                             {
                                 await ProcessResponseIncrementalAsync(requestId, stream, length, timeoutSource.Token).ConfigureAwait(false);
-                                OnRequestSuccess(requestId);
+                                OnRequestSuccess(requestId, response);
                             }
 #if WINDOWS_UWP
                             inputStream.Dispose();
@@ -333,7 +334,7 @@ namespace ReactNative.Modules.Network
                                 }
                             }
 
-                            OnRequestSuccess(requestId);
+                            OnRequestSuccess(requestId, response);
                         }
                     }
                 }
@@ -343,8 +344,16 @@ namespace ReactNative.Modules.Network
                     // Cancellation was due to timeout
                     if (!token.IsCancellationRequested)
                     {
-                        OnRequestError(requestId, ex.Message, true);
+                        OnRequestError(requestId, ex.Message, true, url);
                     }
+                }
+                catch (HttpRequestException ex)
+                {
+                    if (_shuttingDown)
+                    {
+                        return;
+                    }
+                    OnRequestError(requestId, ex.InnerException.Message, false, url);
                 }
                 catch (Exception ex)
                 {
@@ -353,7 +362,7 @@ namespace ReactNative.Modules.Network
                         return;
                     }
 
-                    OnRequestError(requestId, ex.Message, false);
+                    OnRequestError(requestId, ex.Message, false, url);
                 }
             }
         }
@@ -429,22 +438,27 @@ namespace ReactNative.Modules.Network
             });
         }
 
-        private void OnRequestError(int requestId, string message, bool timeout)
+        private void OnRequestError(int requestId, string message, bool timeout, Uri url)
         {
             EventEmitter.emit("didCompleteNetworkResponse", new JArray
             {
                 requestId,
                 message,
-                timeout
+                timeout,
+                url.ToString(),
+                "ERROR"
             });
         }
 
-        private void OnRequestSuccess(int requestId)
+        private void OnRequestSuccess(int requestId, HttpResponseMessage response)
         {
             EventEmitter.emit("didCompleteNetworkResponse", new JArray
             {
                 requestId,
                 null,
+                response.RequestMessage.RequestUri.ToString(),
+                response.StatusCode,
+                "SUCCESS"
             });
         }
 

@@ -55,6 +55,10 @@ namespace ReactNative.Modules.Network
         internal NetworkingModule(IHttpClient client, ReactContext reactContext)
             : base(reactContext)
         {
+#if !WINDOWS_UWP
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+#endif
+            ServicePointManager.Expect100Continue = false;
             _client = client;
             _tasks = new TaskCancellationManager<int>();
         }
@@ -446,7 +450,7 @@ namespace ReactNative.Modules.Network
                 message,
                 timeout,
                 url.ToString(),
-                "ERROR"
+                "[ERROR]"
             });
         }
 
@@ -458,7 +462,7 @@ namespace ReactNative.Modules.Network
                 null,
                 response.RequestMessage.RequestUri.ToString(),
                 response.StatusCode,
-                "SUCCESS"
+                "[SUCCESS]"
             });
         }
 

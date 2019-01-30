@@ -505,24 +505,12 @@ namespace ReactNative.Modules.Network
 
         private static IHttpClient CreateDefaultHttpClient()
         {
-#if WINDOWS_UWP
             return new DefaultHttpClient(
                 new HttpClient(
                     new HttpBaseProtocolFilter
                     {
                         AllowAutoRedirect = false,
                     }));
-#else
-            var httpClientHandler = new HttpClientHandler
-            {
-                Proxy =  WebRequest.GetSystemWebProxy(),
-                AllowAutoRedirect = false
-            };
-            httpClientHandler.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-
-            var httpClient = new HttpClient(httpClientHandler);
-            return new DefaultHttpClient(httpClient);
-#endif
         }
     }
 }

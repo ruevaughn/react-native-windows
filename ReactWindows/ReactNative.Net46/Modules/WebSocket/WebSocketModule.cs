@@ -1,6 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
-using ReactNative.Collections;
+using ReactNative.Json;
 using ReactNative.Common;
 using ReactNative.Modules.Core;
 using ReactNative.Tracing;
@@ -72,7 +77,11 @@ namespace ReactNative.Modules.WebSocket
                 {
                     Tracer.Write(
                         ReactConstants.Tag,
+<<<<<<< HEAD
                         $"Cannot close WebSocket. Unknown WebSocket id {id}.");
+=======
+                        Invariant($"Cannot close WebSocket. Unknown WebSocket id {id}."));
+>>>>>>> upstream-0.57-stable
 
                     return;
                 }
@@ -93,7 +102,11 @@ namespace ReactNative.Modules.WebSocket
 
                     Tracer.Error(
                         ReactConstants.Tag,
+<<<<<<< HEAD
                         $"Could not close WebSocket connection for id '{id}'.",
+=======
+                        Invariant($"Could not close WebSocket connection for id '{id}'."),
+>>>>>>> upstream-0.57-stable
                         ex);
                 }
             }
@@ -103,6 +116,12 @@ namespace ReactNative.Modules.WebSocket
         public void send(string message, int id)
         {
             SendMessageInBackground(id, message);
+        }
+
+        [ReactMethod]
+        public void sendBinary(string message, int id)
+        {
+            SendMessageInBackground(id, Convert.FromBase64String(message));
         }
 
         #endregion
@@ -163,12 +182,13 @@ namespace ReactNative.Modules.WebSocket
 
         private void OnMessageReceived(int id, object sender, MessageEventArgs args)
         {
-            var message = args.Data;
+            var message = args.IsBinary ? Convert.ToBase64String(args.RawData) : args.Data;
             SendEvent("websocketMessage", new JObject
-                {
-                    { "id", id },
-                    { "data", message },
-                });
+            {
+                { "id", id },
+                { "data", message },
+                { "type", args.IsBinary ? "binary" : "text" },
+            });
         }
 
         #endregion

@@ -1,17 +1,17 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
- *
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * 
  * @providesModule FlipViewWindows
  * @flow
  */
 'use strict';
 
+var PropTypes = require('prop-types');
 var React = require('React');
 var ReactNative = require('ReactNative');
-var ReactElement = require('react/lib/ReactElement');
-var ReactPropTypes = require('react/lib/ReactPropTypes');
 var UIManager = require('UIManager');
-var View = require('View');
+var ViewPropTypes = require('ViewPropTypes');
 
 var requireNativeComponent = require('requireNativeComponent');
 
@@ -58,41 +58,46 @@ type Event = Object;
  * }
  * ```
  */
-var FlipViewWindows = React.createClass({
+class FlipViewWindows extends React.Component {
+  props: {
+    initialPage?: number,
+    alwaysAnimate?: boolean,
+    onSelectionChange?: Function,
+  };
 
-  propTypes: {
-    ...View.propTypes,
+  static propTypes = {
+    ...ViewPropTypes,
     /**
      * Index of initial page that should be selected. Use `setPage` method to
      * update the page, and `onSelectionChange` to monitor page changes
      */
-    initialPage: ReactPropTypes.number,
+    initialPage: PropTypes.number,
 
     /**
      * Indicates whether `setPage` calls should be animated.
      */
-    alwaysAnimate: ReactPropTypes.bool,
-    
+    alwaysAnimate: PropTypes.bool,
+
     /**
      * This callback when FlipView selection is changed (when user swipes between
      * pages). The `event.nativeEvent` object passed to this callback will have
      * following fields:
      *  - position - index of page that has been selected
      */
-    onSelectionChange: ReactPropTypes.func,
-  },
+    onSelectionChange: PropTypes.func,
+  };
 
-  componentDidMount: function() {
+  componentDidMount() {
     if (this.props.initialPage) {
       this.setPage(this.props.initialPage);
     }
-  },
-  
-  getInnerViewNode: function(): ReactComponent<*,*,*> {
-    return this.refs[FLIPVIEW_REF].getInnerViewNode();
-  },
+  }
 
-  _childrenWithOverridenStyle: function(): Array<*> {
+  getInnerViewNode = (): ReactComponent<*,*,*> => {
+    return this.refs[FLIPVIEW_REF].getInnerViewNode();
+  };
+
+  _childrenWithOverridenStyle = (): Array<*> => {
     // Override styles so that each page will fill the parent. Native component
     // will handle positioning of elements, so it's not important to offset
     // them correctly.
@@ -119,28 +124,28 @@ var FlipViewWindows = React.createClass({
           (child.type.displayName !== 'View')) {
         console.warn('Each FlipView child must be a <View>. Was ' + child.type.displayName);
       }
-      return ReactElement.createElement(child.type, newProps);
+      return React.createElement(child.type, newProps);
     });
-  },
+  };
 
-  _onSelectionChange: function(e: Event) {
+  _onSelectionChange = (e: Event) => {
     if (this.props.onSelectionChange) {
       this.props.onSelectionChange(e);
     }
-  },
+  };
 
   /**
    * A helper function to switch to a specific page in the FlipView.
    */
-  setPage: function(selectedPage: number) {
+  setPage = (selectedPage: number) => {
     UIManager.dispatchViewManagerCommand(
       ReactNative.findNodeHandle(this),
       UIManager.WindowsFlipView.Commands.setPage,
       [selectedPage],
     );
-  },
+  };
 
-  render: function() {
+  render() {
     return (
       <NativeWindowsFlipView
         ref={FLIPVIEW_REF}
@@ -151,8 +156,8 @@ var FlipViewWindows = React.createClass({
         children={this._childrenWithOverridenStyle()}
       />
     );
-  },
-});
+  }
+}
 
 var NativeWindowsFlipView = requireNativeComponent('WindowsFlipView', FlipViewWindows);
 

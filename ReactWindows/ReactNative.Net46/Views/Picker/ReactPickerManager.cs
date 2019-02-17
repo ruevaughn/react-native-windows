@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using Newtonsoft.Json.Linq;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
@@ -186,7 +189,7 @@ namespace ReactNative.Views.Picker
             private readonly int _selectedIndex;
 
             public ReactPickerEvent(int viewTag, int selectedIndex)
-                : base(viewTag, TimeSpan.FromTicks(Environment.TickCount))
+                : base(viewTag)
             {
                 _selectedIndex = selectedIndex;
             }

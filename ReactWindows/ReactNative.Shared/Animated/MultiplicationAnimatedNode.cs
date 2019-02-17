@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace ReactNative.Animated
@@ -17,7 +22,7 @@ namespace ReactNative.Animated
 
         public override void Update()
         {
-            Value = 1;
+            RawValue = 1;
             foreach (var tag in _inputNodes)
             {
                 var valueNode = _manager.GetNodeById(tag) as ValueAnimatedNode;
@@ -27,7 +32,7 @@ namespace ReactNative.Animated
                         "Illegal node ID set as an input for Animated.Add node.");
                 }
 
-                Value *= valueNode.Value;
+                RawValue *= valueNode.Value;
             }
         }
     }

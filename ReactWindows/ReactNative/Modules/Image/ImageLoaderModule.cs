@@ -1,10 +1,20 @@
-﻿using Microsoft.Toolkit.Uwp.UI;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using FBCore.Common.References;
+using FBCore.DataSource;
+using ImagePipeline.Core;
+using ImagePipeline.Image;
+using ImagePipeline.Request;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Modules.Network;
 using System;
-using System.Reactive.Linq;
-using Windows.UI.Xaml.Media.Imaging;
+using System.IO;
+using System.Threading.Tasks;
+using static System.FormattableString;
 
 namespace ReactNative.Modules.Image
 {
@@ -25,7 +35,7 @@ namespace ReactNative.Modules.Image
         }
 
         [ReactMethod]
-        public void prefetchImage(string uriString, int requestId, IPromise promise)
+        public async void prefetchImage(string uriString, int requestId, IPromise promise)
         {
             if (string.IsNullOrEmpty(uriString))
             {
@@ -33,24 +43,51 @@ namespace ReactNative.Modules.Image
                 return;
             }
 
-            DispatcherHelpers.RunOnDispatcher(async () =>
+            try
             {
-                try
-                {
-                    var uri = new Uri(uriString);
+                var imagePipeline = ImagePipelineFactory.Instance.GetImagePipeline();
+                var uri = new Uri(uriString);
 
-                    await _prefetchRequests.AddAndInvokeAsync(
-                            requestId, 
-                            async token => await ImageCache.Instance.PreCacheAsync(uri, true, true, token).ConfigureAwait(false))
-                        .ConfigureAwait(false);
+                await _prefetchRequests.AddAndInvokeAsync(
+                        requestId, 
+                        async token => await imagePipeline.PrefetchToDiskCacheAsync(uri, token).ConfigureAwait(false))
+                    .ConfigureAwait(false);
 
-                    promise.Resolve(true);
-                }
-                catch (Exception ex)
-                {
-                    promise.Reject(ErrorPrefetchFailure, ex.Message);
-                }
-            });
+                promise.Resolve(true);
+            }
+            catch (Exception ex)
+            {
+                promise.Reject(ErrorPrefetchFailure, ex.Message);
+            }
+        }
+
+        [ReactMethod]
+        public async void prefetchImageAndGetCachedPath(string uriString, int requestId, IPromise promise)
+        {
+            if (string.IsNullOrEmpty(uriString))
+            {
+                promise.Reject(ErrorInvalidUri, "Cannot prefetch an image for an empty URI.");
+                return;
+            }
+
+            try
+            {
+                var imagePipeline = ImagePipelineFactory.Instance.GetImagePipeline();
+                var uri = new Uri(uriString);
+
+                await _prefetchRequests.AddAndInvokeAsync(
+                        requestId,
+                        async token =>
+                            await imagePipeline.PrefetchToDiskCacheAsync(uri, token).ConfigureAwait(false))
+                    .ConfigureAwait(false);
+
+                FileInfo file = await imagePipeline.GetFileCachePath(uri).ConfigureAwait(false);
+                promise.Resolve(file.FullName);
+            }
+            catch (Exception ex)
+            {
+                promise.Reject(ErrorPrefetchFailure, ex.Message);
+            }
         }
 
         [ReactMethod]
@@ -68,60 +105,67 @@ namespace ReactNative.Modules.Image
                 return;
             }
 
-            DispatcherHelpers.RunOnDispatcher(async () =>
-            {
-                try
+            var uri = new Uri(uriString);
+            var imagePipeline = ImagePipelineFactory.Instance.GetImagePipeline();
+            var request = ImageRequestBuilder.NewBuilderWithSource(uri).Build();
+            var dataSource = imagePipeline.FetchDecodedImage(request, null);
+            var dataSubscriber = new BaseDataSubscriberImpl<CloseableReference<CloseableImage>>(
+                response =>
                 {
-                    if (BitmapImageHelpers.IsHttpUri(uriString))
+                    if (!response.IsFinished())
                     {
-                        var bitmapImage = await ImageCache.Instance.GetFromCacheAsync(new Uri(uriString), true);
-                        promise.Resolve(new JObject
+                        return Task.CompletedTask;
+                    }
+
+                    CloseableReference<CloseableImage> reference = response.GetResult();
+                    if (reference != null)
+                    {
+                        try
                         {
-                            { "width", bitmapImage.PixelWidth },
-                            { "height", bitmapImage.PixelHeight },
-                        });
+                            CloseableImage image = reference.Get();
+                            promise.Resolve(new JObject
+                            {
+                                { "width", image.Width },
+                                { "height", image.Height },
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            promise.Reject(ErrorGetSizeFailure, ex.Message);
+                        }
+                        finally
+                        {
+                            CloseableReference<CloseableImage>.CloseSafely(reference);
+                        }
                     }
                     else
                     {
-                        var bitmapImage = new BitmapImage();
-                        var loadQuery = bitmapImage.GetStreamLoadObservable()
-                            .Where(status => status.LoadStatus == ImageLoadStatus.OnLoadEnd)
-                            .FirstAsync()
-                            .Replay(1);
-
-                        using (loadQuery.Connect())
-                        {
-                            using (var stream = await BitmapImageHelpers.GetStreamAsync(uriString))
-                            {
-                                await bitmapImage.SetSourceAsync(stream);
-                            }
-
-                            await loadQuery;
-
-                            promise.Resolve(new JObject
-                            {
-                                { "width", bitmapImage.PixelWidth },
-                                { "height", bitmapImage.PixelHeight },
-                            });
-                        }
+                        promise.Reject(ErrorGetSizeFailure, Invariant($"Invalid URI '{uri}' provided."));
                     }
-                }
-                catch (Exception ex)
+
+                    return Task.CompletedTask;
+                },
+                response =>
                 {
-                    promise.Reject(ErrorGetSizeFailure, ex.Message);
-                }
-            });
+                    promise.Reject(ErrorGetSizeFailure, response.GetFailureCause());
+                });
+
+            dataSource.Subscribe(dataSubscriber, FBCore.Concurrency.CallerThreadExecutor.Instance);
         }
 
         [ReactMethod]
         public async void queryCache(string[] urls, IPromise promise)
         {
-            // TODO: support query for items in memory
+            var imagePipeline = ImagePipelineFactory.Instance.GetImagePipeline();
             var result = new JObject();
             foreach (var url in urls)
             {
-                var file = await ImageCache.Instance.GetFileFromCacheAsync(new Uri(url)).ConfigureAwait(false);
-                if (file != null)
+                var uri = new Uri(url);
+                if (imagePipeline.IsInEncodedMemoryCache(uri))
+                {
+                    result.Add(url, "memory");
+                }
+                else if (await imagePipeline.IsInDiskCacheAsync(uri).ConfigureAwait(false))
                 {
                     result.Add(url, "disk");
                 }
@@ -130,9 +174,10 @@ namespace ReactNative.Modules.Image
             promise.Resolve(result);
         }
 
-        public override void OnReactInstanceDispose()
+        public override Task OnReactInstanceDisposeAsync()
         {
             _prefetchRequests.CancelAllTasks();
+            return Task.CompletedTask;
         }
     }
 }

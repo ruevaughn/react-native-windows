@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using System.Collections.Generic;
 #if WINDOWS_UWP
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 #else
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Media;
 #endif
 
@@ -99,12 +105,24 @@ namespace ReactNative.UIManager
 
             if (!findRoot)
             {
-                return (view as FrameworkElement)?.Parent;
+                var frameworkElement = view as FrameworkElement;
+                if (frameworkElement != null)
+                {
+                    return frameworkElement.Parent;
+                }
+#if !WINDOWS_UWP
+
+                var frameworkContentElement = view as FrameworkContentElement;
+                if (frameworkContentElement != null)
+                {
+                    return frameworkContentElement.Parent;
+                }
+#endif
+
+                return null;
             }
-            else
-            {
-                return VisualTreeHelper.GetParent(view);
-            }
+
+            return VisualTreeHelper.GetParent(view);
         }
     }
 }

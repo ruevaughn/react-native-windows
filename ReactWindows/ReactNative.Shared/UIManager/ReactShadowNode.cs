@@ -1,4 +1,11 @@
-﻿using Facebook.Yoga;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Facebook.Yoga;
+using Newtonsoft.Json.Linq;
+using ReactNative.Json;
 using System;
 using System.Collections.Generic;
 
@@ -8,7 +15,7 @@ namespace ReactNative.UIManager
     /// Base node class for representing the virtual tree of React nodes.
     /// Shadow nodes are used primarily for layout, therefore it encapsulates
     /// <see cref="YogaNode"/> to allow that. Instances of this class receive 
-    /// property updates from JavaScript via the <see cref="UIManagerModule"/>.
+    /// prop updates from JavaScript via the <see cref="UIManagerModule"/>.
     /// 
     /// This class allows for the native view hierarchy not to be an exact copy
     /// of the hierarchy received from JavaScript by keeping track of both
@@ -26,16 +33,15 @@ namespace ReactNative.UIManager
 
         private readonly EdgeSpacing _defaultPadding = new EdgeSpacing(0);
         private readonly EdgeSpacing _padding = new EdgeSpacing(YogaConstants.Undefined);
-        private readonly YogaNode _yogaNode;
+        private YogaNode _yogaNode;
+        private YogaNode _initialYogaNode;
 
         private bool _isLayoutOnly;
         private int _totalNativeChildren;
         private ReactShadowNode _nativeParent;
         private IList<ReactShadowNode> _nativeChildren;
-        private float _absoluteLeft;
-        private float _absoluteTop;
-        private float _absoluteRight;
-        private float _absoluteBottom;
+        private bool _hasChildLayoutChanged;
+        private bool _forceLayoutUpdate;
 
         /// <summary>
         /// Instantiates a <see cref="ReactShadowNode"/>. 
@@ -49,14 +55,15 @@ namespace ReactNative.UIManager
         /// Instantiates a <see cref="ReactShadowNode"/>.
         /// </summary>
         /// <param name="isVirtual">Signals if the shadow node is virtual.</param>
-        public ReactShadowNode(bool isVirtual)
+        /// <param name="isDelegatedLayout">Signals if the shadow node is delegating the layouting to its child.</param>
+        public ReactShadowNode(bool isVirtual, bool isDelegatedLayout = false)
         {
             IsVirtual = isVirtual;
+            IsDelegatedLayout = isDelegatedLayout;
 
             if (!isVirtual)
             {
-                // TODO: add pooling mechanism for Yoga nodes
-                _yogaNode = new YogaNode();
+                _yogaNode = YogaNodePool.Instance.Allocate();
             }
             else
             {
@@ -204,7 +211,7 @@ namespace ReactNative.UIManager
         {
             set
             {
-                _yogaNode.StyleAspectRatio = value;
+                _yogaNode.AspectRatio = value;
             }
         }
 
@@ -253,6 +260,17 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
+        /// The content alignment.
+        /// </summary>
+        public YogaAlign AlignContent
+        {
+            set
+            {
+                _yogaNode.AlignContent = value;
+            }
+        }
+
+        /// <summary>
         /// The justify content value.
         /// </summary>
         public YogaJustify JustifyContent
@@ -271,6 +289,17 @@ namespace ReactNative.UIManager
             set
             {
                 _yogaNode.Overflow = value;
+            }
+        }
+
+        /// <summary>
+        /// The display mode.
+        /// </summary>
+        public YogaDisplay Display
+        {
+            set
+            {
+                _yogaNode.Display = value;
             }
         }
 
@@ -304,6 +333,15 @@ namespace ReactNative.UIManager
         public virtual bool IsVirtualAnchor => false;
 
         /// <summary>
+        /// Nodes that return <code>true</code> will be treated as relying on the child
+        /// for layout purposes.
+        /// </summary>
+        /// <remarks>
+        /// By default this method returns <code>false</code>.
+        /// </remarks>
+        public bool IsDelegatedLayout { get; }
+
+        /// <summary>
         /// Signals that the node has updates.
         /// </summary>
         public bool HasUpdates => _nodeUpdated || HasNewLayout || IsDirty;
@@ -318,6 +356,11 @@ namespace ReactNative.UIManager
         /// </summary>
         public bool IsDirty => _yogaNode != null && _yogaNode.IsDirty;
 
+        /// <summary>
+        /// Signals layout updates must be applied even if various optimizations suggest the contrary
+        /// </summary>
+        public bool MustForceLayout => _forceLayoutUpdate;
+        
         /// <summary>
         /// The number of children.
         /// </summary>
@@ -400,7 +443,17 @@ namespace ReactNative.UIManager
         /// <summary>
         /// Signals if a new layout is available.
         /// </summary>
-        public bool HasNewLayout => _yogaNode?.HasNewLayout ?? false;
+        public bool HasNewLayout
+        {
+            get
+            {
+                if (IsDelegatedLayout)
+                {
+                    return _hasChildLayoutChanged;
+                }
+                return _yogaNode?.HasNewLayout ?? false;
+            }
+        }
 
         /// <summary>
         /// The number of native children.
@@ -456,12 +509,18 @@ namespace ReactNative.UIManager
         /// <summary>
         /// The layout horizontal position.
         /// </summary>
-        public float LayoutX => _yogaNode.LayoutX;
+        /// <remarks>
+        /// Children of IsDelegatedLayout nodes return a fake 0 for X since it's the parent that is responsible for exposing this
+        /// </remarks>
+        public float LayoutX => (_parent != null && _parent.IsDelegatedLayout) ? 0 : _yogaNode.LayoutX;
 
         /// <summary>
         /// The layout vertical position.
         /// </summary>
-        public float LayoutY => _yogaNode.LayoutY;
+        /// <remarks>
+        /// Children of IsDelegatedLayout nodes return a fake 0 for Y since it's the parent that is responsible for exposing this
+        /// </remarks>
+        public float LayoutY => (_parent != null && _parent.IsDelegatedLayout) ? 0 : _yogaNode.LayoutY;
 
         /// <summary>
         /// The layout width.
@@ -476,22 +535,22 @@ namespace ReactNative.UIManager
         /// <summary>
         /// The screen horizontal position.
         /// </summary>
-        public int ScreenX => (int)Math.Round(LayoutX);
+        public int ScreenX { get; private set; }
 
         /// <summary>
         /// The screen vertical position.
         /// </summary>
-        public int ScreenY => (int)Math.Round(LayoutY);
+        public int ScreenY { get; private set; }
 
         /// <summary>
         /// The screen width.
         /// </summary>
-        public int ScreenWidth => (int)Math.Round(_absoluteRight - _absoluteLeft);
+        public int ScreenWidth { get; private set; }
 
         /// <summary>
         /// The screen height.
         /// </summary>
-        public int ScreenHeight => (int)Math.Round(_absoluteBottom - _absoluteTop);
+        public int ScreenHeight { get; private set; }
 
         /// <summary>
         /// The measure function.
@@ -706,6 +765,14 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
+        /// Forces the further applying of layout updates bypassing optimizations
+        /// </summary>
+        public void MarkForceLayout()
+        {
+            _forceLayoutUpdate = true;
+        }
+
+        /// <summary>
         /// Marks that an update has been seen.
         /// </summary>
         public void MarkUpdateSeen()
@@ -723,7 +790,18 @@ namespace ReactNative.UIManager
         /// </summary>
         public void MarkLayoutSeen()
         {
-            _yogaNode?.MarkLayoutSeen();
+            if (IsDelegatedLayout)
+            {
+                // We reset just this cached flag, the Yoga node is the one of the child's, and that one
+                // has been already marked as seen by the one level deeper recursion.
+                _hasChildLayoutChanged = false;
+            }
+            else
+            {
+                _yogaNode?.MarkLayoutSeen();
+            }
+
+            _forceLayoutUpdate = false;
         }
 
         /// <summary>
@@ -731,12 +809,18 @@ namespace ReactNative.UIManager
         /// </summary>
         /// <param name="child">The child.</param>
         /// <param name="index">The index.</param>
-        public void AddChildAt(ReactShadowNode child, int index)
+        public virtual void AddChildAt(ReactShadowNode child, int index)
         {
             if (child._parent != null)
             {
                 throw new InvalidOperationException(
                   "Tried to add child that already has a parent! Remove it from its parent first.");
+            }
+
+            if (IsDelegatedLayout && (ChildCount > 0 || index != 0))
+            {
+                throw new InvalidOperationException(
+                  "Cannot add more than one child to a CSS node that delegates the layouting!");
             }
 
             if (_children == null)
@@ -757,7 +841,25 @@ namespace ReactNative.UIManager
                     throw new InvalidOperationException(
                       "Cannot add a child that doesn't have a CSS node to a node without a measure function!");
                 }
-                _yogaNode.Insert(index, childYogaNode);
+
+                if (IsDelegatedLayout)
+                {
+                    // Piggyback on child's Yoga node by keeping a reference to it
+                    _initialYogaNode = _yogaNode;
+                    _yogaNode = child._yogaNode;
+
+                    // If parent has already been told about a Yoga node, make it aware of the new one
+                    if (_parent != null)
+                    {
+                        _parent.ReplaceYogaNode(_initialYogaNode, _yogaNode);
+                    }
+
+                    _hasChildLayoutChanged = true;
+                }
+                else
+                {
+                    _yogaNode.Insert(index, childYogaNode);
+                }
             }
 
             MarkUpdated();
@@ -784,9 +886,23 @@ namespace ReactNative.UIManager
             _children.RemoveAt(index);
             removed._parent = null;
 
-            if (_yogaNode != null && !_yogaNode.IsMeasureDefined)
+            if (_yogaNode != null && (!_yogaNode.IsMeasureDefined || IsDelegatedLayout))
             {
-                _yogaNode.RemoveAt(index);
+                if (IsDelegatedLayout)
+                {
+                    // Notify parent, if needed
+                    if (_parent != null)
+                    {
+                        _parent.ReplaceYogaNode(_yogaNode, _initialYogaNode);
+                    }
+
+                    _yogaNode = _initialYogaNode;
+                    _initialYogaNode = null;
+                }
+                else
+                {
+                    _yogaNode.RemoveAt(index);
+                }
             }
 
             MarkUpdated();
@@ -796,6 +912,30 @@ namespace ReactNative.UIManager
             UpdateNativeChildrenCountInParent(-decrease);
 
             return removed;
+        }
+
+        /// <summary>
+        /// Replaces a child Yoga node with a new one 
+        /// </summary>
+        /// <param name="oldNode">Old Yoga node child.</param>
+        /// <param name="newNode">New Yoga node child.</param>
+        public void ReplaceYogaNode(YogaNode oldNode, YogaNode newNode)
+        {
+            if (_yogaNode == null)
+            {
+                throw new InvalidOperationException(
+                    "Cannot replace a Yoga child node when there's no parent!");
+            }
+
+            int index = _yogaNode.IndexOf(oldNode);
+            if (index < 0)
+            {
+                throw new InvalidOperationException(
+                    "Yoga child node is not present in parent!");
+            }
+
+            _yogaNode.RemoveAt(index);
+            _yogaNode.Insert(index, newNode);
         }
 
         /// <summary>
@@ -809,18 +949,17 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Updates the properties of the node.
+        /// Updates the props of the node.
         /// </summary>
-        /// <param name="props">The properties.</param>
-        public void UpdateProperties(ReactStylesDiffMap props)
+        /// <param name="props">The props.</param>
+        public void UpdateProps(JObject props)
         {
-            var setters = ViewManagersPropertyCache.GetNativePropertySettersForShadowNodeType(GetType());
-            foreach (var key in props.Keys)
+            var setters = ViewManagersPropCache.GetNativePropSettersForShadowNodeType(GetType());
+            foreach (var key in props.Keys())
             {
-                var setter = default(IPropertySetter);
-                if (setters.TryGetValue(key, out setter))
+                if (setters.TryGetValue(key, out var setter))
                 {
-                    setter.UpdateShadowNodeProperty(this, props);
+                    setter.UpdateShadowNodeProp(this, props);
                 }
             }
 
@@ -828,7 +967,7 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Called following property updates for node.
+        /// Called following prop updates for node.
         /// </summary>
         public virtual void OnAfterUpdateTransaction()
         {
@@ -886,12 +1025,33 @@ namespace ReactNative.UIManager
             var decrease = 0;
             for (int i = ChildCount - 1; i >= 0; i--)
             {
-                if (_yogaNode != null && !_yogaNode.IsMeasureDefined)
+                var toRemove = GetChildAt(i);
+
+                if (_yogaNode != null && (!_yogaNode.IsMeasureDefined || IsDelegatedLayout))
                 {
-                    _yogaNode.RemoveAt(i);
+                    if (IsDelegatedLayout)
+                    {
+                        if (ChildCount > 1)
+                        {
+                            throw new InvalidOperationException(
+                              "Cannot have more than one child to a CSS node that delegates the layouting!");
+                        }
+
+                        // Notify parent, if needed
+                        if (_parent != null)
+                        {
+                            _parent.ReplaceYogaNode(_yogaNode, _initialYogaNode);
+                        }
+
+                        _yogaNode = _initialYogaNode;
+                        _initialYogaNode = null;
+                    }
+                    else
+                    {
+                        _yogaNode.RemoveAt(i);
+                    }
                 }
 
-                var toRemove = GetChildAt(i);
                 toRemove._parent = null;
                 toRemove.Dispose();
 
@@ -1023,9 +1183,12 @@ namespace ReactNative.UIManager
         /// </summary>
         public void Dispose()
         {
-            if (_yogaNode != null)
+            YogaNode nodeToDispose = (IsDelegatedLayout && _initialYogaNode != null) ? _initialYogaNode : _yogaNode;
+
+            if (nodeToDispose != null)
             {
-                _yogaNode.Reset();
+                nodeToDispose.Reset();
+                YogaNodePool.Instance.Free(nodeToDispose);
             }
         }
 
@@ -1060,12 +1223,36 @@ namespace ReactNative.UIManager
 
             if (HasNewLayout)
             {
-                _absoluteLeft = absoluteX + LayoutX;
-                _absoluteTop = absoluteY + LayoutY;
-                _absoluteRight = absoluteX + LayoutX + LayoutWidth;
-                _absoluteBottom = absoluteY + LayoutY + LayoutHeight;
-                nativeViewHierarchyOptimizer.HandleUpdateLayout(this);
-                return true;
+                var layoutX = LayoutX;
+                var layoutY = LayoutY;
+                var newAbsoluteLeft = (int)Math.Round(absoluteX + layoutX);
+                var newAbsoluteTop = (int)Math.Round(absoluteY + layoutY);
+                var newAbsoluteRight = (int)Math.Round(absoluteX + layoutX + LayoutWidth);
+                var newAbsoluteBottom = (int)Math.Round(absoluteY + layoutY + LayoutHeight);
+
+                var newScreenX = (int)Math.Round(layoutX);
+                var newScreenY = (int)Math.Round(layoutY);
+                var newScreenWidth = newAbsoluteRight - newAbsoluteLeft;
+                var newScreenHeight = newAbsoluteBottom - newAbsoluteTop;
+
+                var layoutHasChanged =
+                    MustForceLayout ||
+                    newScreenX != ScreenX ||
+                    newScreenY != ScreenY ||
+                    newScreenWidth != ScreenWidth ||
+                    newScreenHeight != ScreenHeight;
+
+                ScreenX = newScreenX;
+                ScreenY = newScreenY;
+                ScreenWidth = newScreenWidth;
+                ScreenHeight = newScreenHeight;
+                
+                if (layoutHasChanged)
+                {
+                    nativeViewHierarchyOptimizer.HandleUpdateLayout(this);
+                }
+
+                return layoutHasChanged;
             }
             else
             {
@@ -1099,6 +1286,16 @@ namespace ReactNative.UIManager
             parent?.MarkUpdated();
         }
 
+        internal void BeforeDispatchUpdatesToDescendants()
+        {
+            if (IsDelegatedLayout)
+            {
+                // We cache the "changed" value from the child Yoga node so we can mark
+                // the current shadow node as seen separately from the child.
+                _hasChildLayoutChanged = _yogaNode?.HasNewLayout ?? false;
+            }
+        }
+
         private void UpdateNativeChildrenCountInParent(int delta)
         {
             if (_isLayoutOnly)
@@ -1130,10 +1327,7 @@ namespace ReactNative.UIManager
                         YogaConstants.IsUndefined(_padding.GetRaw(EdgeSpacing.All)))
                     {
                         SetPadding(_yogaNode, spacingType, _defaultPadding.GetRaw(spacingType));
-                    }
-                    else
-                    {
-                        SetPadding(_yogaNode, spacingType, _padding.GetRaw(spacingType));
+                        continue;
                     }
                 }
                 else if (spacingType == EdgeSpacing.Top || spacingType == EdgeSpacing.Bottom)
@@ -1143,10 +1337,7 @@ namespace ReactNative.UIManager
                         YogaConstants.IsUndefined(_padding.GetRaw(EdgeSpacing.All)))
                     {
                         SetPadding(_yogaNode, spacingType, _defaultPadding.GetRaw(spacingType));
-                    }
-                    else
-                    {
-                        SetPadding(_yogaNode, spacingType, _padding.GetRaw(spacingType));
+                        continue;
                     }
                 }
                 else
@@ -1154,12 +1345,11 @@ namespace ReactNative.UIManager
                     if (YogaConstants.IsUndefined(_padding.GetRaw(spacingType)))
                     {
                         SetPadding(_yogaNode, spacingType, _defaultPadding.GetRaw(spacingType));
-                    }
-                    else
-                    {
-                        SetPadding(_yogaNode, spacingType, _padding.GetRaw(spacingType));
+                        continue;
                     }
                 }
+
+                SetPadding(_yogaNode, spacingType, _padding.GetRaw(spacingType));
             }
         }
 

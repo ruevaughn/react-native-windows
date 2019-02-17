@@ -1,4 +1,9 @@
-﻿using Facebook.Yoga;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Facebook.Yoga;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Modules.I18N;
@@ -9,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace ReactNative.UIManager
 {
@@ -52,7 +58,7 @@ namespace ReactNative.UIManager
             : this(
                 reactContext,
                 viewManagers,
-                new UIViewOperationQueue(reactContext, new NativeViewHierarchyManager(viewManagers)), 
+                new UIViewOperationQueue(reactContext, viewManagers), 
                 eventDispatcher)
         {
         }
@@ -110,10 +116,10 @@ namespace ReactNative.UIManager
         /// Unregisters a root view with the given tag.
         /// </summary>
         /// <param name="rootViewTag">The root view tag.</param>
-        public void RemoveRootView(int rootViewTag)
+        public Task RemoveRootViewAsync(int rootViewTag)
         {
             _shadowNodeRegistry.RemoveRootNode(rootViewTag);
-            _operationsQueue.EnqueueRemoveRootView(rootViewTag);
+            return _operationsQueue.RemoveRootViewAsync(rootViewTag);
         }
 
         /// <summary>
@@ -143,13 +149,26 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
+        /// Refreshes RTL/LTR direction on all root views.
+        /// </summary>
+        public void UpdateLayoutDirection()
+        {
+            // RTL/LTR is implemented through Xaml FlowDirection, so we keep Yoga oblivious of this.
+            _operationsQueue.UpdateRootViewNodesDirection();
+            if (_operationsQueue.IsEmpty())
+            {
+                DispatchViewUpdates(-1 /* no associated batch id */);
+            }
+        }
+
+        /// <summary>
         /// Invoked by React to create a new node with the given tag, class
-        /// name, and properties.
+        /// name, and props.
         /// </summary>
         /// <param name="tag">The view tag.</param>
         /// <param name="className">The class name.</param>
         /// <param name="rootViewTag">The root view tag.</param>
-        /// <param name="props">The properties.</param>
+        /// <param name="props">The props.</param>
         public void CreateView(int tag, string className, int rootViewTag, JObject props)
         {
             var cssNode = CreateShadowNode(className);
@@ -161,18 +180,16 @@ namespace ReactNative.UIManager
 
             _shadowNodeRegistry.AddNode(cssNode);
 
-            var styles = default(ReactStylesDiffMap);
             if (props != null)
             {
-                styles = new ReactStylesDiffMap(props);
-                cssNode.UpdateProperties(styles);
+                cssNode.UpdateProps(props);
             }
 
-            HandleCreateView(cssNode, rootViewTag, styles);
+            HandleCreateView(cssNode, rootViewTag, props);
         }
 
         /// <summary>
-        /// Invoked by React to create a new node with a given tag, class name and properties.
+        /// Configures the next layout animation.
         /// </summary>
         /// <param name="config">the animation configuration properties.</param>
         /// <param name="success">Success callback.</param>
@@ -183,12 +200,12 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Invoked by React when the properties change for a node with the
+        /// Invoked by React when the props change for a node with the
         /// given tag.
         /// </summary>
         /// <param name="tag">The view tag.</param>
         /// <param name="className">The view class name.</param>
-        /// <param name="props">The properties.</param>
+        /// <param name="props">The props.</param>
         public void UpdateView(int tag, string className, JObject props)
         {
             var viewManager = _viewManagers.Get(className);
@@ -200,9 +217,8 @@ namespace ReactNative.UIManager
 
             if (props != null)
             {
-                var styles = new ReactStylesDiffMap(props);
-                cssNode.UpdateProperties(styles);
-                HandleUpdateView(cssNode, className, styles);
+                cssNode.UpdateProps(props);
+                HandleUpdateView(cssNode, className, props);
             }
         }
 
@@ -210,17 +226,18 @@ namespace ReactNative.UIManager
         /// Used by the native animated module to bypass the process of
         /// updating the values through the shadow view hierarchy. This method
         /// will directly update the native views, which means that updates for
-        /// layout-related properties won't be handled properly.
+        /// layout-related props won't be handled properly.
         /// </summary>
         /// <param name="tag">The view tag.</param>
-        /// <param name="props">The properties</param>
+        /// <param name="props">The props.</param>
         /// <remarks>
         /// Make sure you know what you're doing before calling this method :)
         /// </remarks>
-        public void SynchronouslyUpdateViewOnDispatcherThread(int tag, ReactStylesDiffMap props)
+        public bool SynchronouslyUpdateViewOnDispatcherThread(int tag, JObject props)
         {
             DispatcherHelpers.AssertOnDispatcher();
-            _operationsQueue.NativeViewHierarchyManager.UpdateProperties(tag, props);
+
+            return _operationsQueue.SynchronouslyUpdateViewOnDispatcherThread(tag, props);
         }
 
         /// <summary>
@@ -557,33 +574,6 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Sets a JavaScript responder for a view.
-        /// </summary>
-        /// <param name="reactTag">The view ID.</param>
-        /// <param name="blockNativeResponder">
-        /// Flag to signal if the native responder should be blocked.
-        /// </param>
-        public void SetJavaScriptResponder(int reactTag, bool blockNativeResponder)
-        {
-            AssertViewExists(reactTag);
-            var node = _shadowNodeRegistry.GetNode(reactTag);
-            while (node.IsVirtual || node.IsLayoutOnly)
-            {
-                node = node.Parent;
-            }
-
-            _operationsQueue.EnqueueSetJavaScriptResponder(node.ReactTag, reactTag, blockNativeResponder);
-        }
-
-        /// <summary>
-        /// Clears the JavaScript responder.
-        /// </summary>
-        public void ClearJavaScriptResponder()
-        {
-            _operationsQueue.EnqueueClearJavaScriptResponder();
-        }
-
-        /// <summary>
         /// Dispatches a command to the view manager.
         /// </summary>
         /// <param name="reactTag">The tag of the view manager.</param>
@@ -618,12 +608,23 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Enqueues UIBlock to be executed.
+        /// Enqueues UI block to be executed on dispatcher thread associated with a react tag hint.
         /// </summary>
         /// <param name="block">The UI block.</param>
-        public void AddUIBlock(IUIBlock block)
+        /// <param name="tag">Optional react tag hint that triggers the choice of the dispatcher thread that executes the block .</param>
+        public void AddUIBlock(IUIBlock block, int? tag)
         {
-            _operationsQueue.EnqueueUIBlock(block);
+            _operationsQueue.EnqueueUIBlock(block, tag);
+        }
+
+        /// <summary>
+        /// Prepends the UI block to be executed on main dispatcher thread.
+        /// </summary>
+        /// <param name="block">The UI block.</param>
+        public void PrependUIBlock(IUIBlock block)
+        {
+            // Always uses main dispatcher thread
+            _operationsQueue.PrependUIBlock(block, null);
         }
 
         /// <summary>
@@ -645,9 +646,9 @@ namespace ReactNative.UIManager
         /// <summary>
         /// Called when the host is shutting down.
         /// </summary>
-        public void OnShutdown()
+        public void OnDestroy()
         {
-            _operationsQueue.OnShutdown();
+            _operationsQueue.OnDestroy();
         }
 
         private void UpdateViewHierarchy()
@@ -661,32 +662,29 @@ namespace ReactNative.UIManager
             }
         }
 
-        private void HandleCreateView(ReactShadowNode cssNode, int rootViewTag, ReactStylesDiffMap styles)
+        private void HandleCreateView(ReactShadowNode cssNode, int rootViewTag, JObject styles)
         {
             if (!cssNode.IsVirtual)
             {
-                _nativeViewHierarchyOptimizer.HandleCreateView(cssNode, cssNode.ThemedContext, styles);
+                _nativeViewHierarchyOptimizer.HandleCreateView(cssNode, rootViewTag, cssNode.ThemedContext, styles);
             }
         }
 
         private void HandleUpdateView(
             ReactShadowNode cssNode,
             string className,
-            ReactStylesDiffMap styles)
+            JObject props)
         {
             if (!cssNode.IsVirtual)
             {
-                _nativeViewHierarchyOptimizer.HandleUpdateView(cssNode, className, styles);
+                _nativeViewHierarchyOptimizer.HandleUpdateView(cssNode, className, props);
             }
         }
 
         private ReactShadowNode CreateRootShadowNode()
         {
             var rootCssNode = new ReactShadowNode();
-            if (I18NUtil.IsRightToLeft)
-            {
-                rootCssNode.LayoutDirection = YogaDirection.RTL;
-            }
+            // RTL/LTR is implemented through Xaml FlowDirection, so we keep Yoga oblivious of this.
 
             rootCssNode.ViewClass = "Root";
             return rootCssNode;
@@ -703,7 +701,7 @@ namespace ReactNative.UIManager
             return _shadowNodeRegistry.GetNode(reactTag);
         }
 
-        private IViewManager ResolveViewManager(string className)
+        internal IViewManager ResolveViewManager(string className)
         {
             return _viewManagers.Get(className);
         }
@@ -863,6 +861,8 @@ namespace ReactNative.UIManager
             float absoluteX,
             float absoluteY)
         {
+            cssNode.BeforeDispatchUpdatesToDescendants();
+
             if (!cssNode.HasUpdates)
             {
                 return;
@@ -882,21 +882,24 @@ namespace ReactNative.UIManager
             var tag = cssNode.ReactTag;
             if (!_shadowNodeRegistry.IsRootNode(tag))
             {
-                cssNode.DispatchUpdates(
+                var frameDidChange = cssNode.DispatchUpdates(
                     absoluteX,
                     absoluteY,
                     _operationsQueue,
                     _nativeViewHierarchyOptimizer);
 
-                if (cssNode.ShouldNotifyOnLayout)
+                if (frameDidChange && cssNode.ShouldNotifyOnLayout)
                 {
-                    _eventDispatcher.DispatchEvent(
-                        OnLayoutEvent.Obtain(
-                            tag,
-                            cssNode.ScreenX,
-                            cssNode.ScreenY,
-                            cssNode.ScreenWidth,
-                            cssNode.ScreenHeight));
+                    // Dispatch event from non-layout thread to avoid queueing
+                    // main dispatcher callbacks from the layout thread
+                    var task = Task.Run(() =>
+                        _eventDispatcher.DispatchEvent(
+                            OnLayoutEvent.Obtain(
+                                tag,
+                                cssNode.ScreenX,
+                                cssNode.ScreenY,
+                                cssNode.ScreenWidth,
+                                cssNode.ScreenHeight)));
                 }
             }
 

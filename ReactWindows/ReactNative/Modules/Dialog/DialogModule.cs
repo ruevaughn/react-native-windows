@@ -1,8 +1,14 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
-using ReactNative.Collections;
+using ReactNative.Json;
+using ReactNative.UIManager;
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using Windows.UI.Popups;
@@ -11,7 +17,16 @@ namespace ReactNative.Modules.Dialog
 {
     class DialogModule : ReactContextNativeModuleBase, ILifecycleEventListener
     {
-        private MessageDialog _pendingDialog;
+        private class MessageDialogInfo
+        {
+            public MessageDialog MessageDialog { set; get; }
+
+            public int? RootViewHint { set; get; }
+
+            public Action<string> ErrorCallback { set; get; }
+        }
+
+        private MessageDialogInfo _pendingDialog;
         private bool _isInForeground;
 
         public DialogModule(ReactContext reactContext)
@@ -27,11 +42,11 @@ namespace ReactNative.Modules.Dialog
             }
         }
 
-        public override IReadOnlyDictionary<string, object> Constants
+        public override JObject ModuleConstants
         {
             get
             {
-                return new Dictionary<string, object>
+                return new JObject
                 {
                     { DialogModuleHelper.ActionButtonClicked, DialogModuleHelper.ActionButtonClicked },
                     { DialogModuleHelper.ActionDismissed, DialogModuleHelper.ActionDismissed },
@@ -51,7 +66,7 @@ namespace ReactNative.Modules.Dialog
             _isInForeground = false;   
         }
 
-        public async void OnResume()
+        public void OnResume()
         {
             _isInForeground = true;
 
@@ -59,7 +74,7 @@ namespace ReactNative.Modules.Dialog
             _pendingDialog = null;
             if (pendingDialog != null)
             {
-                await pendingDialog.ShowAsync().AsTask().ConfigureAwait(false);
+                ShowDialog(pendingDialog);
             }
         }
 
@@ -79,6 +94,18 @@ namespace ReactNative.Modules.Dialog
                 Title = config.Value<string>("title"),
             };
 
+            MessageDialogInfo dialogInfo = new MessageDialogInfo
+            {
+                MessageDialog = messageDialog,
+                ErrorCallback = (string error) => errorCallback.Invoke(error)
+            };
+
+            if (config.ContainsKey(DialogModuleHelper.RootViewHint))
+            {
+                dialogInfo.RootViewHint = config.Value<int>(DialogModuleHelper.RootViewHint);
+            }
+
+            uint commandIndex = 0;
             if (config.ContainsKey(DialogModuleHelper.KeyButtonPositive))
             {
                 messageDialog.Commands.Add(new UICommand
@@ -87,6 +114,7 @@ namespace ReactNative.Modules.Dialog
                     Id = DialogModuleHelper.KeyButtonPositiveValue,
                     Invoked = target => OnInvoked(target, actionCallback),
                 });
+                commandIndex ++;
             }
 
             if (config.ContainsKey(DialogModuleHelper.KeyButtonNegative))
@@ -97,17 +125,22 @@ namespace ReactNative.Modules.Dialog
                     Id = DialogModuleHelper.KeyButtonNegativeValue,
                     Invoked = target => OnInvoked(target, actionCallback),
                 });
+
+                // Use this command for Escape (we don't use the DialogModuleHelper.ActionDismissed since
+                // it's hard to detect the condition
+                messageDialog.CancelCommandIndex = commandIndex;
+                commandIndex++;
             }
 
-            RunOnDispatcher(async () =>
+            DispatcherHelpers.RunOnDispatcher(() =>
             {
                 if (_isInForeground)
                 {
-                    await messageDialog.ShowAsync().AsTask().ConfigureAwait(false);
+                    ShowDialog(dialogInfo);
                 }
                 else
                 {
-                    _pendingDialog = messageDialog;
+                    _pendingDialog = dialogInfo;
                 }
             });
         }
@@ -117,9 +150,44 @@ namespace ReactNative.Modules.Dialog
             callback.Invoke(DialogModuleHelper.ActionButtonClicked, target.Id);
         }
 
-        private static async void RunOnDispatcher(DispatchedHandler action)
+        private void ShowDialog(MessageDialogInfo dialog)
         {
-            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, action).AsTask().ConfigureAwait(false);
+            var uiManager = Context.GetNativeModule<UIManagerModule>();
+            try
+            {
+                uiManager.AddUIBlock(new UIBlock(async () =>
+                {
+                    if (CoreApplication.GetCurrentView().CoreWindow == null)
+                    {
+                        // View has no CoreWindow, won't be able to display a dialog box
+                        dialog.ErrorCallback($"Alert failed: CoreApplicationView corresponding to RootViewHint {dialog.RootViewHint} has no CoreWindow");
+                        return;
+                    }
+
+                    await dialog.MessageDialog.ShowAsync();
+                }
+                ), dialog.RootViewHint);
+            }
+            catch (InvalidOperationException)
+            {
+                // RootViewHint is bogus, i.e. no Dispatcher thread was found
+                dialog.ErrorCallback($"Alert failed: RootViewHint {dialog.RootViewHint} can't be mapped to a CoreApplicationView");
+            }
+        }
+
+        class UIBlock : IUIBlock
+        {
+            private readonly Action _action;
+
+            public UIBlock(Action action)
+            {
+                _action = action;
+            }
+
+            public void Execute(NativeViewHierarchyManager nativeViewHierarchyManager)
+            {
+                _action();
+            }
         }
     }
 }

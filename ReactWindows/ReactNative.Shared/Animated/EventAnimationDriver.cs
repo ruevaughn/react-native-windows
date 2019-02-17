@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.UIManager.Events;
 using System;
 using System.Collections.Generic;
@@ -34,7 +39,7 @@ namespace ReactNative.Animated
                 current = (JObject)current[_eventPath[i]];
             }
 
-            ValueNode.Value = current.Value<double>(_eventPath[_eventPath.Count - 1]);
+            ValueNode.RawValue = current.Value<double>(_eventPath[_eventPath.Count - 1]);
         }
 
         public override void receiveTouches(string eventName, JArray touches, JArray changedIndexes)

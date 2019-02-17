@@ -1,6 +1,10 @@
-﻿using ReactNative.Bridge;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using ReactNative.Bridge;
 using ReactNative.UIManager;
-using System;
 using System.Collections.Generic;
 
 namespace ReactNative.Modules.Core
@@ -30,19 +34,6 @@ namespace ReactNative.Modules.Core
         /// <param name="reactContext">The React application context.</param>
         /// <returns>The list of native modules.</returns>
         IReadOnlyList<INativeModule> CreateNativeModules(ReactContext reactContext);
-
-        /// <summary>
-        /// Creates the list of JavaScript modules to register with the 
-        /// React instance. 
-        /// </summary>
-        /// <returns>The list of JavaScript modules.</returns>
-        /// <remarks>
-        /// C# lacks the ability to restrict which types this method is called
-        /// with at compile time, so adding types that either do not have a 
-        /// default constructor or do not derive from 
-        /// <see cref="IJavaScriptModule"/> will result in a runtime exception.
-        /// </remarks>
-        IReadOnlyList<Type> CreateJavaScriptModulesConfig();
 
         /// <summary>
         /// Creates the list of view managers that should be registered with

@@ -1,22 +1,22 @@
-﻿using Microsoft.Toolkit.Uwp.UI;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using ImagePipeline.Core;
 using Newtonsoft.Json.Linq;
 using ReactNative.Collections;
 using ReactNative.Modules.Image;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Reactive.Disposables;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Windows.Graphics.Imaging;
-using Windows.Storage.Streams;
-using Windows.UI;
+using System.Threading;
+using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 
 namespace ReactNative.Views.Image
 {
@@ -25,11 +25,20 @@ namespace ReactNative.Views.Image
     /// </summary>
     public class ReactImageManager : BaseViewManager<Border, ReactImageShadowNode>
     {
-        private readonly Dictionary<int, SerialDisposable> _disposables =
-            new Dictionary<int, SerialDisposable>();
+        private readonly ViewKeyedDictionary<Border, List<KeyValuePair<string, double>>> _imageSources =
+            new ViewKeyedDictionary<Border, List<KeyValuePair<string, double>>>();
 
-        private readonly Dictionary<int, List<KeyValuePair<string, double>>> _imageSources =
-            new Dictionary<int, List<KeyValuePair<string, double>>>();
+        private readonly ViewKeyedDictionary<Border, CornerRadiusManager> _borderToRadii =
+            new ViewKeyedDictionary<Border, CornerRadiusManager>();
+
+        private readonly ViewKeyedDictionary<Border, ThicknessManager> _borderToThickness =
+            new ViewKeyedDictionary<Border, ThicknessManager>();
+
+        private readonly ThreadLocal<ScaleTransform> _rtlScaleTransform = new ThreadLocal<ScaleTransform>(() => new ScaleTransform
+        {
+            CenterX = 0.5,
+            ScaleX = -1
+        });
 
         private readonly Dictionary<int, Color?> _tintColors =
             new Dictionary<int, Color?>();
@@ -144,31 +153,38 @@ namespace ReactNative.Views.Image
         /// <summary>
         /// The view manager event constants.
         /// </summary>
-        public override IReadOnlyDictionary<string, object> ExportedCustomDirectEventTypeConstants
+        public override JObject CustomDirectEventTypeConstants
         {
             get
             {
-                return new Dictionary<string, object>
+                return new JObject
                 {
                     {
                         "topLoadStart",
-                        new Dictionary<string, object>
+                        new JObject
                         {
                             { "registrationName", "onLoadStart" }
                         }
                     },
                     {
                         "topLoad",
-                        new Dictionary<string, object>
+                        new JObject
                         {
                             { "registrationName", "onLoad" }
                         }
                     },
                     {
                         "topLoadEnd",
-                        new Dictionary<string, object>
+                        new JObject
                         {
                             { "registrationName", "onLoadEnd" }
+                        }
+                    },
+                    {
+                        "topError",
+                        new JObject
+                        {
+                            { "registrationName", "onError" }
                         }
                     },
                 };
@@ -180,10 +196,10 @@ namespace ReactNative.Views.Image
         /// </summary>
         /// <param name="view">The image view instance.</param>
         /// <param name="resizeMode">The scaling mode.</param>
-        [ReactProp("resizeMode")]
+        [ReactProp(ViewProps.ResizeMode)]
         public void SetResizeMode(Border view, string resizeMode)
         {
-            if (resizeMode !=  null)
+            if (resizeMode != null)
             {
                 var imageBrush = (ImageBrush)view.Background;
 
@@ -201,16 +217,113 @@ namespace ReactNative.Views.Image
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Set the source URI of the image.
+        /// </summary>
+        /// <param name="view">The image view instance.</param>
+        /// <param name="sources">The source URI.</param>
+        [ReactProp("src")]
+        public void SetSource(Border view, JArray sources)
+        {
+            var count = sources.Count;
+
+            // There is no image source
+            if (count == 0)
+            {
+                throw new ArgumentException("Sources must not be empty.", nameof(sources));
+            }
+            // Optimize for the case where we have just one uri, case in which we don't need the sizes
+            else if (count == 1)
+            {
+                var uri = ((JObject)sources[0]).Value<string>("uri");
+                SetUriFromSingleSource(view, uri);
+            }
+            else
+            {
+                if (_imageSources.TryGetValue(view, out var viewSources))
+                {
+                    viewSources.Clear();
+                }
+                else
+                {
+                    viewSources = new List<KeyValuePair<string, double>>(count);
+                    _imageSources.AddOrUpdate(view, viewSources);
+                }
+
+                foreach (var source in sources)
+                {
+                    var sourceData = (JObject)source;
+                    viewSources.Add(
+                        new KeyValuePair<string, double>(
+                            sourceData.Value<string>("uri"),
+                            sourceData.Value<double>("width") * sourceData.Value<double>("height")));
+                }
+
+                viewSources.Sort((p1, p2) => p1.Value.CompareTo(p2.Value));
+
+                if (double.IsNaN(view.Width) || double.IsNaN(view.Height))
+                {
+                    // If we need to choose from multiple URIs but the size is not yet set, wait for layout pass
+                    return;
+                }
+
+                SetUriFromMultipleSources(view);
+            }
+        }
+
+        /// <summary>
+        /// Enum values correspond to positions of prop names in ReactPropGroup attribute
+        /// applied to <see cref="SetBorderRadius(Border, int, double?)"/>
+        /// </summary>
+        private enum Radius
+        {
+            All,
+            TopLeft,
+            TopRight,
+            BottomLeft,
+            BottomRight,
+        }
+
         /// <summary>
         /// The border radius of the <see cref="ReactRootView"/>.
         /// </summary>
         /// <param name="view">The image view instance.</param>
+        /// <param name="index">The prop index.</param>
         /// <param name="radius">The border radius value.</param>
-        [ReactProp("borderRadius")]
-        public void SetBorderRadius(Border view, double radius)
+        [ReactPropGroup(
+            ViewProps.BorderRadius,
+            ViewProps.BorderTopLeftRadius,
+            ViewProps.BorderTopRightRadius,
+            ViewProps.BorderBottomLeftRadius,
+            ViewProps.BorderBottomRightRadius)]
+        public void SetBorderRadius(Border view, int index, double? radius)
         {
-            view.CornerRadius = new CornerRadius(radius);
+            if (!_borderToRadii.TryGetValue(view, out var cornerRadiusManager))
+            {
+                cornerRadiusManager = new CornerRadiusManager();
+                _borderToRadii.AddOrUpdate(view, cornerRadiusManager);
+            }
+
+            switch ((Radius)index)
+            {
+                case Radius.All:
+                    cornerRadiusManager.Set(CornerRadiusManager.All, radius);
+                    break;
+                case Radius.TopLeft:
+                    cornerRadiusManager.Set(CornerRadiusManager.TopLeft, radius);
+                    break;
+                case Radius.TopRight:
+                    cornerRadiusManager.Set(CornerRadiusManager.TopRight, radius);
+                    break;
+                case Radius.BottomLeft:
+                    cornerRadiusManager.Set(CornerRadiusManager.BottomLeft, radius);
+                    break;
+                case Radius.BottomRight:
+                    cornerRadiusManager.Set(CornerRadiusManager.BottomRight, radius);
+                    break;
+            }
+            view.CornerRadius = cornerRadiusManager.AsCornerRadius();
         }
 
         /// <summary>
@@ -218,7 +331,7 @@ namespace ReactNative.Views.Image
         /// </summary>
         /// <param name="view">The image view instance.</param>
         /// <param name="color">The masked color value.</param>
-        [ReactProp("borderColor", CustomType = "Color")]
+        [ReactProp(ViewProps.BorderColor, CustomType = "Color")]
         public void SetBorderColor(Border view, uint? color)
         {
             view.BorderBrush = color.HasValue
@@ -227,25 +340,61 @@ namespace ReactNative.Views.Image
         }
 
         /// <summary>
+        /// Enum values correspond to positions of prop names in ReactPropGroup attribute
+        /// applied to <see cref="SetBorderWidth(Border, int, double?)"/>
+        /// </summary>
+        private enum Width
+        {
+            All,
+            Left,
+            Right,
+            Top,
+            Bottom,
+        }
+
+        /// <summary>
         /// Sets the border thickness of the image view.
         /// </summary>
         /// <param name="view">The image view instance.</param>
-        /// <param name="index">The property index.</param>
+        /// <param name="index">The prop index.</param>
         /// <param name="width">The border width in pixels.</param>
         [ReactPropGroup(
             ViewProps.BorderWidth,
             ViewProps.BorderLeftWidth,
             ViewProps.BorderRightWidth,
             ViewProps.BorderTopWidth,
-            ViewProps.BorderBottomWidth,
-            DefaultDouble = double.NaN)]
-        public void SetBorderWidth(Border view, int index, double width)
+            ViewProps.BorderBottomWidth)]
+        public void SetBorderWidth(Border view, int index, double? width)
         {
-            view.SetBorderWidth(ViewProps.BorderSpacingTypes[index], width);
+            if (!_borderToThickness.TryGetValue(view, out var thicknessManager))
+            {
+                thicknessManager = new ThicknessManager();
+                _borderToThickness.AddOrUpdate(view, thicknessManager);
+            }
+
+            switch ((Width)index)
+            {
+                case Width.All:
+                    thicknessManager.Set(ThicknessManager.All, width);
+                    break;
+                case Width.Left:
+                    thicknessManager.Set(ThicknessManager.Left, width);
+                    break;
+                case Width.Right:
+                    thicknessManager.Set(ThicknessManager.Right, width);
+                    break;
+                case Width.Top:
+                    thicknessManager.Set(ThicknessManager.Top, width);
+                    break;
+                case Width.Bottom:
+                    thicknessManager.Set(ThicknessManager.Bottom, width);
+                    break;
+            }
+            view.BorderThickness = thicknessManager.AsThickness();
         }
 
         /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
+        /// Called when view is detached from view hierarchy and allows for
         /// additional cleanup.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
@@ -254,15 +403,9 @@ namespace ReactNative.Views.Image
         {
             base.OnDropViewInstance(reactContext, view);
 
-            var tag = view.GetTag();
-            var disposable = default(SerialDisposable);
-            if (_disposables.TryGetValue(tag, out disposable))
-            {
-                disposable.Dispose();
-                _disposables.Remove(tag);
-            }
-
-            _imageSources.Remove(tag);
+            _imageSources.Remove(view);
+            _borderToRadii.Remove(view);
+            _borderToThickness.Remove(view);
         }
 
         /// <summary>
@@ -272,13 +415,41 @@ namespace ReactNative.Views.Image
         /// <returns>The image view instance.</returns>
         protected override Border CreateViewInstance(ThemedReactContext reactContext)
         {
-            return new Border
+            var border = new Border
             {
                 Background = new ImageBrush
                 {
-                    Stretch = Stretch.UniformToFill,
+                    Stretch = Stretch.UniformToFill
                 },
             };
+
+            border.Loaded += OnLoaded;
+
+            return border;
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            // Using a Border instead of a native Image has its advantages (round corner support, etc.), but
+            // we have to take into account the automatic flipping that happens in RTL mode. We use a transform
+            // to negate that flipping.
+            var border = (Border)sender;
+
+            border.RegisterPropertyChangedCallback(FrameworkElement.FlowDirectionProperty, FlowDirectionChanged);
+            FlowDirectionChanged(border, null);
+        }
+
+        private void FlowDirectionChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            var border = (Border)sender;
+            if (border.FlowDirection == FlowDirection.RightToLeft)
+            {
+                border.Background.RelativeTransform = _rtlScaleTransform.Value;
+            }
+            else
+            {
+                border.Background.ClearValue(Brush.RelativeTransformProperty);
+            }
         }
 
         /// <summary>
@@ -298,19 +469,38 @@ namespace ReactNative.Views.Image
                 SetUriFromSingleSource(view, uriToLoad, tintColor, backgroundColor);
         }
 
-        private void OnImageFailed(Border view)
+        private void OnImageFailed(Border view, Exception e)
         {
-            view.GetReactContext()
+            if (!view.HasTag())
+            {
+                // View may have been unmounted, ignore.
+                return;
+            }
+
+            var eventDispatcher = view.GetReactContext()
                 .GetNativeModule<UIManagerModule>()
-                .EventDispatcher
-                .DispatchEvent(
-                    new ReactImageLoadEvent(
-                        view.GetTag(),
-                        ReactImageLoadEvent.OnLoadEnd));
+                .EventDispatcher;
+
+            eventDispatcher.DispatchEvent(
+                new ReactImageLoadEvent(
+                    view.GetTag(),
+                    e.Message));
+
+            eventDispatcher.DispatchEvent(
+                new ReactImageLoadEvent(
+                    view.GetTag(),
+                    ReactImageLoadEvent.OnLoadEnd));
+
         }
 
         private void OnImageStatusUpdate(Border view, ImageLoadStatus status, ImageMetadata metadata)
         {
+            if (!view.HasTag())
+            {
+                // View may have been unmounted, ignore.
+                return;
+            }
+
             var eventDispatcher = view.GetReactContext()
                 .GetNativeModule<UIManagerModule>()
                 .EventDispatcher;
@@ -334,72 +524,21 @@ namespace ReactNative.Views.Image
         private async void SetUriFromSingleSource(Border view, string source, Color? tintColor, Color? backgroundColor)
         {
             var imageBrush = (ImageBrush)view.Background;
-            var tag = view.GetTag();
-
-            var disposable = default(SerialDisposable);
-            if (!_disposables.TryGetValue(tag, out disposable))
+            OnImageStatusUpdate(view, ImageLoadStatus.OnLoadStart, default(ImageMetadata));
+            try
             {
-                disposable = new SerialDisposable();
-                _disposables.Add(tag, disposable);
-            }
+                var imagePipeline = ImagePipelineFactory.Instance.GetImagePipeline();
+                var dispatcher = CoreApplication.GetCurrentView().Dispatcher;
+                var image = await imagePipeline.FetchEncodedBitmapImageAsync(new Uri(source), default(CancellationToken), dispatcher);
+                var metadata = new ImageMetadata(source, image.PixelWidth, image.PixelHeight);
 
-            if (BitmapImageHelpers.IsBase64Uri(source))
-            {
-                var image = new BitmapImage();
-
-                disposable.Disposable = image.GetStreamLoadObservable().Subscribe(
-                    status => OnImageStatusUpdate(view, status.LoadStatus, status.Metadata),
-                    _ => OnImageFailed(view));
-
-                using (var stream = await BitmapImageHelpers.GetStreamAsync(source))
-                {
-                    await image.SetSourceAsync(stream);
-                }
-
+                OnImageStatusUpdate(view, ImageLoadStatus.OnLoad, metadata);
                 imageBrush.ImageSource = image;
+                OnImageStatusUpdate(view, ImageLoadStatus.OnLoadEnd, metadata);
             }
-            else if (BitmapImageHelpers.IsHttpUri(source))
+            catch (Exception e)
             {
-                OnImageStatusUpdate(view, ImageLoadStatus.OnLoadStart, default(ImageMetadata));
-                try
-                {
-                    var image = await ImageCache.Instance.GetFromCacheAsync(new Uri(source), true);
-                    var metadata = new ImageMetadata(source, image.PixelWidth, image.PixelHeight);
-                    OnImageStatusUpdate(view, ImageLoadStatus.OnLoad, metadata);
-                    if (tintColor == null && backgroundColor == null)
-                        imageBrush.ImageSource = image;
-                    else
-                    {
-                        using (var stream = await CreateStreamFromHttpUri(source))
-                        {
-                            imageBrush.ImageSource = await ColorizeBitmap(stream, tintColor, backgroundColor);
-                        }
-                    }
-                    OnImageStatusUpdate(view, ImageLoadStatus.OnLoadEnd, metadata);
-                }
-                catch
-                {
-                    OnImageFailed(view);
-                }
-            }
-            else
-            {
-                if (tintColor != null || backgroundColor != null)
-                {
-                    using (var stream = await CreateStreamFromAppUri(source))
-                    {
-                        imageBrush.ImageSource = await ColorizeBitmap(stream, tintColor, backgroundColor);
-                    }
-                }
-                else
-                {
-                    var image = new BitmapImage();
-                    disposable.Disposable = image.GetUriLoadObservable().Subscribe(
-                    status => OnImageStatusUpdate(view, status.LoadStatus, status.Metadata),
-                        _ => OnImageFailed(view));
-                    image.UriSource = new Uri(source);
-                    imageBrush.ImageSource = image;
-                }
+                OnImageFailed(view, e);
             }
         }
 
@@ -453,8 +592,7 @@ namespace ReactNative.Views.Image
         /// <param name="view">The image view instance.</param>
         private string ChooseUriFromMultipleSources(Border view)
         {
-            var sources = default(List<KeyValuePair<string, double>>);
-            if (_imageSources.TryGetValue(view.GetTag(), out sources))
+            if (_imageSources.TryGetValue(view, out var sources))
             {
                 var targetImageSize = view.Width * view.Height;
                 var bestResult = sources.LocalMin((s) => Math.Abs(s.Value - targetImageSize));

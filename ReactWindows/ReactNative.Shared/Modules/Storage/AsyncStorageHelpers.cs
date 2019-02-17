@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json.Linq;
 
 namespace ReactNative.Modules.Storage
 {
@@ -153,6 +156,16 @@ namespace ReactNative.Modules.Storage
         public static JObject GetInvalidValueError(string key)
         {
             return GetError(key, "Invalid Value");
+        }
+
+        public static JObject GetError(System.Exception ex)
+        {
+            return new JObject
+            {
+                { "hresult", ex.HResult.ToString("X8") },
+                { "message", ex.Message },
+                { "key", ex.GetType().Name },
+            };
         }
     }
 }

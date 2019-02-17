@@ -1,8 +1,12 @@
-﻿using Extensions;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Extensions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace ReactNative.Bridge
 {
@@ -16,16 +20,13 @@ namespace ReactNative.Bridge
     public class JavaScriptModuleRegistry
     {
         private readonly IDictionary<Type, IJavaScriptModule> _moduleInstances;
-        private readonly IDictionary<Type, JavaScriptModuleRegistration> _moduleRegistrations;
 
-        private JavaScriptModuleRegistry(IList<JavaScriptModuleRegistration> config)
+        /// <summary>
+        /// Instantiates the <see cref="JavaScriptModuleRegistry"/>. 
+        /// </summary>
+        public JavaScriptModuleRegistry()
         {
-            _moduleInstances = new Dictionary<Type, IJavaScriptModule>(config.Count);
-            _moduleRegistrations = new Dictionary<Type, JavaScriptModuleRegistration>(config.Count);
-            foreach (var registration in config)
-            {
-                _moduleRegistrations.Add(registration.ModuleInterface, registration);
-            }
+            _moduleInstances = new Dictionary<Type, IJavaScriptModule>();
         }
 
         /// <summary>
@@ -34,22 +35,15 @@ namespace ReactNative.Bridge
         /// <typeparam name="T">Type of JavaScript module.</typeparam>
         /// <param name="instance">The React instance.</param>
         /// <returns>The JavaScript module instance.</returns>
-        public T GetJavaScriptModule<T>(IReactInstance instance) where T : IJavaScriptModule
+        public T GetJavaScriptModule<T>(IReactInstance instance) where T : IJavaScriptModule, new()
         {
             lock (_moduleInstances)
             {
-                var moduleInstance = default(IJavaScriptModule);
-                if (!_moduleInstances.TryGetValue(typeof(T), out moduleInstance))
+                if (!_moduleInstances.TryGetValue(typeof(T), out var moduleInstance))
                 {
-                    var registration = default(JavaScriptModuleRegistration);
-                    if (!_moduleRegistrations.TryGetValue(typeof(T), out registration))
-                    {
-                        throw new InvalidOperationException($"JS module '{typeof(T)}' hasn't been registered.");
-                    }
-
-                    var type = registration.ModuleInterface;
-                    moduleInstance = (IJavaScriptModule)Activator.CreateInstance(type);
-                    var invokeHandler = new JavaScriptModuleInvocationHandler(instance, registration);
+                    var type = typeof(T);
+                    moduleInstance = new T();
+                    var invokeHandler = new JavaScriptModuleInvocationHandler(instance, type.Name);
                     moduleInstance.InvocationHandler = invokeHandler;
                     _moduleInstances.Add(type, moduleInstance);
                 }
@@ -61,81 +55,21 @@ namespace ReactNative.Bridge
         class JavaScriptModuleInvocationHandler : IInvocationHandler
         {
             private readonly IReactInstance _reactInstance;
-            private readonly JavaScriptModuleRegistration _moduleRegistration;
+            private readonly string _moduleName;
 
-            public JavaScriptModuleInvocationHandler(
-                IReactInstance reactInstance,
-                JavaScriptModuleRegistration moduleRegistration)
+            public JavaScriptModuleInvocationHandler(IReactInstance reactInstance, string moduleName)
             {
                 _reactInstance = reactInstance;
-                _moduleRegistration = moduleRegistration;
+                _moduleName = moduleName;
             }
 
             public void Invoke(string name, object[] args)
             {
-                var tracingName = _moduleRegistration.GetTracingName(name);
                 _reactInstance.InvokeFunction(
-                    _moduleRegistration.Name,
+                    _moduleName,
                     name,
                     JArray.FromObject(args),
-                    tracingName);
-            }
-        }
-
-        /// <summary>
-        /// Builder for <see cref="JavaScriptModuleRegistry"/>.
-        /// </summary>
-        public sealed class Builder
-        {
-            private readonly IList<JavaScriptModuleRegistration> _modules =
-                new List<JavaScriptModuleRegistration>();
-
-            /// <summary>
-            /// Add a JavaScript module.
-            /// </summary>
-            /// <param name="type">The JavaScript module type.</param>
-            /// <returns>The builder instance.</returns>
-            public Builder Add(Type type)
-            {
-#if DEBUG
-                Validate(type);
-#endif
-                _modules.Add(new JavaScriptModuleRegistration(type));
-                return this;
-            }
-
-            /// <summary>
-            /// Build the JavaScript module registry.
-            /// </summary>
-            /// <returns>The registry.</returns>
-            public JavaScriptModuleRegistry Build()
-            {
-                return new JavaScriptModuleRegistry(_modules);
-            }
-
-            private static void Validate(Type type)
-            {
-                if (type.GetTypeInfo().IsAbstract)
-                {
-                    throw new ArgumentException(
-                        $"JavaScript module '{type}' must not be abstract.",
-                        nameof(type));
-                }
-
-                if (!typeof(IJavaScriptModule).IsAssignableFrom(type))
-                {
-                    throw new ArgumentException(
-                        $"JavaScript module '{type}' must derive from IJavaScriptModule.",
-                        nameof(type));
-                }
-
-                var defaultConstructor = type.GetConstructor(Array<Type>.Empty);
-                if (defaultConstructor == null || !defaultConstructor.IsPublic)
-                {
-                    throw new ArgumentException(
-                        $"JavaScript module '{type}' must have a public default constructor.",
-                        nameof(type));
-                }
+                    $"JSCall__{_moduleName}_{name}");
             }
         }
     }

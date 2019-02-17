@@ -1,3 +1,6 @@
+﻿﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -577,7 +580,6 @@ namespace ReactNative.Views.TextInput
             IsHitTestVisibleProperty.OverrideMetadata(typeof(PlaceholderAdorner), new FrameworkPropertyMetadata(false));
             ClipToBoundsProperty.OverrideMetadata(typeof(PlaceholderAdorner), new FrameworkPropertyMetadata(true));
         }
-
 
         /// <summary>
         ///   Initializes a new instance of the <see cref="T:T:ReactNative.Views.TextInput.PlaceholderAdorner"/> class.

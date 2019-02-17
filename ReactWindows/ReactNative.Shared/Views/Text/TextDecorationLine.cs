@@ -1,4 +1,8 @@
-﻿using System.Runtime.Serialization;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+// TODO
+
+using System.Runtime.Serialization;
 
 namespace ReactNative.Views.Text
 {

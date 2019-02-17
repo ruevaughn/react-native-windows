@@ -1,4 +1,9 @@
-﻿using ReactNative.Modules.DevSupport;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+
+using ReactNative.Modules.DevSupport;
 using System.Collections.Generic;
 #if WINDOWS_UWP
 using Windows.Storage;
@@ -18,6 +23,7 @@ namespace ReactNative.DevSupport
         private const string JsMinifyDebugKey = "js_minify_debug";
         private const string ReloadOnJSChangeKey = "reload_on_js_change";
         private const string HotModuleReplacementKey = "hot_module_replacement";
+        private const string RemoteDebuggingEnabledKey = "remote_debugging_enabled";
 
         private static readonly HashSet<string> s_triggerReload = new HashSet<string>
         {
@@ -128,6 +134,17 @@ namespace ReactNative.DevSupport
             }
         }
 
+        public bool IsRemoteDebuggingEnabled
+        {
+            get
+            {
+                return GetSetting(RemoteDebuggingEnabledKey, false);
+            }
+            set
+            {
+                SetSetting(RemoteDebuggingEnabledKey, value);
+            }
+        }
 
         //TODO: Git Issue #878
         private T GetSetting<T>(string key, T defaultValue)

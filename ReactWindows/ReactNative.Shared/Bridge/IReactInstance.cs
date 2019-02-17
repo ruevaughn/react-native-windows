@@ -1,6 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge.Queue;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ReactNative.Bridge
 {
@@ -24,8 +30,8 @@ namespace ReactNative.Bridge
         /// <summary>
         /// Initializes the instance.
         /// </summary>
-        void Initialize();
-        
+        Task InitializeAsync();
+
         /// <summary>
         /// Invokes a JavaScript function.
         /// </summary>
@@ -47,7 +53,7 @@ namespace ReactNative.Bridge
         /// </summary>
         /// <typeparam name="T">Type of JavaScript module.</typeparam>
         /// <returns>The JavaScript module instance.</returns>
-        T GetJavaScriptModule<T>() where T : IJavaScriptModule;
+        T GetJavaScriptModule<T>() where T : IJavaScriptModule, new();
 
         /// <summary>
         /// Gets a native module instance.

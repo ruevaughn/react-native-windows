@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace ReactNative.Animated
@@ -20,7 +25,7 @@ namespace ReactNative.Animated
             _min = config.Value<double>("min");
             _max = config.Value<double>("max");
 
-            Value = _lastValue = GetInputNodeValue();
+            RawValue = _lastValue = 0;
         }
 
         public override void Update()
@@ -29,7 +34,7 @@ namespace ReactNative.Animated
 
             var diff = value - _lastValue;
             _lastValue = value;
-            Value = Math.Min(Math.Max(Value + diff, _min), _max);
+            RawValue = Math.Min(Math.Max(Value + diff, _min), _max);
         }
 
         private double GetInputNodeValue()

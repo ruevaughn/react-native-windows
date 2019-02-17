@@ -1,17 +1,23 @@
-﻿using ReactNative.Animated;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using ReactNative.Animated;
 using ReactNative.Bridge;
 using ReactNative.Modules.AppState;
 using ReactNative.Modules.Clipboard;
 using ReactNative.Modules.Core;
 using ReactNative.Modules.Dialog;
-using ReactNative.Modules.Image;
 using ReactNative.Modules.I18N;
+using ReactNative.Modules.Image;
 using ReactNative.Modules.Launch;
 using ReactNative.Modules.NetInfo;
 using ReactNative.Modules.Network;
 using ReactNative.Modules.Storage;
 using ReactNative.Modules.WebSocket;
 using ReactNative.UIManager;
+using ReactNative.Views.ControlView;
 using ReactNative.Views.Image;
 using ReactNative.Views.Picker;
 using ReactNative.Views.Progress;
@@ -21,7 +27,6 @@ using ReactNative.Views.Text;
 using ReactNative.Views.TextInput;
 using ReactNative.Views.View;
 using ReactNative.Views.Web;
-using System;
 using System.Collections.Generic;
 
 namespace ReactNative.Shell
@@ -47,7 +52,7 @@ namespace ReactNative.Shell
                 new ClipboardModule(),
                 new DialogModule(reactContext),
                 new ImageLoaderModule(),
-                new I18NModule(),
+                new I18NModule(reactContext),
                 new LauncherModule(reactContext),
                 //new LocationModule(reactContext),
                 new NativeAnimatedModule(reactContext),
@@ -57,16 +62,6 @@ namespace ReactNative.Shell
                 //new VibrationModule(),
                 new WebSocketModule(reactContext),
             };
-        }
-
-        /// <summary>
-        /// Creates the list of JavaScript modules to register with the
-        /// React instance.
-        /// </summary>
-        /// <returns>The list of JavaScript modules.</returns>
-        public IReadOnlyList<Type> CreateJavaScriptModulesConfig()
-        {
-            return new List<Type>(0);
         }
 
         /// <summary>
@@ -80,6 +75,7 @@ namespace ReactNative.Shell
         {
             return new List<IViewManager>
             {
+                new ReactSimpleTextViewManager(),
                 //new ReactFlipViewManager(),
                 new ReactImageManager(),
                 new ReactProgressBarViewManager(),
@@ -94,6 +90,7 @@ namespace ReactNative.Shell
                 new ReactPasswordBoxManager(),
                 new ReactTextInputManager(),
                 new ReactTextViewManager(),
+                new ReactControlManager(),
                 new ReactViewManager(),
                 new ReactSpanViewManager(),
                 ////new SwipeRefreshLayoutManager(),

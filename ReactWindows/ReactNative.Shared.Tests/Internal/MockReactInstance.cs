@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Bridge.Queue;
 using System;
@@ -65,12 +68,12 @@ namespace ReactNative.Tests
             throw new NotImplementedException();
         }
 
-        public virtual T GetJavaScriptModule<T>() where T : IJavaScriptModule
+        public virtual T GetJavaScriptModule<T>() where T : IJavaScriptModule, new()
         {
             throw new NotImplementedException();
         }
 
-        public void Initialize()
+        public Task InitializeAsync()
         {
             throw new NotImplementedException();
         }

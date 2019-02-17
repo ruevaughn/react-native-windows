@@ -1,4 +1,9 @@
-﻿namespace ReactNative.UIManager.Events
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+namespace ReactNative.UIManager.Events
 {
     /// <summary>
     /// Interface used to intercept events dispatched by <see cref="EventDispatcher"/>.
@@ -11,10 +16,6 @@
         /// dispatched from.
         /// </summary>
         /// <param name="event">Event that was dispatched.</param>
-        /// <returns>
-        /// If the event was handled. If true the event won't be sent to 
-        /// JavaScript.
-        /// </returns>
-        bool OnEventDispatch(Event @event);
+        void OnEventDispatch(Event @event);
     }
 }

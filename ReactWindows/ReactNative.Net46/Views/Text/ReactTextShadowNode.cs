@@ -1,5 +1,7 @@
-﻿using Facebook.Yoga;
-using ReactNative.Bridge;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Facebook.Yoga;
 using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
@@ -28,6 +30,8 @@ namespace ReactNative.Views.Text
 
         private string _fontFamily;
 
+        private string _text;
+
         /// <summary>
         /// Instantiates a <see cref="ReactTextShadowNode"/>.
         /// </summary>
@@ -35,6 +39,21 @@ namespace ReactNative.Views.Text
         {
             MeasureFunction = (node, width, widthMode, height, heightMode) =>
                 MeasureText(this, node, width, widthMode, height, heightMode);
+        }
+
+        /// <summary>
+        /// Sets the text for the node.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        [ReactProp("text")]
+        public void SetText(string text)
+        {
+            var nonNullText = text ?? "";
+            if (_text != nonNullText)
+            {
+                _text = nonNullText;
+                MarkUpdated();
+            }
         }
 
         /// <summary>
@@ -185,39 +204,31 @@ namespace ReactNative.Views.Text
 
         private static YogaSize MeasureText(ReactTextShadowNode textNode, YogaNode node, float width, YogaMeasureMode widthMode, float height, YogaMeasureMode heightMode)
         {
-            // This is not a terribly efficient way of projecting the height of
-            // the text elements. It requires that we have access to the
-            // dispatcher in order to do measurement, which, for obvious
-            // reasons, can cause perceived performance issues as it will block
-            // the UI thread from handling other work.
-            //
-            // TODO: determine another way to measure text elements.
-            var task = DispatcherHelpers.CallOnDispatcher(() =>
+            // TODO: Measure text with DirectWrite or other API that does not
+            // require dispatcher access. Currently, we're instantiating a
+            // second CoreApplicationView (that is never activated) and using
+            // its Dispatcher thread to calculate layout.
+            var textBlock = new TextBlock
             {
-                var textBlock = new TextBlock
-                {
-                    TextAlignment = TextAlignment.Left,
-                    TextWrapping = TextWrapping.Wrap,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                };
+                TextAlignment = TextAlignment.Left,
+                TextWrapping = TextWrapping.Wrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+            };
 
-                textNode.UpdateTextBlockCore(textBlock, true);
+            textNode.UpdateTextBlockCore(textBlock, true);
 
-                for (var i = 0; i < textNode.ChildCount; ++i)
-                {
-                    var child = textNode.GetChildAt(i);
-                    textBlock.Inlines.Add(ReactInlineShadowNodeVisitor.Apply(child));
-                }
+            for (var i = 0; i < textNode.ChildCount; ++i)
+            {
+                var child = textNode.GetChildAt(i);
+                textBlock.Inlines.Add(ReactInlineShadowNodeVisitor.Apply(child));
+            }
 
-                var normalizedWidth = YogaConstants.IsUndefined(width) ? double.PositiveInfinity : width;
-                var normalizedHeight = YogaConstants.IsUndefined(height) ? double.PositiveInfinity : height;
-                textBlock.Measure(new Size(normalizedWidth, normalizedHeight));
-                return MeasureOutput.Make(
-                    (float)Math.Ceiling(textBlock.DesiredSize.Width),
-                    (float)Math.Ceiling(textBlock.DesiredSize.Height));
-            });
-
-            return task.Result;
+            var normalizedWidth = YogaConstants.IsUndefined(width) ? double.PositiveInfinity : width;
+            var normalizedHeight = YogaConstants.IsUndefined(height) ? double.PositiveInfinity : height;
+            textBlock.Measure(new Size(normalizedWidth, normalizedHeight));
+            return MeasureOutput.Make(
+                (float)Math.Ceiling(textBlock.DesiredSize.Width),
+                (float)Math.Ceiling(textBlock.DesiredSize.Height));
         }
 
         /// <summary>
@@ -231,8 +242,11 @@ namespace ReactNative.Views.Text
 
         private void UpdateTextBlockCore(TextBlock textBlock, bool measureOnly)
         {
-            //textBlock.CharacterSpacing = _letterSpacing;
-            //textBlock.MaxLines = _numberOfLines;
+            if (ChildCount == 0 && _text != null)
+            {
+                textBlock.Text = _text;
+            }
+
             textBlock.LineHeight = _lineHeight != 0 ? _lineHeight : double.NaN;
             textBlock.TextAlignment = _textAlignment;
             textBlock.FontSize = _fontSize ?? 15;
@@ -260,8 +274,8 @@ namespace ReactNative.Views.Text
                 textBlock.Padding = new Thickness(
                     GetPadding(YogaEdge.Left),
                     GetPadding(YogaEdge.Top),
-                    0,
-                    0);
+                    GetPadding(YogaEdge.Right),
+                    GetPadding(YogaEdge.Bottom));
             }
         }
 

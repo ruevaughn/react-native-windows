@@ -1,5 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
+using ReactNative.Common;
 using ReactNative.Modules.Core;
 using System;
 using System.Collections.Generic;
@@ -15,9 +19,10 @@ namespace ReactNative
     /// <summary>
     /// Base page for React Native applications.
     /// </summary>
+    [Obsolete("Please use ReactNativeHost instead of ReactPage.")]
     public abstract class ReactPage : Page, IAsyncDisposable
     {
-        private readonly IReactInstanceManager _reactInstanceManager;
+        private readonly ReactInstanceManager _reactInstanceManager;
 
         private bool _isShiftKeyDown;
         private bool _isControlKeyDown;
@@ -146,11 +151,13 @@ namespace ReactNative
         /// <summary>
         /// Called before the application shuts down.
         /// </summary>
-        public Task DisposeAsync()
+        public async Task DisposeAsync()
         {
             Window.Current.CoreWindow.Dispatcher.AcceleratorKeyActivated -= OnAcceleratorKeyActivated;
 
-            return _reactInstanceManager.DisposeAsync();            
+            await RootView.StopReactApplicationAsync();
+
+            await _reactInstanceManager.DisposeAsync();            
         }
 
         /// <summary>
@@ -190,17 +197,17 @@ namespace ReactNative
                 }
                 else if (e.EventType == CoreAcceleratorKeyEventType.KeyUp && _isControlKeyDown && e.VirtualKey == VirtualKey.R)
                 {
-                    _reactInstanceManager.DevSupportManager.HandleReloadJavaScript();
+                   _reactInstanceManager.DevSupportManager.HandleReloadJavaScript();
                 }
             }
         }
 
-        private IReactInstanceManager CreateReactInstanceManager()
+        private ReactInstanceManager CreateReactInstanceManager()
         {
-            var builder = new ReactInstanceManager.Builder
+            var builder = new ReactInstanceManagerBuilder
             {
                 UseDeveloperSupport = UseDeveloperSupport,
-                InitialLifecycleState = LifecycleState.Resumed,
+                InitialLifecycleState = LifecycleState.BeforeCreate,
                 JavaScriptBundleFile = JavaScriptBundleFile,
                 JavaScriptMainModuleName = JavaScriptMainModuleName,
                 JavaScriptExecutorFactory = JavaScriptExecutorFactory,
@@ -227,8 +234,7 @@ namespace ReactNative
                     throw new ArgumentException("Expected value for remoteDebugging argument.", nameof(arguments));
                 }
 
-                bool isRemoteDebuggingEnabled;
-                if (bool.TryParse(args[index + 1], out isRemoteDebuggingEnabled))
+                if (bool.TryParse(args[index + 1], out var isRemoteDebuggingEnabled))
                 {
                     _reactInstanceManager.DevSupportManager.IsRemoteDebuggingEnabled = isRemoteDebuggingEnabled;
                 }

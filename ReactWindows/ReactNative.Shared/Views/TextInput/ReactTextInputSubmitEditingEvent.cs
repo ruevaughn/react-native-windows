@@ -1,6 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.UIManager.Events;
-using System;
 
 namespace ReactNative.Views.TextInput
 {
@@ -9,7 +13,7 @@ namespace ReactNative.Views.TextInput
         private readonly string _text;
 
         public ReactTextInputSubmitEditingEvent(int viewTag, string text)
-            : base(viewTag, TimeSpan.FromTicks(Environment.TickCount))
+            : base(viewTag)
         {
             _text = text;
         }

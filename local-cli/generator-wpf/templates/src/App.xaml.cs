@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ReactNative.Modules.Launch;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 
-namespace <%= ns %>
+namespace <%=ns%>
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
@@ -36,6 +37,10 @@ namespace <%= ns %>
         /// <param name="arguments"></param>
         private void OnCreate(string[] arguments)
         {
+            _reactPage.OnResume(Shutdown);
+
+            LauncherModule.SetActivatedUrl(String.Join(" ", arguments));
+
             var shellWindow = Application.Current.MainWindow;
 
             if (shellWindow == null)
@@ -44,7 +49,7 @@ namespace <%= ns %>
                 {
                     ShowActivated = true,
                     ShowInTaskbar = true,
-                    Title = "<%= ns %>",
+                    Title = "<%=ns%>",
                     Height = 768,
                     Width = 1024,
                     WindowStartupLocation = WindowStartupLocation.CenterScreen

@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using System;
 using System.Linq;
@@ -38,18 +41,19 @@ namespace ReactNative
         /// <param name="nativeModule">The native module instance.</param>
         /// <param name="method">The method.</param>
         /// <returns>The invocation delegate.</returns>
-        public abstract Action<INativeModule, IReactInstance, JArray> Create(INativeModule nativeModule, MethodInfo method);
+        public abstract Func<InvokeCallback, JArray, JToken> Create(INativeModule nativeModule, MethodInfo method);
 
         /// <summary>
         /// Extracts the native method type from the method.
         /// </summary>
         /// <param name="method">The method.</param>
+        /// <param name="attribute">The attribute.</param>
         /// <returns>The native method type.</returns>
-        public string GetMethodType(MethodInfo method)
+        public string GetMethodType(MethodInfo method, ReactMethodAttribute attribute)
         {
-            if (method.ReturnType == typeof(Task))
+            if (attribute.IsBlockingSynchronousMethod)
             {
-                throw new NotImplementedException("Async methods are not yet supported.");
+                return SyncMethodType;
             }
 
             var parameters = method.GetParameters();
@@ -65,10 +69,11 @@ namespace ReactNative
         /// Check that the method is valid for <see cref="ReactMethodAttribute"/>.
         /// </summary>
         /// <param name="method">The method.</param>
-        public void Validate(MethodInfo method)
+        /// <param name="attribute">The attribute.</param>
+        public void Validate(MethodInfo method, ReactMethodAttribute attribute)
         {
             var returnType = method.ReturnType;
-            if (returnType != typeof(Task) && returnType != typeof(void))
+            if (!attribute.IsBlockingSynchronousMethod && returnType != typeof(void))
             {
                 throw new NotSupportedException("Native module methods must either return void or Task.");
             }
@@ -89,10 +94,6 @@ namespace ReactNative
                         throw new NotSupportedException("Callbacks are only supported in the last two positions of a native module method.");
                     }
                 }
-                else if (returnType == typeof(Task) && (parameterType == typeof(ICallback) || parameterType == typeof(IPromise)))
-                {
-                    throw new NotSupportedException("Callbacks and promises are not supported in async native module methods.");
-                }
             }
         }
 
@@ -100,12 +101,12 @@ namespace ReactNative
         /// Create a callback.
         /// </summary>
         /// <param name="callbackToken">The callback ID token.</param>
-        /// <param name="reactInstance">The React instance.</param>
+        /// <param name="invokeCallback">The invoke callback delegate.</param>
         /// <returns>The callback.</returns>
-        protected static ICallback CreateCallback(JToken callbackToken, IReactInstance reactInstance)
+        protected static ICallback CreateCallback(JToken callbackToken, InvokeCallback invokeCallback)
         {
             var id = callbackToken.Value<int>();
-            return new Callback(id, reactInstance);
+            return new Callback(id, invokeCallback);
         }
 
         /// <summary>
@@ -113,12 +114,12 @@ namespace ReactNative
         /// </summary>
         /// <param name="resolveToken">The resolve callback ID token.</param>
         /// <param name="rejectToken">The reject callback ID token.</param>
-        /// <param name="reactInstance">The React instance.</param>
+        /// <param name="invokeCallback">The invoke callback delegate.</param>
         /// <returns>The promise.</returns>
-        protected static IPromise CreatePromise(JToken resolveToken, JToken rejectToken, IReactInstance reactInstance)
+        protected static IPromise CreatePromise(JToken resolveToken, JToken rejectToken, InvokeCallback invokeCallback)
         {
-            var resolveCallback = CreateCallback(resolveToken, reactInstance);
-            var rejectCallback = CreateCallback(rejectToken, reactInstance);
+            var resolveCallback = CreateCallback(resolveToken, invokeCallback);
+            var rejectCallback = CreateCallback(rejectToken, invokeCallback);
             return new Promise(resolveCallback, rejectCallback);
         }
 
@@ -127,17 +128,17 @@ namespace ReactNative
             private static readonly object[] s_empty = new object[0];
 
             private readonly int _id;
-            private readonly IReactInstance _instance;
+            private readonly InvokeCallback _invokeCallback;
 
-            public Callback(int id, IReactInstance instance)
+            public Callback(int id, InvokeCallback invokeCallback)
             {
                 _id = id;
-                _instance = instance;
+                _invokeCallback = invokeCallback;
             }
 
             public void Invoke(params object[] arguments)
             {
-                _instance.InvokeCallback(_id, JArray.FromObject(arguments ?? s_empty));
+                _invokeCallback(_id, JArray.FromObject(arguments ?? s_empty));
             }
         }
     }

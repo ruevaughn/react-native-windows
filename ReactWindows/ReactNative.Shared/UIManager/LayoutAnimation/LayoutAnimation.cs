@@ -1,5 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
-using ReactNative.Collections;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
+using ReactNative.Json;
 using ReactNative.Reflection;
 using System;
 using System.Reactive;
@@ -66,17 +71,18 @@ namespace ReactNative.UIManager.LayoutAnimation
         /// based on the animation configuration supplied at initialization
         /// time and the new view position and size.
         /// </summary>
+        /// <param name="viewManager">The view manager for the view.</param>
         /// <param name="view">The view to create the animation for.</param>
         /// <param name="dimensions">The view dimensions.</param>
         /// <returns>The storyboard.</returns>
-        public IObservable<Unit> CreateAnimation(FrameworkElement view, Dimensions dimensions)
+        public IObservable<Unit> CreateAnimation(IViewManager viewManager, object view, Dimensions dimensions)
         {
             if (!IsValid)
             {
                 return null;
             }
 
-            return CreateAnimationCore(view, dimensions);
+            return CreateAnimationCore(viewManager, view, dimensions);
         }
 
         /// <summary>
@@ -123,9 +129,10 @@ namespace ReactNative.UIManager.LayoutAnimation
         /// based on the animation configuration supplied at initialization
         /// time and the new view position and size.
         /// </summary>
+        /// <param name="viewManager">The view manager for the view.</param>
         /// <param name="view">The view to create the animation for.</param>
         /// <param name="dimensions">The view dimensions.</param>
         /// <returns>The storyboard.</returns>
-        protected abstract IObservable<Unit> CreateAnimationCore(FrameworkElement view, Dimensions dimensions);
+        protected abstract IObservable<Unit> CreateAnimationCore(IViewManager viewManager, object view, Dimensions dimensions);
     }
 }

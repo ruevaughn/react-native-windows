@@ -1,25 +1,31 @@
 /**
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ * 
+ * Portions copyright for react-native-windows:
+ * 
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ * 
  * @providesModule SplitViewWindows
  */
 'use strict';
 
+var ColorPropType = require('ColorPropType');
 var NativeMethodsMixin = require('NativeMethodsMixin');
 var React = require('React');
+var PropTypes = require('prop-types');
 var ReactNative = require('ReactNative');
-var ReactPropTypes = require('react/lib/ReactPropTypes');
 var StyleSheet = require('StyleSheet');
 var UIManager = require('UIManager');
 var View = require('View');
+var ViewPropTypes = require('ViewPropTypes');
 
 var SplitViewConsts = UIManager.WindowsSplitView.Constants;
 
+var createReactClass = require('create-react-class');
 var dismissKeyboard = require('dismissKeyboard');
 var requireNativeComponent = require('requireNativeComponent');
 
@@ -62,26 +68,39 @@ var SplitViewValidAttributes = {
  * },
  * ```
  */
-var SplitViewWindows = React.createClass({
+var SplitViewWindows = createReactClass({
+  displayName: 'SplitViewWindows',
   statics: {
     positions: SplitViewConsts.PanePositions,
   },
 
   propTypes: {
-    ...View.propTypes,
+    ...ViewPropTypes,
     /**
      * Determines whether the keyboard gets dismissed in response to a drag.
      *   - 'none' (the default), drags do not dismiss the keyboard.
      *   - 'on-drag', the keyboard is dismissed when a drag begins.
      */
-    keyboardDismissMode: ReactPropTypes.oneOf([
+    keyboardDismissMode: PropTypes.oneOf([
       'none', // default
       'on-drag',
     ]),
     /**
+     * Specifies the background color of the pane. The default value is white.
+     * If you want to set the opacity of the pane, use rgba. Example:
+     *
+     * ```
+     * return (
+     *   <SplitViewWindows paneBackgroundColor="rgba(0,0,0,0.5)">
+     *   </SplitViewWindows>
+     * );
+     * ```
+     */
+    paneBackgroundColor: ColorPropType,
+    /**
      * Specifies the side of the screen from which the pane will slide in.
      */
-    panePosition: ReactPropTypes.oneOf([
+    panePosition: PropTypes.oneOf([
       SplitViewConsts.PanePositions.Left,
       SplitViewConsts.PanePositions.Right
     ]),
@@ -89,22 +108,28 @@ var SplitViewWindows = React.createClass({
      * Specifies the width of the pane, more precisely the width of the view that be pulled in
      * from the edge of the window.
      */
-    paneWidth: ReactPropTypes.number,
+    paneWidth: PropTypes.number,
     /**
      * Function called whenever the pane view has been opened.
      */
-    onPaneOpen: ReactPropTypes.func,
+    onPaneOpen: PropTypes.func,
     /**
      * Function called whenever the pane view has been closed.
      */
-    onPaneClose: ReactPropTypes.func,
+    onPaneClose: PropTypes.func,
     /**
      * The pane view that will be rendered to the side of the screen and can be pulled in.
      */
-    renderPaneView: ReactPropTypes.func.isRequired,
+    renderPaneView: PropTypes.func.isRequired,
   },
 
   mixins: [NativeMethodsMixin],
+
+  getDefaultProps: function(): Object {
+    return {
+      paneBackgroundColor: 'white',
+    };
+  },
 
   getInnerViewNode: function() {
     return this.refs[CONTENT_REF].getInnerViewNode();
@@ -112,7 +137,12 @@ var SplitViewWindows = React.createClass({
 
   render: function() {
     var paneViewWrapper =
-      <View style={[styles.paneSubview, {width: this.props.paneWidth}]} collapsable={false}>
+      <View
+        style={[
+          styles.paneSubview,
+          {width: this.props.paneWidth, backgroundColor: this.props.paneBackgroundColor}
+        ]}
+        collapsable={false}>
         {this.props.renderPaneView()}
       </View>;
     var childrenWrapper =
@@ -125,7 +155,7 @@ var SplitViewWindows = React.createClass({
         ref={RK_PANE_REF}
         paneWidth={this.props.paneWidth}
         panePosition={this.props.panePosition}
-        style={styles.base}
+        style={[styles.base, this.props.style]}
         onPaneOpen={this._onPaneOpen}
         onPaneClose={this._onPaneClose}>
         {childrenWrapper}
@@ -146,6 +176,9 @@ var SplitViewWindows = React.createClass({
     }
   },
 
+  /**
+   * Opens the pane.
+   */
   openPane: function() {
     UIManager.dispatchViewManagerCommand(
       this._getPaneLayoutHandle(),
@@ -154,6 +187,9 @@ var SplitViewWindows = React.createClass({
     );
   },
 
+  /**
+   * Closes the pane.
+   */
   closePane: function() {
     UIManager.dispatchViewManagerCommand(
       this._getPaneLayoutHandle(),
@@ -161,15 +197,32 @@ var SplitViewWindows = React.createClass({
       null
     );
   },
-
+  /**
+  * Closing and opening example
+  * Note: To access the pane you have to give it a ref. Refs do not work on stateless components
+  * render () {
+  *   this.openPane = () => {
+  *     this.refs.PANE.openPane()
+  *   }
+  *   this.closePane = () => {
+  *     this.refs.PANE.closePane()
+  *   }
+  *   return (
+  *     <SplitViewWindows ref={'PANE'}>
+  *     </SplitViewWindows>
+  *   )
+  * }
+  */
   _getPaneLayoutHandle: function() {
     return ReactNative.findNodeHandle(this.refs[RK_PANE_REF]);
   },
+
 });
 
 var styles = StyleSheet.create({
   base: {
     flex: 1,
+    elevation: 16,
   },
   mainSubview: {
     position: 'absolute',

@@ -1,40 +1,41 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
  *
  * @providesModule ProgressRingWindows
- * @flow
  */
 'use strict';
 
+var PropTypes = require('prop-types');
 var React = require('React');
-var ReactPropTypes = require('react/lib/ReactPropTypes');
 var ReactNativeViewAttributes = require('ReactNativeViewAttributes');
-var View = require('View');
+var ViewPropTypes = require('ViewPropTypes');
 var requireNativeComponent = require('requireNativeComponent');
+
 var ColorPropType = require('ColorPropType');
 
-var ProgressRingWindows = React.createClass({  
-  propTypes: {
-    ...View.propTypes,
+class ProgressRingWindows extends React.Component {
+  props: {color?: $FlowFixMe};
+
+  static propTypes = {
+    ...ViewPropTypes,
     /**
      * Color of the progress bar.
      */
     color: ColorPropType,
-  },
-  
-  getDefaultProps: function() {
-    return {
-      animating: true
-    };
-  },
-  
-  render: function() {
-    return <WindowsProgressRing {...this.props}/> ;
-  },
-});
+  };
+
+  static defaultProps = {
+    animating: true
+  };
+
+  render() {
+    return <WindowsProgressRing {...this.props}/>;
+  }
+}
 
 var WindowsProgressRing = requireNativeComponent(
-    'WindowsProgressRing', 
+    'WindowsProgressRing',
     ProgressRingWindows,
     {nativeOnly: {animating: true}}
 );

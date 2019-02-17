@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 
 namespace ReactNative.Bridge
 {
@@ -15,8 +20,9 @@ namespace ReactNative.Bridge
         /// <summary>
         /// Invoke the native method.
         /// </summary>
-        /// <param name="reactInstance">The React instance.</param>
+        /// <param name="invokeCallback">The invoke callback delegate.</param>
         /// <param name="arguments">The arguments.</param>
-        void Invoke(IReactInstance reactInstance, JArray arguments);
+        /// <returns>The native method result.</returns>
+        JToken Invoke(InvokeCallback invokeCallback, JArray arguments);
     }
 }

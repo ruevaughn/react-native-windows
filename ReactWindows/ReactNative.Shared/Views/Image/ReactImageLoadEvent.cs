@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.UIManager.Events;
 using System;
 
@@ -10,24 +15,30 @@ namespace ReactNative.Views.Image
     public class ReactImageLoadEvent : Event
     {
         /// <summary>
+        /// The event identifier for image load start.
+        /// </summary>
+        public const int OnLoadStart = 1;
+
+        /// <summary>
         /// The event identifier for image load.
         /// </summary>
-        public const int OnLoad = 1;
+        public const int OnLoad = 2;
 
         /// <summary>
         /// The event identifier for image load end.
         /// </summary>
-        public const int OnLoadEnd = 2;
+        public const int OnLoadEnd = 3;
 
         /// <summary>
-        /// The event identifier for image load start.
+        /// The event identifier for image load error.
         /// </summary>
-        public const int OnLoadStart = 3;
+        public const int OnError = 4;
 
         private readonly int _eventType;
         private readonly string _imageUri;
         private readonly int _width;
         private readonly int _height;
+        private readonly string _error;
 
         /// <summary>
         /// Instantiates a <see cref="ReactImageLoadEvent"/>.
@@ -48,12 +59,24 @@ namespace ReactNative.Views.Image
         /// <param name="width">The image width.</param>
         /// <param name="height">The image height.</param>
         public ReactImageLoadEvent(int viewId, int eventType, string imageUri, int width, int height) 
-            : base(viewId, TimeSpan.FromTicks(Environment.TickCount))
+            : base(viewId)
         {
             _eventType = eventType;
             _imageUri = imageUri;
             _width = width;
             _height = height;
+        }
+
+        /// <summary>
+        /// Instantiates a <see cref="ReactImageLoadEvent"/>.
+        /// </summary>
+        /// <param name="viewId">The view identifier.</param>
+        /// <param name="error">The error string.</param>
+        public ReactImageLoadEvent(int viewId, string error)
+            : base(viewId)
+        {
+            _eventType = OnError;
+            _error = error;
         }
 
         /// <summary>
@@ -65,12 +88,14 @@ namespace ReactNative.Views.Image
             {
                 switch (_eventType)
                 {
+                    case OnLoadStart:
+                        return "topLoadStart";
                     case OnLoad:
                         return "topLoad";
                     case OnLoadEnd:
                         return "topLoadEnd";
-                    case OnLoadStart:
-                        return "topLoadStart";
+                    case OnError:
+                        return "topError";
                     default:
                         throw new InvalidOperationException($"Invalid image event '{_eventType}'.");
                 }
@@ -85,6 +110,17 @@ namespace ReactNative.Views.Image
             get
             {
                 return (short)_eventType;
+            }
+        }
+
+        /// <summary>
+        /// The sorting key for the event.
+        /// </summary>
+        public override int SortingKey
+        {
+            get
+            {
+                return _eventType;
             }
         }
 
@@ -120,6 +156,14 @@ namespace ReactNative.Views.Image
 
                     eventData.Add("source", sourceData);
                 }
+            }
+
+            if (_eventType == OnError)
+            {
+                eventData = new JObject()
+                {
+                    { "error", _error }
+                };
             }
 
             eventEmitter.receiveEvent(ViewTag, EventName, eventData);

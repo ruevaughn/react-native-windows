@@ -1,11 +1,13 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
-using ReactNative.Views.Extensions;
+using ReactNative.UIManager.Events;
 using ReactNative.Views.Text;
 using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,9 +24,6 @@ namespace ReactNative.Views.TextInput
         internal const int FocusTextInput = 1;
         internal const int BlurTextInput = 2;
 
-        private bool _onSelectionChange;
-        private bool? _blurOnSubmit;
-
         internal static readonly Color DefaultTextBoxBorder = Color.FromArgb(255, 122, 122, 122);
         internal static readonly Color DefaultPlaceholderTextColor = Color.FromArgb(255, 0, 0, 0);
 
@@ -36,15 +35,19 @@ namespace ReactNative.Views.TextInput
         /// <summary>
         /// The exported custom bubbling event types.
         /// </summary>
-        public override IReadOnlyDictionary<string, object> ExportedCustomBubblingEventTypeConstants => new Dictionary<string, object>()
+        public override JObject CustomBubblingEventTypeConstants
+        {
+            get
+            {
+                return new JObject
                 {
                     {
                         "topSubmitEditing",
-                        new Dictionary<string, object>()
+                        new JObject
                         {
                             {
                                 "phasedRegistrationNames",
-                                new Dictionary<string, string>()
+                                new JObject
                                 {
                                     { "bubbled" , "onSubmitEditing" },
                                     { "captured" , "onSubmitEditingCapture" }
@@ -54,46 +57,18 @@ namespace ReactNative.Views.TextInput
                     },
                     {
                         "topEndEditing",
-                        new Dictionary<string, object>()
+                        new JObject
                         {
                             {
                                 "phasedRegistrationNames",
-                                new Dictionary<string, string>()
+                                new JObject
                                 {
                                     { "bubbled" , "onEndEditing" },
                                     { "captured" , "onEndEditingCapture" }
                                 }
                             }
                         }
-                    },
-                    {
-                        "topFocus",
-                        new Dictionary<string, object>()
-                        {
-                            {
-                                "phasedRegistrationNames",
-                                new Dictionary<string, string>()
-                                {
-                                    { "bubbled" , "onFocus" },
-                                    { "captured" , "onFocusCapture" }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "topBlur",
-                        new Dictionary<string, object>()
-                        {
-                            {
-                                "phasedRegistrationNames",
-                                new Dictionary<string, string>()
-                                {
-                                    { "bubbled" , "onBlur" },
-                                    { "captured" , "onBlurCapture" }
-                                }
-                            }
-                        }
-                    },
+                    },      
                     {
                         "topKeyPress",
                         new Dictionary<string, object>()
@@ -113,7 +88,11 @@ namespace ReactNative.Views.TextInput
         /// <summary>
         /// The commands map for the <see cref="ReactTextInputManager"/>.
         /// </summary>
-        public override IReadOnlyDictionary<string, object> CommandsMap => new Dictionary<string, object>()
+        public override JObject ViewCommandsMap
+        {
+            get
+            {
+                return new JObject
                 {
                     { "focusTextInput", FocusTextInput },
                     { "blurTextInput", BlurTextInput },
@@ -186,22 +165,13 @@ namespace ReactNative.Views.TextInput
         /// <param name="view">The view instance.</param>
         /// <param name="onSelectionChange">The indicator.</param>
         [ReactProp("onSelectionChange", DefaultBoolean = false)]
-        public void SetSelectionChange(ReactTextBox view, bool onSelectionChange)
+        public void SetOnSelectionChange(ReactTextBox view, bool onSelectionChange)
         {
-            if (onSelectionChange)
-            {
-                _onSelectionChange = true;
-                view.SelectionChanged += OnSelectionChanged;
-            }
-            else
-            {
-                _onSelectionChange = false;
-                view.SelectionChanged -= OnSelectionChanged;
-            }
+            view.OnSelectionChange = onSelectionChange;
         }
 
         /// <summary>
-        /// Sets the default text placeholder property on the <see cref="ReactTextBox"/>.
+        /// Sets the default text placeholder prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="placeholder">The placeholder text.</param>
@@ -212,7 +182,7 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
-        /// Sets the placeholderTextColor property on the <see cref="ReactTextBox"/>.
+        /// Sets the placeholderTextColor prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="color">The placeholder text color.</param>
@@ -231,7 +201,7 @@ namespace ReactNative.Views.TextInput
         /// </summary>
         /// <param name="view">The view instance</param>
         /// <param name="color">The masked color value.</param>
-        [ReactProp("borderColor", CustomType = "Color")]
+        [ReactProp(ViewProps.BorderColor, CustomType = "Color")]
         public void SetBorderColor(ReactTextBox view, uint? color)
         {
             view.BorderBrush = color.HasValue
@@ -265,7 +235,7 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
-        /// Sets the text alignment property on the <see cref="ReactTextBox"/>.
+        /// Sets the text alignment prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="alignment">The text alignment.</param>
@@ -276,7 +246,7 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
-        /// Sets the text alignment property on the <see cref="ReactTextBox"/>.
+        /// Sets the text alignment prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="alignment">The text alignment.</param>
@@ -287,7 +257,7 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
-        /// Sets the editablity property on the <see cref="ReactTextBox"/>.
+        /// Sets the editablity prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="editable">The editable flag.</param>
@@ -298,7 +268,31 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
-        /// Sets the max character length property on the <see cref="ReactTextBox"/>.
+        /// Sets whether the view is a tab stop.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="isTabStop">
+        /// <code>true</code> if the view is a tab stop, otherwise <code>false</code> (control can't get keyboard focus or accept keyboard input in this case).
+        /// </param>
+        [ReactProp("isTabStop")]
+        public void SetIsTabStop(ReactTextBox view, bool isTabStop)
+        {
+            view.IsTabStop = isTabStop;
+        }
+
+        /// <summary>
+        /// Sets the tab index for the view.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="tabIndex">The tab index.</param>
+        [ReactProp("tabIndex")]
+        public void SetTabIndex(ReactTextBox view, int tabIndex)
+        {
+            view.TabIndex = tabIndex;
+        }
+
+        /// <summary>
+        /// Sets the max character length prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="maxCharLength">The max length.</param>
@@ -406,6 +400,16 @@ namespace ReactNative.Views.TextInput
         {
             _blurOnSubmit = blurOnSubmit;
         }
+        
+        /// Controls the visibility of the DeleteButton.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="clearButtonMode">Visibility of the DeleteButton.</param>
+        [ReactProp("clearButtonMode")]
+        public void SetClearButtonMode(ReactTextBox view, string clearButtonMode)
+        {
+            // Ignored, there's no X shown in WPF
+        }
 
         /// <summary>
         /// Create the shadow node instance.
@@ -464,9 +468,10 @@ namespace ReactNative.Views.TextInput
 
                 view.TextChanged -= OnTextChanged;
 
-                if (_onSelectionChange)
+                var removeOnSelectionChange = view.OnSelectionChange;
+                if (removeOnSelectionChange)
                 {
-                    view.SelectionChanged -= OnSelectionChanged;
+                    view.OnSelectionChange = false;
                 }
 
                 var text = textUpdate.Item2;
@@ -479,9 +484,9 @@ namespace ReactNative.Views.TextInput
                 view.SelectionStart = Math.Min(selectionStart, textLength);
                 view.SelectionLength = Math.Min(selectionLength, maxLength < 0 ? 0 : maxLength);
 
-                if (_onSelectionChange)
+                if (removeOnSelectionChange)
                 {
-                    view.SelectionChanged += OnSelectionChanged;
+                    view.OnSelectionChange = true;
                 }
 
                 view.TextChanged += OnTextChanged;
@@ -506,10 +511,9 @@ namespace ReactNative.Views.TextInput
 
         public override void SetDimensions(ReactTextBox view, Dimensions dimensions)
         {
-            Canvas.SetLeft(view, dimensions.X);
-            Canvas.SetTop(view, dimensions.Y);
-            view.Width = dimensions.Width;
-            view.Height = dimensions.Height;
+            base.SetDimensions(view, dimensions);
+            view.MinWidth = dimensions.Width;
+            view.MinHeight = dimensions.Height;
         }
 
         /// <summary>
@@ -553,8 +557,6 @@ namespace ReactNative.Views.TextInput
                     new ReactTextChangedEvent(
                         textBox.GetTag(),
                         textBox.Text,
-                        textBox.ActualWidth,
-                        textBox.ActualHeight,
                         textBox.CurrentEventCount));
         }
 
@@ -565,7 +567,7 @@ namespace ReactNative.Views.TextInput
                 .GetNativeModule<UIManagerModule>()
                 .EventDispatcher
                 .DispatchEvent(
-                    new ReactTextInputFocusEvent(textBox.GetTag()));
+                    new FocusEvent(textBox.GetTag()));
         }
 
         private void OnLostFocus(object sender, RoutedEventArgs e)
@@ -576,7 +578,7 @@ namespace ReactNative.Views.TextInput
                 .EventDispatcher;
 
             eventDispatcher.DispatchEvent(
-                new ReactTextInputBlurEvent(textBox.GetTag()));
+                new BlurEvent(textBox.GetTag()));
 
             eventDispatcher.DispatchEvent(
                 new ReactTextInputEndEditingEvent(
@@ -621,21 +623,6 @@ namespace ReactNative.Views.TextInput
                             textBox.GetTag(),
                             e.Key));
             }
-        }
-
-        private void OnSelectionChanged(object sender, RoutedEventArgs e)
-        {
-            var textBox = (ReactTextBox)sender;
-            var start = textBox.SelectionStart;
-            var length = textBox.SelectionLength;
-            textBox.GetReactContext()
-                .GetNativeModule<UIManagerModule>()
-                .EventDispatcher
-                .DispatchEvent(
-                    new ReactTextInputSelectionEvent(
-                        textBox.GetTag(),
-                        start,
-                        start + length));
         }
     }
 }

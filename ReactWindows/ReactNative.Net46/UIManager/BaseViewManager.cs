@@ -1,7 +1,14 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
+using ReactNative.Reflection;
 using ReactNative.Touch;
 using ReactNative.UIManager.Annotations;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -14,7 +21,7 @@ namespace ReactNative.UIManager
 {
     /// <summary>
     /// Base class that should be suitable for the majority of subclasses of <see cref="IViewManager"/>.
-    /// It provides support for base view properties such as opacity, etc.
+    /// It provides support for base view props such as opacity, etc.
     /// </summary>
     /// <typeparam name="TFrameworkElement">Type of framework element.</typeparam>
     /// <typeparam name="TLayoutShadowNode">Type of shadow node.</typeparam>
@@ -23,22 +30,31 @@ namespace ReactNative.UIManager
         where TFrameworkElement : FrameworkElement
         where TLayoutShadowNode : LayoutShadowNode
     {
+        private readonly ViewKeyedDictionary<TFrameworkElement, Action<TFrameworkElement, Dimensions>> _transforms =
+            new ViewKeyedDictionary<TFrameworkElement, Action<TFrameworkElement, Dimensions>>();
+
         /// <summary>
-        /// Set's the  <typeparamref name="TFrameworkElement"/> styling layout 
-        /// properties, based on the <see cref="JObject"/> map.
+        /// Sets the 3D tranform on the <typeparamref name="TFrameworkElement"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
-        /// <param name="transforms">The list of transforms.</param>
+        /// <param name="transforms">
+        /// The transform matrix or the list of transforms.
+        /// </param>
         [ReactProp("transform")]
         public void SetTransform(TFrameworkElement view, JArray transforms)
         {
             if (transforms == null)
             {
-                ResetProjectionMatrix(view);
+                if (_transforms.Remove(view))
+                {
+                    ResetProjectionMatrix(view);
+                }
             }
             else
             {
-                SetProjectionMatrix(view, transforms);
+                _transforms[view] = (v, d) => SetProjectionMatrix(v, d, transforms);
+                var dimensions = GetDimensions(view);
+                SetProjectionMatrix(view, dimensions, transforms);
             }
         }
 
@@ -47,13 +63,29 @@ namespace ReactNative.UIManager
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="opacity">The opacity value.</param>
-        [ReactProp("opacity", DefaultDouble = 1.0)]
+        [ReactProp(ViewProps.Opacity, DefaultDouble = 1.0)]
         public void SetOpacity(TFrameworkElement view, double opacity)
         {
             view.Opacity = opacity;
         }
 
-        // ToDo: SetOverflow - ReactProp("overflow")
+        /// <summary>
+        /// Sets the overflow prop for the <typeparamref name="TFrameworkElement"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="overflow">The overflow value.</param>
+        [ReactProp(ViewProps.Overflow)]
+        public void SetOverflow(TFrameworkElement view, string overflow)
+        {
+            if (overflow == ViewProps.Hidden)
+            {
+                view.ClipToBounds = true;
+            }
+            else
+            {
+                view.ClipToBounds = false;
+            }
+        }
 
         /// <summary>
         /// Sets the z-index of the element.
@@ -67,11 +99,22 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
+        /// Sets the display mode of the element.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="display">The display mode.</param>
+        [ReactProp(ViewProps.Display)]
+        public void SetDisplay(TFrameworkElement view, string display)
+        {
+            view.Visibility = display == "none" ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        /// <summary>
         /// Sets the accessibility label of the element.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="label">The label.</param>
-        [ReactProp("accessibilityLabel")]
+        [ReactProp(ViewProps.AccessibilityLabel)]
         public void SetAccessibilityLabel(TFrameworkElement view, string label)
         {
             AutomationProperties.SetName(view, label ?? "");
@@ -91,23 +134,48 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
+        /// Sets a tooltip for the view.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="tooltip">String to display in the tooltip.</param>
+        [ReactProp("tooltip")]
+        public void SetTooltip(TFrameworkElement view, string tooltip)
+        {
+            ToolTipService.SetToolTip(view, tooltip);
+        }
+
+        /// <summary>
+        /// Set the pointer events handling mode for the view.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="pointerEventsValue">The pointerEvents mode.</param>
+        [ReactProp(ViewProps.PointerEvents)]
+        public void SetPointerEvents(TFrameworkElement view, string pointerEventsValue)
+        {
+            var pointerEvents = EnumHelpers.ParseNullable<PointerEvents>(pointerEventsValue) ?? PointerEvents.Auto;
+            view.SetPointerEvents(pointerEvents);
+        }
+
+        /// <summary>
+        /// Called when view is detached from view hierarchy and allows for
         /// additional cleanup by the <see cref="IViewManager"/> subclass.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
         /// <param name="view">The view.</param>
         /// <remarks>
-        /// Be sure to call this base class method to register for pointer 
+        /// Be sure to call this base class method to register for pointer
         /// entered and pointer exited events.
         /// </remarks>
         public override void OnDropViewInstance(ThemedReactContext reactContext, TFrameworkElement view)
         {
             view.MouseEnter -= OnPointerEntered;
             view.MouseLeave -= OnPointerExited;
+            _transforms.Remove(view);
+            base.OnDropViewInstance(reactContext, view);
         }
 
         /// <summary>
-        /// Subclasses can override this method to install custom event 
+        /// Subclasses can override this method to install custom event
         /// emitters on the given view.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
@@ -115,7 +183,7 @@ namespace ReactNative.UIManager
         /// <remarks>
         /// Consider overriding this method if your view needs to emit events
         /// besides basic touch events to JavaScript (e.g., scroll events).
-        /// 
+        ///
         /// Make sure you call the base implementation to ensure base pointer
         /// event handlers are subscribed.
         /// </remarks>
@@ -135,6 +203,21 @@ namespace ReactNative.UIManager
         {
             var view = (TFrameworkElement)sender;
             TouchHandler.OnPointerExited(view, e);
+        }
+
+        /// <summary>
+        /// Sets the dimensions of the view.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="dimensions">The dimensions.</param>
+        public override void SetDimensions(TFrameworkElement view, Dimensions dimensions)
+        {
+            Action<TFrameworkElement, Dimensions> applyTransform;
+            if (_transforms.TryGetValue(view, out applyTransform))
+            {
+                applyTransform(view, dimensions);
+            }
+            base.SetDimensions(view, dimensions);
         }
 
         /// <summary>
@@ -194,22 +277,22 @@ namespace ReactNative.UIManager
             view.Effect = effect;
         }
 
-        private static void SetProjectionMatrix(TFrameworkElement view, JArray transforms)
+        private static void SetProjectionMatrix(TFrameworkElement view, Dimensions dimensions, JArray transforms)
         {
             var transformMatrix = TransformHelper.ProcessTransform(transforms);
 
             var translateMatrix = Matrix3D.Identity;
             var translateBackMatrix = Matrix3D.Identity;
-            if (!double.IsNaN(view.Width))
+            if (!double.IsNaN(dimensions.Width))
             {
-                translateMatrix.OffsetX = -view.Width / 2;
-                translateBackMatrix.OffsetX = view.Width / 2;
+                translateMatrix.OffsetX = -dimensions.Width / 2;
+                translateBackMatrix.OffsetX = dimensions.Width / 2;
             }
 
-            if (!double.IsNaN(view.Height))
+            if (!double.IsNaN(dimensions.Height))
             {
-                translateMatrix.OffsetY = -view.Height / 2;
-                translateBackMatrix.OffsetY = view.Height / 2;
+                translateMatrix.OffsetY = -dimensions.Height / 2;
+                translateBackMatrix.OffsetY = dimensions.Height / 2;
             }
 
             var projectionMatrix = translateMatrix * transformMatrix * translateBackMatrix;
@@ -218,11 +301,16 @@ namespace ReactNative.UIManager
 
         private static void ApplyProjection(TFrameworkElement view, Matrix3D projectionMatrix)
         {
+            if (!projectionMatrix.IsAffine)
+            {
+                throw new NotImplementedException("ReactNative.Net46 does not support non-affine transformations");
+            }
+
             if (IsSimpleTranslationOnly(projectionMatrix))
             {
+                ResetProjectionMatrix(view);
                 var transform = new MatrixTransform();
                 var matrix = transform.Matrix;
-                ResetProjectionMatrix(view);
                 matrix.OffsetX = projectionMatrix.OffsetX;
                 matrix.OffsetY = projectionMatrix.OffsetY;
                 transform.Matrix = matrix;
@@ -230,21 +318,14 @@ namespace ReactNative.UIManager
             }
             else
             {
-                if (projectionMatrix.IsAffine)
-                {
-                    var transform = new MatrixTransform(projectionMatrix.M11,
-                        projectionMatrix.M12,
-                        projectionMatrix.M21,
-                        projectionMatrix.M22,
-                        projectionMatrix.OffsetX,
-                        projectionMatrix.OffsetY);
+                var transform = new MatrixTransform(projectionMatrix.M11,
+					projectionMatrix.M12,
+                    projectionMatrix.M21,
+                    projectionMatrix.M22,
+                    projectionMatrix.OffsetX,
+                    projectionMatrix.OffsetY);
 
-                    view.RenderTransform = transform;
-                }
-                else
-                {
-                    throw new NotImplementedException("ReactNative.Net46 does not support non-affine transformations");
-                }
+                view.RenderTransform = transform;
             }
         }
 

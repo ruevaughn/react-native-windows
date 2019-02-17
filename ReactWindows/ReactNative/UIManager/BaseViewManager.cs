@@ -1,7 +1,18 @@
-﻿using Newtonsoft.Json.Linq;
-using ReactNative.Touch;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
+using ReactNative.Accessibility;
+using ReactNative.Reflection;
 using ReactNative.UIManager.Annotations;
+using ReactNative.UIManager.Events;
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
+using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Automation.Peers;
@@ -14,7 +25,7 @@ namespace ReactNative.UIManager
 {
     /// <summary>
     /// Base class that should be suitable for the majority of subclasses of <see cref="IViewManager"/>.
-    /// It provides support for base view properties such as opacity, etc.
+    /// It provides support for base view props such as opacity, etc.
     /// </summary>
     /// <typeparam name="TFrameworkElement">Type of framework element.</typeparam>
     /// <typeparam name="TLayoutShadowNode">Type of shadow node.</typeparam>
@@ -23,22 +34,35 @@ namespace ReactNative.UIManager
         where TFrameworkElement : FrameworkElement
         where TLayoutShadowNode : LayoutShadowNode
     {
+        private readonly ViewKeyedDictionary<TFrameworkElement, DimensionBoundProperties> _dimensionBoundProperties =
+            new ViewKeyedDictionary<TFrameworkElement, DimensionBoundProperties>();
+
         /// <summary>
-        /// Set's the  <typeparamref name="TFrameworkElement"/> styling layout 
-        /// properties, based on the <see cref="JObject"/> map.
+        /// Sets the 3D tranform on the <typeparamref name="TFrameworkElement"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
-        /// <param name="transforms">The list of transforms.</param>
+        /// <param name="transforms">
+        /// The transform matrix or the list of transforms.
+        /// </param>
         [ReactProp("transform")]
         public void SetTransform(TFrameworkElement view, JArray transforms)
         {
             if (transforms == null)
             {
-                ResetProjectionMatrix(view);
+                var dimensionBoundProperties = GetDimensionBoundProperties(view);
+                if (dimensionBoundProperties?.MatrixTransform != null)
+                {
+                    dimensionBoundProperties.MatrixTransform = null;
+                    ResetProjectionMatrix(view);
+                    ResetRenderTransform(view);
+                }
             }
             else
             {
-                SetProjectionMatrix(view, transforms);
+                var dimensionBoundProperties = GetOrCreateDimensionBoundProperties(view);
+                dimensionBoundProperties.MatrixTransform = transforms;
+                var dimensions = GetDimensions(view);
+                SetProjectionMatrix(view, dimensions, transforms);
             }
         }
 
@@ -47,27 +71,37 @@ namespace ReactNative.UIManager
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="opacity">The opacity value.</param>
-        [ReactProp("opacity", DefaultDouble = 1.0)]
+        [ReactProp(ViewProps.Opacity, DefaultDouble = 1.0)]
         public void SetOpacity(TFrameworkElement view, double opacity)
         {
             view.Opacity = opacity;
         }
 
         /// <summary>
-        /// Sets the overflow property for the <typeparamref name="TFrameworkElement"/>.
+        /// Sets the overflow prop for the <typeparamref name="TFrameworkElement"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="overflow">The overflow value.</param>
-        [ReactProp("overflow")]
+        [ReactProp(ViewProps.Overflow)]
         public void SetOverflow(TFrameworkElement view, string overflow)
         {
-            if (overflow == "hidden")
+            if (overflow == ViewProps.Hidden)
             {
-                WinRTXamlToolkit.Controls.Extensions.FrameworkElementExtensions.SetClipToBounds(view, true);
+                var dimensionBoundProperties = GetOrCreateDimensionBoundProperties(view);
+                dimensionBoundProperties.OverflowHidden = true;
+                var dimensions = GetDimensions(view);
+                SetOverflowHidden(view, dimensions);
+                view.SizeChanged += OnSizeChanged;
             }
             else
             {
-                WinRTXamlToolkit.Controls.Extensions.FrameworkElementExtensions.SetClipToBounds(view, false);
+                view.SizeChanged -= OnSizeChanged;
+                var dimensionBoundProperties = GetDimensionBoundProperties(view);
+                if (dimensionBoundProperties != null && dimensionBoundProperties.OverflowHidden)
+                {
+                    dimensionBoundProperties.OverflowHidden = false;
+                    SetOverflowVisible(view);
+                }
             }
         }
 
@@ -83,14 +117,51 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
+        /// Sets the display mode of the element.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="display">The display mode.</param>
+        [ReactProp(ViewProps.Display)]
+        public void SetDisplay(TFrameworkElement view, string display)
+        {
+            view.Visibility = display == "none" ? Visibility.Collapsed : Visibility.Visible;
+            AccessibilityHelper.OnElementChanged(view, UIElement.VisibilityProperty);
+        }
+
+        /// <summary>
+        /// Sets the manipulation mode for the view.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="manipulationModes">The manipulation modes.</param>
+        [ReactProp("manipulationModes")]
+        public void SetManipulationModes(TFrameworkElement view, JArray manipulationModes)
+        {
+            if (manipulationModes == null)
+            {
+                view.ManipulationMode = ManipulationModes.System;
+                return;
+            }
+
+            var manipulationMode = ManipulationModes.System;
+            foreach (var modeString in manipulationModes)
+            {
+                Debug.Assert(modeString.Type == JTokenType.String);
+                var mode = EnumHelpers.Parse<ManipulationModes>(modeString.Value<string>());
+                manipulationMode |= mode;
+            }
+
+            view.ManipulationMode = manipulationMode;
+        }
+
+        /// <summary>
         /// Sets the accessibility label of the element.
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="label">The label.</param>
-        [ReactProp("accessibilityLabel")]
+        [ReactProp(ViewProps.AccessibilityLabel)]
         public void SetAccessibilityLabel(TFrameworkElement view, string label)
         {
-            AutomationProperties.SetName(view, label ?? "");
+            AccessibilityHelper.SetAccessibilityLabel(view, label ?? "");
         }
 
         /// <summary>
@@ -98,7 +169,7 @@ namespace ReactNative.UIManager
         /// </summary>
         /// <param name="view">The view instance.</param>
         /// <param name="liveRegion">The live region.</param>
-        [ReactProp("accessibilityLiveRegion")]
+        [ReactProp(ViewProps.AccessibilityLiveRegion)]
         public void SetAccessibilityLiveRegion(TFrameworkElement view, string liveRegion)
         {
             var liveSetting = AutomationLiveSetting.Off;
@@ -113,6 +184,7 @@ namespace ReactNative.UIManager
             }
 
             AutomationProperties.SetLiveSetting(view, liveSetting);
+            AccessibilityHelper.AnnounceIfNeeded(view);
         }
 
         /// <summary>
@@ -127,68 +199,142 @@ namespace ReactNative.UIManager
         }
 
         /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
+        /// Sets a tooltip for the view.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="tooltip">String to display in the tooltip.</param>
+        [ReactProp("tooltip")]
+        public void SetTooltip(TFrameworkElement view, string tooltip)
+        {
+            ToolTipService.SetToolTip(view, tooltip);
+        }
+
+        /// <summary>
+        /// Set the pointer events handling mode for the view.
+        /// </summary>
+        /// <param name="view">The view.</param>
+        /// <param name="pointerEventsValue">The pointerEvents mode.</param>
+        [ReactProp(ViewProps.PointerEvents)]
+        public void SetPointerEvents(TFrameworkElement view, string pointerEventsValue)
+        {
+            var pointerEvents = EnumHelpers.ParseNullable<PointerEvents>(pointerEventsValue) ?? PointerEvents.Auto;
+            view.SetPointerEvents(pointerEvents);
+
+            // When `pointerEvents: none`, set `IsHitTestVisible` to `false`.
+            view.IsHitTestVisible = pointerEvents != PointerEvents.None;
+        }
+
+        /// <summary>
+        /// Detects the presence of a various mouse view handler for the view.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="index">The prop index.</param>
+        /// <param name="handlerPresent">true if a mouse move handler is present.</param>
+        [ReactPropGroup(
+            "onMouseMove",
+            "onMouseMoveCapture",
+            "onMouseOver",
+            "onMouseOverCapture",
+            "onMouseOut",
+            "onMouseOutCapture",
+            "onMouseEnter",
+            "onMouseLeave")]
+        public void SetOnMouseHandler(TFrameworkElement view, int index, bool handlerPresent)
+        {
+            // The order of handler names HAS TO match order in ViewExtensions.MouseHandlerMask
+            view.SetMouseHandlerPresent((ViewExtensions.MouseHandlerMask)(1 << index), handlerPresent);
+        }
+
+        /// <summary>
+        /// Called when view is detached from view hierarchy and allows for
         /// additional cleanup by the <see cref="IViewManager"/> subclass.
         /// </summary>
         /// <param name="reactContext">The React context.</param>
         /// <param name="view">The view.</param>
         /// <remarks>
-        /// Be sure to call this base class method to register for pointer 
+        /// Be sure to call this base class method to register for pointer
         /// entered and pointer exited events.
         /// </remarks>
         public override void OnDropViewInstance(ThemedReactContext reactContext, TFrameworkElement view)
         {
-            view.PointerEntered -= OnPointerEntered;
-            view.PointerExited -= OnPointerExited;
+            _dimensionBoundProperties.Remove(view);
         }
 
         /// <summary>
-        /// Subclasses can override this method to install custom event 
-        /// emitters on the given view.
+        /// Sets the dimensions of the view.
         /// </summary>
-        /// <param name="reactContext">The React context.</param>
-        /// <param name="view">The view instance.</param>
-        /// <remarks>
-        /// Consider overriding this method if your view needs to emit events
-        /// besides basic touch events to JavaScript (e.g., scroll events).
-        /// 
-        /// Make sure you call the base implementation to ensure base pointer
-        /// event handlers are subscribed.
-        /// </remarks>
-        protected override void AddEventEmitters(ThemedReactContext reactContext, TFrameworkElement view)
+        /// <param name="view">The view.</param>
+        /// <param name="dimensions">The dimensions.</param>
+        public override void SetDimensions(TFrameworkElement view, Dimensions dimensions)
         {
-            view.PointerEntered += OnPointerEntered;
-            view.PointerExited += OnPointerExited;
+            var dimensionBoundProperties = GetDimensionBoundProperties(view);
+            var matrixTransform = dimensionBoundProperties?.MatrixTransform;
+            var overflowHidden = dimensionBoundProperties?.OverflowHidden ?? false;
+            if (matrixTransform != null)
+            {
+                SetProjectionMatrix(view, dimensions, matrixTransform);
+            }
+
+            if (overflowHidden)
+            {
+                SetOverflowHidden(view, dimensions);
+                view.SizeChanged -= OnSizeChanged;
+            }
+
+            base.SetDimensions(view, dimensions);
+
+            if (overflowHidden)
+            {
+                view.SizeChanged += OnSizeChanged;
+            }
         }
 
-        private void OnPointerEntered(object sender, PointerRoutedEventArgs e)
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
             var view = (TFrameworkElement)sender;
-            TouchHandler.OnPointerEntered(view, e);
+            view.Clip = new RectangleGeometry
+            {
+                Rect = new Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
+            };
         }
 
-        private void OnPointerExited(object sender, PointerRoutedEventArgs e)
+        private DimensionBoundProperties GetDimensionBoundProperties(TFrameworkElement view)
         {
-            var view = (TFrameworkElement)sender;
-            TouchHandler.OnPointerExited(view, e);
+            if (!_dimensionBoundProperties.TryGetValue(view, out var properties))
+            {
+                properties = null;
+            }
+
+            return properties;
         }
 
-        private static void SetProjectionMatrix(TFrameworkElement view, JArray transforms)
+        private DimensionBoundProperties GetOrCreateDimensionBoundProperties(TFrameworkElement view)
+        {
+            if (!_dimensionBoundProperties.TryGetValue(view, out var properties))
+            {
+                properties = new DimensionBoundProperties();
+                _dimensionBoundProperties.AddOrUpdate(view, properties);
+            }
+
+            return properties;
+        }
+
+        private static void SetProjectionMatrix(TFrameworkElement view, Dimensions dimensions, JArray transforms)
         {
             var transformMatrix = TransformHelper.ProcessTransform(transforms);
 
             var translateMatrix = Matrix3D.Identity;
             var translateBackMatrix = Matrix3D.Identity;
-            if (!double.IsNaN(view.Width))
+            if (!double.IsNaN(dimensions.Width))
             {
-                translateMatrix.OffsetX = -view.Width / 2;
-                translateBackMatrix.OffsetX = view.Width / 2;
+                translateMatrix.OffsetX = -dimensions.Width / 2;
+                translateBackMatrix.OffsetX = dimensions.Width / 2;
             }
 
-            if (!double.IsNaN(view.Height))
+            if (!double.IsNaN(dimensions.Height))
             {
-                translateMatrix.OffsetY = -view.Height / 2;
-                translateBackMatrix.OffsetY = view.Height / 2;
+                translateMatrix.OffsetY = -dimensions.Height / 2;
+                translateBackMatrix.OffsetY = dimensions.Height / 2;
             }
 
             var projectionMatrix = translateMatrix * transformMatrix * translateBackMatrix;
@@ -200,6 +346,8 @@ namespace ReactNative.UIManager
             if (IsSimpleTranslationOnly(projectionMatrix))
             {
                 ResetProjectionMatrix(view);
+                // We need to use a new instance of MatrixTransform because matrix
+                // updates to an existing MatrixTransform don't seem to take effect.
                 var transform = new MatrixTransform();
                 var matrix = transform.Matrix;
                 matrix.OffsetX = projectionMatrix.OffsetX;
@@ -209,7 +357,7 @@ namespace ReactNative.UIManager
             }
             else
             {
-                view.RenderTransform = new MatrixTransform();
+                ResetRenderTransform(view);
                 var projection = EnsureProjection(view);
                 projection.ProjectionMatrix = projectionMatrix;
             }
@@ -235,6 +383,18 @@ namespace ReactNative.UIManager
             view.Projection = null;
         }
 
+        private static void ResetRenderTransform(TFrameworkElement view)
+        {
+            var transform = view.RenderTransform;
+            var matrixTransform = transform as MatrixTransform;
+            if (transform != null && matrixTransform == null)
+            {
+                throw new InvalidOperationException("Unknown transform set on framework element.");
+            }
+
+            view.RenderTransform = null;
+        }
+
         private static Matrix3DProjection EnsureProjection(FrameworkElement view)
         {
             var projection = view.Projection;
@@ -251,6 +411,33 @@ namespace ReactNative.UIManager
             }
 
             return matrixProjection;
+        }
+
+        private static void SetOverflowHidden(TFrameworkElement element, Dimensions dimensions)
+        {
+            if (double.IsNaN(dimensions.Width) || double.IsNaN(dimensions.Height))
+            {
+                element.Clip = null;
+            }
+            else
+            {
+                element.Clip = new RectangleGeometry
+                {
+                    Rect = new Rect(0, 0, dimensions.Width, dimensions.Height),
+                };
+            }
+        }
+
+        private static void SetOverflowVisible(TFrameworkElement element)
+        {
+            element.Clip = null;
+        }
+
+        class DimensionBoundProperties
+        {
+            public bool OverflowHidden { get; set; }
+
+            public JArray MatrixTransform { get; set; }
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReactNative.Common;
 using ReactNative.Tracing;
@@ -72,7 +75,7 @@ namespace ReactNative.DevSupport
                 }
                 catch (JsonException ex)
                 {
-                    Tracer.Error(ReactConstants.Tag, "Failure deserializing debug server exception message.", ex);
+                    RnLog.Error(ReactConstants.RNW, ex, $"Failure deserializing debug server exception message.");
                 }
             }
 

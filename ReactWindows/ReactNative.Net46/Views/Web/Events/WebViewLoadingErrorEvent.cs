@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using ReactNative.UIManager.Events;
-using System;
-using System.Web;
 
 namespace ReactNative.Views.Web.Events
 {
@@ -10,7 +11,7 @@ namespace ReactNative.Views.Web.Events
         private readonly string _description;
 
         public WebViewLoadingErrorEvent(int viewTag, string error, string description)
-            : base(viewTag, TimeSpan.FromTicks(Environment.TickCount))
+            : base(viewTag)
         {
             if (description == null)
             {

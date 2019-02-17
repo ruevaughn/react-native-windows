@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
@@ -6,7 +6,7 @@
     <SharedGUID>eea8b852-4d07-48e1-8294-a21ab5909fe5</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>ReactNative.Shared</Import_RootNamespace>
+    <Import_RootNamespace>ReactNative</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Animated\AdditionAnimatedNode.cs" />
@@ -18,24 +18,32 @@
     <Compile Include="$(MSBuildThisFileDirectory)Animated\EventAnimationDriver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\FrameBasedAnimationDriver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\InterpolationAnimatedNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Animated\ModulusAnimatedNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\MultiplicationAnimatedNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\NativeAnimatedModule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\NativeAnimatedNodesManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\PropsAnimatedNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\SpringAnimationDriver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\StyleAnimatedNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Animated\TrackingAnimatedNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\TransformAnimatedNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Animated\ValueAnimatedNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\CompiledReactDelegateFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\GenericDelegate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\GenericDelegateTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IAsyncCancelable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IAsyncDisposable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\IBackgroundEventListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\ICallback.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\IGenericDelegate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IInvocationHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IJavaScriptExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IJavaScriptModule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\ILifecycleEventListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\INativeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\INativeModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\INativeModuleWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\InvokeCallback.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IOnBatchCompleteListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IPromise.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\IReactBridge.cs" />
@@ -45,21 +53,22 @@
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\JavaScriptBundleLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\JavaScriptModuleBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\JavaScriptModuleBase.Generated.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\JavaScriptModuleRegistration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\JavaScriptModuleRegistry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\NativeArgumentsParseException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\NativeModuleBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\NativeModuleRegistry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\NativeModuleWrapperBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\Promise.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\IMessageQueueThread.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\PromiseExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\ActionQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\ActionQueueFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\IActionQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\IActionQueueFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\IReactQueueConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\LimitedConcurrencyTaskScheduler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\MessageQueueThread.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\MessageQueueThreadExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\MessageQueueThreadKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\MessageQueueThreadSpec.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\ActionQueueExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\LimitedConcurrencyActionQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\ReactQueueConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\ReactQueueConfigurationSpec.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Bridge\Queue\ReactQueueConfigurationFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\ReactBridge.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\ReactContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Bridge\ReactContextNativeModuleBase.cs" />
@@ -94,11 +103,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\JavaScriptValueType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Chakra\Native.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\HeapBasedPriorityQueue.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\JObjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\ListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\AsyncLock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\InetHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\LifecycleState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\LifecycleStateMachine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\ReactConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\WindowsPlatformHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CoreModulesPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CoreModulesPackageWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DevSupport\DebugServerException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DevSupport\DevInternalSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DevSupport\DevServerHelper.cs" />
@@ -111,16 +124,20 @@
     <Compile Include="$(MSBuildThisFileDirectory)DevSupport\StackFrameExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DevSupport\StackTraceHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\Array.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)IReactInstanceManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IReactPackage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LifecycleState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Json\JObjectExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\AppState\AppStateModule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\DeviceEventManagerModule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\ExceptionsManagerModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\FrameEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\IMutableFrameEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\IReactChoreographer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\JavaScriptAppException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\JavaScriptException.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\JSTimersExecution.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\JSTimers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\RCTDeviceEventEmitter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\RCTNativeAppEventEmitter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\ReactChoreographer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Core\Timing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\DevSupport\IDeveloperSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\DevSupport\SourceCodeModule.cs" />
@@ -139,26 +156,42 @@
     <Compile Include="$(MSBuildThisFileDirectory)Modules\Storage\AsyncStorageHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\WebSocket\IWebSocketOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Modules\WebSocket\WebSocketOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ReactContextInitializedEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\SystemInfo\PlatformConstantsModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Modules\SystemInfo\ReactNativeVersion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Pooling\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReactNativeHostExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReactInstanceManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReactInstanceManagerBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReactNativeHost.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReactRootView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Reflection\EnumHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Reflection\ExpressionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Reflection\ReflectionHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tracing\DebugLogTracer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tracing\LogTracerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tracing\MultiLogTracer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tracing\RnLog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Annotations\ReactPropAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Annotations\ReactPropBaseAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Annotations\ReactPropGroupAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\AppRegistry.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\BorderedCanvasManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\BorderedViewParentManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\BorderExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\BorderedCanvas.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ColorHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\KeyHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\IUIBlock.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactShadowNodeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactShadowNodeVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\CornerRadiusManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\DependencyObjectExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\DependencyObjectViewManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\BlurEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\FocusEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\KeyEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\IPropSetter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\IUIBlock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\PropSetter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactShadowNodeVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ThicknessManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewKeyedDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewManagerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewConversion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Dimensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\EdgeSpacing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\Event.cs" />
@@ -168,7 +201,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\TouchEventType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\TouchEventTypeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\EpsilonEqualityComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\IPropertySetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\IReactCompoundView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\IViewManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\IViewParentManager.cs" />
@@ -189,11 +221,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\OnLayoutEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\PanelViewParentManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\PointerEvents.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\PropertySetter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactDefaultCompoundView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactShadowNode.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactStylesDiffMap.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ReactStylesDiffMapExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\RootViewHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\RootViewManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ShadowNodeRegistry.cs" />
@@ -204,13 +233,20 @@
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIImplementation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIImplementationProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIManagerModule.Constants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIViewOperationQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIManagerModule.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIManagerModuleOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\UIViewOperationQueueInstance.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewAtIndex.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewManagerRegistry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewParentManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewParentManagerExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewProps.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\YogaNodePool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\Events\KeyHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\Control\ReactControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\Control\ReactControlManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\Control\ReactControlShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Image\ReactImageLoadEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Scroll\ScrollEventType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Scroll\ScrollEventTypeExtensions.cs" />
@@ -218,6 +254,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\Slider\ReactSliderCompleteEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Slider\ReactSliderShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputKeyEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputContentSizeChangedEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\FontStyleHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactInlineShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactInlineShadowNodeVisitor.cs" />
@@ -225,19 +262,19 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactRunShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactSpanShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactSpanViewManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactTextBlockSelectionEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\ReactTextInlineViewManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ClearButtonModeType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\InputScopeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactPasswordBoxShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextBox.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextChangedEvent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputBlurEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputEndEditingEvent.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputFocusEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputSelectionEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputShadowNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\TextInput\ReactTextInputSubmitEditingEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\Text\TextDecorationLine.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Views\ViewManagersPropertyCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UIManager\ViewManagersPropCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\View\ReactViewManager.cs" />
   </ItemGroup>
 </Project>

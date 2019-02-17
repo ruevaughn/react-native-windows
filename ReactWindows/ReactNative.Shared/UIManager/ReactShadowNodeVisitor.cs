@@ -1,4 +1,7 @@
-﻿using Extensions;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Extensions;
 using System;
 using System.Collections.Generic;
 
@@ -13,6 +16,11 @@ namespace ReactNative.UIManager
                 throw new ArgumentNullException(nameof(node));
             }
 
+            return VisitCore(node);
+        }
+
+        protected virtual T VisitCore(ReactShadowNode node)
+        {
             var n = node.ChildCount;
             if (n == 0)
             {

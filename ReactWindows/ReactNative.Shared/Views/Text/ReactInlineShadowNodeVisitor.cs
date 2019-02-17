@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using System;
 using ReactNative.UIManager;
 using System.Collections.Generic;
 using Facebook.Yoga;
@@ -19,6 +22,17 @@ namespace ReactNative.Views.Text
         public static Inline Apply(ReactShadowNode node)
         {
             return s_instance.Visit(node);
+        }
+
+        protected override Inline VisitCore(ReactShadowNode node)
+        {
+            var textNode = node as ReactInlineShadowNode;
+            if (textNode != null)
+            {
+                return base.VisitCore(node);
+            }
+
+            return Make(node, Array.Empty<Inline>());
         }
 
         protected sealed override Inline Make(ReactShadowNode node, IList<Inline> children)

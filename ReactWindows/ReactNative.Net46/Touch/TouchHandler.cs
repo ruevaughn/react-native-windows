@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Events;
@@ -299,6 +302,10 @@ namespace ReactNative.Touch
             pointer.LocationX = (float)positionInView.X;
             pointer.LocationY = (float)positionInView.Y;
             pointer.Timestamp = (ulong) timestamp;
+
+            pointer.ShiftKey = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+            pointer.AltKey = (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt;
+            pointer.CtrlKey = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
         }
 
         private void DispatchTouchEvent(TouchEventType touchEventType, List<ReactPointer> activePointers, int pointerIndex)
@@ -316,7 +323,7 @@ namespace ReactNative.Touch
 
             var touchEvent = new TouchEvent(touchEventType, touches, changedIndices, coalescingKey);
 
-            _view.GetReactContext()
+            _view.GetReactContext()?
                 .GetNativeModule<UIManagerModule>()
                 .EventDispatcher
                 .DispatchEvent(touchEvent);
@@ -388,7 +395,7 @@ namespace ReactNative.Touch
             private readonly uint _coalescingKey;
 
             public TouchEvent(TouchEventType touchEventType, JArray touches, JArray changedIndices, uint coalescingKey)
-                : base(-1, TimeSpan.FromTicks(Environment.TickCount))
+                : base(-1)
             {
                 _touchEventType = touchEventType;
                 _touches = touches;
@@ -396,21 +403,9 @@ namespace ReactNative.Touch
                 _coalescingKey = coalescingKey;
             }
 
-            public override string EventName
-            {
-                get
-                {
-                    return _touchEventType.GetJavaScriptEventName();
-                }
-            }
+            public override string EventName => _touchEventType.GetJavaScriptEventName();
 
-            public override bool CanCoalesce
-            {
-                get
-                {
-                    return _touchEventType == TouchEventType.Move;
-                }
-            }
+            public override bool CanCoalesce => _touchEventType == TouchEventType.Move;
 
             public override short CoalescingKey
             {
@@ -434,26 +429,14 @@ namespace ReactNative.Touch
             private readonly TouchEventType _touchEventType;
 
             public PointerEnterExitEvent(TouchEventType touchEventType, int viewTag)
-                : base(viewTag, TimeSpan.FromTicks(Environment.TickCount))
+                : base(viewTag)
             {
                 _touchEventType = touchEventType;
             }
 
-            public override string EventName
-            {
-                get
-                {
-                    return _touchEventType.GetJavaScriptEventName();
-                }
-            }
+            public override string EventName => _touchEventType.GetJavaScriptEventName();
 
-            public override bool CanCoalesce
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool CanCoalesce => false;
 
             public override void Dispatch(RCTEventEmitter eventEmitter)
             {
@@ -463,13 +446,14 @@ namespace ReactNative.Touch
                 };
 
                 var enterLeaveEventName = default(string);
-                if (_touchEventType == TouchEventType.Entered)
+                switch (_touchEventType)
                 {
-                    enterLeaveEventName = "topMouseEnter";
-                }
-                else if (_touchEventType == TouchEventType.Exited)
-                {
-                    enterLeaveEventName = "topMouseLeave";
+                    case TouchEventType.Entered:
+                        enterLeaveEventName = "topMouseEnter";
+                        break;
+                    case TouchEventType.Exited:
+                        enterLeaveEventName = "topMouseLeave";
+                        break;
                 }
 
                 if (enterLeaveEventName != null)
@@ -533,6 +517,15 @@ namespace ReactNative.Touch
 
             [JsonProperty(PropertyName = "isEraser", DefaultValueHandling = DefaultValueHandling.Ignore)]
             public bool IsEraser { get; set; }
+
+            [JsonProperty(PropertyName = "shiftKey", DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public bool ShiftKey { get; set; }
+
+            [JsonProperty(PropertyName = "ctrlKey", DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public bool CtrlKey { get; set; }
+
+            [JsonProperty(PropertyName = "altKey", DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public bool AltKey { get; set; }
         }
     }
 }

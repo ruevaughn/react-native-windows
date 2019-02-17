@@ -1,6 +1,13 @@
-﻿using Newtonsoft.Json;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
+using ReactNative.Common;
+using ReactNative.Tracing;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +15,7 @@ using Windows.Storage;
 
 namespace ReactNative.Modules.Storage
 {
-    class AsyncStorageModule : NativeModuleBase, ILifecycleEventListener
+    class AsyncStorageModule : NativeModuleBase
     {
         private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1, 1);
 
@@ -49,6 +56,10 @@ namespace ReactNative.Modules.Storage
                     data.Add(new JArray(key, value));
                 }
             }
+            catch (Exception ex)
+            {
+                error = AsyncStorageHelpers.GetError(ex);
+            }
             finally
             {
                 _mutex.Release();
@@ -56,6 +67,7 @@ namespace ReactNative.Modules.Storage
 
             if (error != null)
             {
+                RnLog.Warn(ReactConstants.RNW, $"Error in AsyncStorageModule.multiGet: {error}");
                 callback.Invoke(error);
             }
             else
@@ -105,6 +117,10 @@ namespace ReactNative.Modules.Storage
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                error = AsyncStorageHelpers.GetError(ex);
+            }
             finally
             {
                 _mutex.Release();
@@ -112,6 +128,7 @@ namespace ReactNative.Modules.Storage
 
             if (error != null)
             {
+                RnLog.Warn(ReactConstants.RNW, $"Error in AsyncStorageModule.multiSet: {error}");
                 callback.Invoke(error);
             }
             else
@@ -149,6 +166,10 @@ namespace ReactNative.Modules.Storage
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                error = AsyncStorageHelpers.GetError(ex);
+            }
             finally
             {
                 _mutex.Release();
@@ -156,6 +177,7 @@ namespace ReactNative.Modules.Storage
 
             if (error != null)
             {
+                RnLog.Warn(ReactConstants.RNW, $"Error in AsyncStorageModule.multiRemove: {error}");
                 callback.Invoke(error);
             }
             else
@@ -205,6 +227,10 @@ namespace ReactNative.Modules.Storage
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                error = AsyncStorageHelpers.GetError(ex);
+            }
             finally
             {
                 _mutex.Release();
@@ -212,6 +238,7 @@ namespace ReactNative.Modules.Storage
 
             if (error != null)
             {
+                RnLog.Warn(ReactConstants.RNW, $"Error in AsyncStorageModule.multiMerge: {error}");
                 callback.Invoke(error);
             }
             else
@@ -223,6 +250,8 @@ namespace ReactNative.Modules.Storage
         [ReactMethod]
         public async void clear(ICallback callback)
         {
+            var error = default(JObject);
+
             await _mutex.WaitAsync().ConfigureAwait(false);
             try
             {
@@ -233,17 +262,30 @@ namespace ReactNative.Modules.Storage
                     _cachedFolder = null;
                 }
             }
+            catch (Exception ex)
+            {
+                error = AsyncStorageHelpers.GetError(ex);
+            }
             finally
             {
                 _mutex.Release();
             }
 
-            callback.Invoke();
+            if (error != null)
+            {
+                RnLog.Warn(ReactConstants.RNW, $"Error in AsyncStorageModule.clear: {error}");
+                callback.Invoke(error);
+            }
+            else
+            {
+                callback.Invoke();
+            }
         }
 
         [ReactMethod]
         public async void getAllKeys(ICallback callback)
         {
+            var error = default(JObject);
             var keys = new JArray();
 
             await _mutex.WaitAsync().ConfigureAwait(false);
@@ -263,25 +305,31 @@ namespace ReactNative.Modules.Storage
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                error = AsyncStorageHelpers.GetError(ex);
+            }
             finally
             {
                 _mutex.Release();
             }
 
-            callback.Invoke(null, keys);
+            if (error != null)
+            {
+                RnLog.Warn(ReactConstants.RNW, $"Error in AsyncStorageModule.getAllKeys: {error}");
+                callback.Invoke(error);
+            }
+            else
+            {
+                callback.Invoke(null, keys);
+            }
         }
 
-        public void OnSuspend()
-        {
-        }
-
-        public void OnResume()
-        {
-        }
-
-        public void OnDestroy()
+        public override Task OnReactInstanceDisposeAsync()
         {
             _mutex.Dispose();
+
+            return Task.CompletedTask;
         }
 
         private async Task<string> GetAsync(string key)

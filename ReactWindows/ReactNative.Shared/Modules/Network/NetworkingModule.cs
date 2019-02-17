@@ -1,6 +1,11 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
-using ReactNative.Collections;
+using ReactNative.Json;
 using ReactNative.Modules.Core;
 using System;
 using System.Collections.Generic;
@@ -13,11 +18,13 @@ using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Web.Http;
 using Windows.Web.Http.Filters;
+using Windows.Web.Http.Headers;
 #else
 using PCLStorage;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using HttpMediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 using HttpMultipartFormDataContent = System.Net.Http.MultipartFormDataContent;
 using HttpStreamContent = System.Net.Http.StreamContent;
 using HttpStringContent = System.Net.Http.StringContent;
@@ -70,7 +77,7 @@ namespace ReactNative.Modules.Network
         {
             get
             {
-                return "RCTNetworking";
+                return "Networking";
             }
         }
 
@@ -126,30 +133,31 @@ namespace ReactNative.Modules.Network
 
             if (data != null)
             {
-                var body = data.Value<string>("string");
+                var stringBody = data.Value<string>("string");
+                var base64Body = default(string);
                 var uri = default(string);
                 var formData = default(JArray);
-                if (body != null)
-                {
-                    if (headerData.ContentType == null)
-                    {
-                        OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false);
-                        return;
-                    }
 
-                    request.Content = HttpContentHelpers.CreateFromBody(headerData, body);
+                if (HasRequestContent(data) && headerData.ContentType == null)
+                {
+                    OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false);
+                    return;
+                }
+
+                if (stringBody != null)
+                {
+                    request.Content = HttpContentHelpers.CreateFromBody(headerData, stringBody);
+                }
+                else if ((base64Body = data.Value<string>("base64")) != null)
+                {
+                    request.Content = HttpContentHelpers.CreateFromBase64(headerData, base64Body);
                 }
                 else if ((uri = data.Value<string>("uri")) != null)
                 {
-                    if (headerData.ContentType == null)
-                    {
-                        OnRequestError(requestId, "Payload is set but no 'content-type' header specified.", false);
-                        return;
-                    }
-
                     _tasks.AddAndInvokeAsync(requestId, token => ProcessRequestFromUriAsync(
                         requestId,
                         new Uri(uri),
+                        headerData,
                         useIncrementalUpdates,
                         timeout,
                         request,
@@ -220,39 +228,55 @@ namespace ReactNative.Modules.Network
         /// <summary>
         /// Called before a <see cref="IReactInstance"/> is disposed.
         /// </summary>
-        public override void OnReactInstanceDispose()
+        public override Task OnReactInstanceDisposeAsync()
         {
             _shuttingDown = true;
             _tasks.CancelAllTasks();
             _client.Dispose();
+            return Task.CompletedTask;
         }
 
         private async Task ProcessRequestFromUriAsync(
             int requestId,
             Uri uri,
+            HttpContentHeaderData headerData,
             bool useIncrementalUpdates,
             int timeout,
             HttpRequestMessage request,
             string responseType,
             CancellationToken token)
         {
+            try
+            {
 #if WINDOWS_UWP
-            var storageFile = await StorageFile.GetFileFromApplicationUriAsync(uri).AsTask().ConfigureAwait(false);
-            var inputStream = await storageFile.OpenReadAsync().AsTask().ConfigureAwait(false);
+                var storageFile = await StorageFile.GetFileFromPathAsync(uri.LocalPath).AsTask().ConfigureAwait(false);
+                var inputStream = await storageFile.OpenReadAsync().AsTask().ConfigureAwait(false);
 #else
-            var storageFile = await FileSystem.Current.GetFileFromPathAsync(uri.ToString()).ConfigureAwait(false);
-            var input = await storageFile.ReadAllTextAsync().ConfigureAwait(false);
-            var byteArray = Encoding.UTF8.GetBytes(input);
-            var inputStream = new MemoryStream(byteArray);
+                var storageFile = await FileSystem.Current.GetFileFromPathAsync(uri.ToString()).ConfigureAwait(false);
+                var input = await storageFile.ReadAllTextAsync().ConfigureAwait(false);
+                var byteArray = Encoding.UTF8.GetBytes(input);
+                var inputStream = new MemoryStream(byteArray);
 #endif
-            request.Content = new HttpStreamContent(inputStream);
-            await ProcessRequestAsync(
-                requestId,
-                useIncrementalUpdates,
-                timeout,
-                request,
-                responseType,
-                token).ConfigureAwait(false);
+                request.Content = new HttpStreamContent(inputStream);
+                request.Content.Headers.ContentType = new HttpMediaTypeHeaderValue(headerData.ContentType);
+
+                await ProcessRequestAsync(
+                    requestId,
+                    useIncrementalUpdates,
+                    timeout,
+                    request,
+                    responseType,
+                    token).ConfigureAwait(false);
+            }
+            catch(Exception ex)
+            {
+                if (_shuttingDown)
+                {
+                    return;
+                }
+
+                OnRequestError(requestId, ex.Message, false);
+            }
         }
 
         private async Task ProcessRequestAsync(
@@ -280,7 +304,7 @@ namespace ReactNative.Modules.Network
                         {
 #if WINDOWS_UWP
                             var length = response.Content.Headers.ContentLength;
-                            var inputStream = await response.Content.ReadAsInputStreamAsync().AsTask().ConfigureAwait(false);
+                            var inputStream = await response.Content.ReadAsInputStreamAsync().AsTask(token).ConfigureAwait(false);
                             var stream = inputStream.AsStreamForRead();
 #else
                             var length = (ulong?)response.Content.Headers.ContentLength;
@@ -302,7 +326,13 @@ namespace ReactNative.Modules.Network
                                 if (responseType == "text")
                                 {
 #if WINDOWS_UWP
-                                    var responseBody = await response.Content.ReadAsStringAsync().AsTask().ConfigureAwait(false);
+                                    string responseBody;
+                                    var responseInputStream = await response.Content.ReadAsInputStreamAsync().AsTask(token).ConfigureAwait(false);
+                                    using (var responseStream = responseInputStream.AsStreamForRead())
+                                    using (var responseStreamReader = new StreamReader(responseStream))
+                                    {
+                                        responseBody = await responseStreamReader.ReadToEndAsync().ConfigureAwait(false);
+                                    }
 #else
                                     var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 #endif
@@ -314,22 +344,20 @@ namespace ReactNative.Modules.Network
                                 else
                                 {
                                     Debug.Assert(responseType == "base64");
-                                    using (var memoryStream = new MemoryStream())
-                                    {
 #if WINDOWS_UWP
-                                        using (var outputStream = memoryStream.AsOutputStream())
-                                        {
-                                            await response.Content.WriteToStreamAsync(outputStream).AsTask().ConfigureAwait(false);
-                                        }
+                                    byte[] responseBytes;
+                                    var responseInputStream = await response.Content.ReadAsInputStreamAsync().AsTask(token).ConfigureAwait(false);
+                                    using (var memoryStream = new MemoryStream())
+                                    using (var responseStream = responseInputStream.AsStreamForRead())
+                                    {
+                                        await responseStream.CopyToAsync(memoryStream);
+                                        responseBytes = memoryStream.ToArray();
+                                    }
 #else
-                                        using (var outputStream = memoryStream)
-                                        {
-                                            await response.Content.CopyToAsync(outputStream).ConfigureAwait(false);
-                                        }
+                                    var responseBytes = await response.Content.ReadAsByteArrayAsync();
 #endif
 
-                                        OnDataReceived(requestId, Convert.ToBase64String(memoryStream.ToArray()));
-                                    }
+                                    OnDataReceived(requestId, Convert.ToBase64String(responseBytes));
                                 }
                             }
 
@@ -401,7 +429,7 @@ namespace ReactNative.Modules.Network
                 requestId,
                 (int)response.StatusCode,
                 headerData,
-                response.RequestMessage.RequestUri.AbsolutePath,
+                response.RequestMessage.RequestUri.AbsoluteUri,
             };
 
             EventEmitter.emit("didReceiveNetworkResponse", args);
@@ -448,6 +476,13 @@ namespace ReactNative.Modules.Network
             });
         }
 
+        private static bool HasRequestContent(JObject data)
+        {
+            return data.ContainsKey("string")
+                || data.ContainsKey("base64")
+                || data.ContainsKey("uri");
+        }
+
         private static void ApplyHeaders(HttpRequestMessage request, string[][] headers)
         {
             foreach (var header in headers)
@@ -455,6 +490,20 @@ namespace ReactNative.Modules.Network
                 var key = header[0];
                 switch (key.ToLowerInvariant())
                 {
+#if WINDOWS_UWP
+                    case "authorization":
+                        var authParts = header[1].Trim().Split(new[] { ' ' }, 2);
+                        if (authParts.Length == 2)
+                        {
+                            request.Headers.Authorization = new HttpCredentialsHeaderValue(authParts[0].Trim(), authParts[1].Trim());
+                        }
+                        else
+                        {
+                            request.Headers.Add(key, header[1]);
+                        }
+                        
+                        break;
+#endif
                     case "content-encoding":
                     case "content-length":
                     case "content-type":
@@ -492,7 +541,7 @@ namespace ReactNative.Modules.Network
                 new HttpClient(
                     new HttpBaseProtocolFilter
                     {
-                        AllowAutoRedirect = false,
+                        AllowAutoRedirect = true,
                     }));
 #else
             var httpClientHandler = new HttpClientHandler

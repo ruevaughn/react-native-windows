@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
+// Licensed under the MIT License.
+
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace ReactNative.Animated
@@ -29,7 +34,7 @@ namespace ReactNative.Animated
                 var value = valueNode.Value;
                 if (i == 0)
                 {
-                    Value = value;
+                    RawValue = value;
                     continue;
                 }
 
@@ -39,7 +44,7 @@ namespace ReactNative.Animated
                         "Detected a division by zero in Animated.divide node.");
                 }
 
-                Value /= value;
+                RawValue /= value;
             }
         }
     }

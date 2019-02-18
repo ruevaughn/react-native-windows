@@ -304,9 +304,9 @@ namespace ReactNative.Modules.Core
 
             if (sendIdleEvents)
             {
-                var frameStartTime = frameTime - s_frameDuration;
-                Context.GetJavaScriptModule<JSTimers>()
-                    .callIdleCallbacks(frameStartTime.ToUnixTimeMilliseconds());
+                // var frameStartTime = frameTime - s_frameDuration;
+                // Context.GetJavaScriptModule<JSTimers>()
+                //    .callIdleCallbacks(frameStartTime.ToUnixTimeMilliseconds());
             }
         }
 

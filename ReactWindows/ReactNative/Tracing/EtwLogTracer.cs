@@ -28,7 +28,7 @@ namespace ReactNative.Tracing
         /// <param name="eventName">Name of the event</param>
         /// <param name="message">Log message</param>
         /// <param name="exception">Optional exception to include with event</param>
-        protected override void AppendInternal(EventLevel eventLevel, string eventName, FormattableString message, Exception exception)
+        protected override void AppendInternal(EventLevel eventLevel, string eventName, string message, Exception exception)
         {
             var options = new EventSourceOptions
             {

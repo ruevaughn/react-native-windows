@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using System;
 using ReactNative.UIManager.Events;
 #if WINDOWS_UWP
@@ -29,7 +29,7 @@ namespace ReactNative.Views.TextInput
         private readonly bool _ctrlKey;
 
         public ReactTextInputKeyEvent(string eventName, int viewTag, Key key)
-            : base(viewTag, TimeSpan.FromTicks(Environment.TickCount))
+            : base(viewTag)
         {
             EventName = eventName;
 

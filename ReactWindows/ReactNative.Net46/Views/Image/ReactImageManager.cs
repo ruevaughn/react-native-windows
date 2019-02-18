@@ -329,17 +329,6 @@ namespace ReactNative.Views.Image
                     Stretch = Stretch.UniformToFill,
                 },
             };
-
-            // Using a Border instead of a native Image has its advantages (round corner support, etc.), but
-            // we have to take into account the automatic flipping that happens in RTL mode. We use a transform
-            // to negate that flipping.
-            // NOTE: This WPF implementation doesn't support updating this on the fly
-            if (I18NUtil.IsRightToLeft)
-            {
-                border.Background.RelativeTransform = _rtlScaleTransform.Value;
-            }
-
-            return border;
         }
 
         /// <summary>

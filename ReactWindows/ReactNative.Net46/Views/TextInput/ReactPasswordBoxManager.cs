@@ -6,6 +6,7 @@ using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using ReactNative.UIManager.Events;
+using ReactNative.Views.Extensions;
 using ReactNative.Views.Text;
 using System;
 using System.Linq;

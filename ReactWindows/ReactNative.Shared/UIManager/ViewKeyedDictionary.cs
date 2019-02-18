@@ -3,7 +3,6 @@
 
 using ReactNative.Bridge;
 using System.Collections.Generic;
-using static System.FormattableString;
 #if WINDOWS_UWP
 using Windows.UI.Xaml;
 using System.Collections.Concurrent;
@@ -91,7 +90,7 @@ namespace ReactNative.UIManager
                 }
                 else
                 {
-                    throw new KeyNotFoundException(Invariant($"Key '{key}' not found."));
+                    throw new KeyNotFoundException($"Key '{key}' not found.");
                 }
             }
             set

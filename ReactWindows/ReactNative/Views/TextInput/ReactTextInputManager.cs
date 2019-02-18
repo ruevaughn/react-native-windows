@@ -11,6 +11,7 @@ using ReactNative.UIManager.Annotations;
 using ReactNative.UIManager.Events;
 using ReactNative.Views.Text;
 using System;
+using System.Collections.Generic;
 using Windows.System;
 using Windows.UI.Text;
 using Windows.UI.Xaml;
@@ -99,22 +100,7 @@ namespace ReactNative.Views.TextInput
                                 }
                             }
                         }
-                    },
-                    {
-                        "topKeyPress",
-                        new Dictionary<string, object>()
-                        {
-                            {
-                                "phasedRegistrationNames",
-                                new Dictionary<string, string>()
-                                {
-                                    { "bubbled" , "onKeyPress" },
-                                    { "captured" , "onKeyPressCapture" }
-                                }
-                            }
-                        }
-                    },
-
+                    }
                 };
             }
         }

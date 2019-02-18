@@ -51,7 +51,7 @@ namespace ReactNative.Tracing
         }
 
         /// <inheritdoc />
-        protected override void AppendInternal(EventLevel eventLevel, string eventName, FormattableString message, Exception exception)
+        protected override void AppendInternal(EventLevel eventLevel, string eventName, string message, Exception exception)
         {
             foreach (var tracer in _tracers)
             {

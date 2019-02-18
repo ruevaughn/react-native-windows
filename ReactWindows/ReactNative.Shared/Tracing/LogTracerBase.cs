@@ -21,7 +21,7 @@ namespace ReactNative.Tracing
         /// <param name="eventName">Name of the event</param>
         /// <param name="message">Log message</param>
         /// <param name="exception">Optional exception to include with event</param>
-        public void Append(EventLevel eventLevel, string eventName, FormattableString message, Exception exception = null)
+        public void Append(EventLevel eventLevel, string eventName, string message, Exception exception = null)
         {
             if (eventLevel <= _verbosityLevel)
             {
@@ -41,7 +41,7 @@ namespace ReactNative.Tracing
         /// <summary>
         /// Crashes the application.
         /// </summary>
-        public virtual void CrashApplication(FormattableString message, Exception exception = null)
+        public virtual void CrashApplication(string message, Exception exception = null)
         {
             if (exception == null)
             {
@@ -57,7 +57,7 @@ namespace ReactNative.Tracing
         /// <param name="eventName">Name of the event</param>
         /// <param name="message">Log message</param>
         /// <param name="exception">Optional exception to include with event</param>
-        protected abstract void AppendInternal(EventLevel eventLevel, string eventName, FormattableString message, Exception exception);
+        protected abstract void AppendInternal(EventLevel eventLevel, string eventName, string message, Exception exception);
 
         /// <summary>
         /// Sets the threshold for log events - events more verbose than this will not be logged.

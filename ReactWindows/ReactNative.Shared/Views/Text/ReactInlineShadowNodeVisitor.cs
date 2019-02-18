@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -32,7 +32,7 @@ namespace ReactNative.Views.Text
                 return base.VisitCore(node);
             }
 
-            return Make(node, Array.Empty<Inline>());
+            return Make(node, new List<Inline>());
         }
 
         protected sealed override Inline Make(ReactShadowNode node, IList<Inline> children)

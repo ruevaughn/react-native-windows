@@ -6,6 +6,7 @@ using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using ReactNative.UIManager.Events;
+using ReactNative.Views.Extensions;
 using ReactNative.Views.Text;
 using System;
 using System.Windows;
@@ -23,6 +24,8 @@ namespace ReactNative.Views.TextInput
     {
         internal const int FocusTextInput = 1;
         internal const int BlurTextInput = 2;
+
+        private bool? _blurOnSubmit;
 
         internal static readonly Color DefaultTextBoxBorder = Color.FromArgb(255, 122, 122, 122);
         internal static readonly Color DefaultPlaceholderTextColor = Color.FromArgb(255, 0, 0, 0);
@@ -68,22 +71,10 @@ namespace ReactNative.Views.TextInput
                                 }
                             }
                         }
-                    },      
-                    {
-                        "topKeyPress",
-                        new Dictionary<string, object>()
-                        {
-                            {
-                                "phasedRegistrationNames",
-                                new Dictionary<string, string>()
-                                {
-                                    { "bubbled" , "onKeyPress" },
-                                    { "captured" , "onKeyPressCapture" }
-                                }
-                            }
-                        }
-                    },
+                    }
                 };
+            }
+        }
 
         /// <summary>
         /// The commands map for the <see cref="ReactTextInputManager"/>.
@@ -97,6 +88,8 @@ namespace ReactNative.Views.TextInput
                     { "focusTextInput", FocusTextInput },
                     { "blurTextInput", BlurTextInput },
                 };
+            }
+        }
 
         /// <summary>
         /// Sets the font size on the <see cref="ReactTextBox"/>.
@@ -400,7 +393,8 @@ namespace ReactNative.Views.TextInput
         {
             _blurOnSubmit = blurOnSubmit;
         }
-        
+
+        /// <summary>
         /// Controls the visibility of the DeleteButton.
         /// </summary>
         /// <param name="view">The view instance.</param>

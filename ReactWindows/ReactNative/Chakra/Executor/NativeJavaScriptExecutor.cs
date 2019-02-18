@@ -57,7 +57,7 @@ namespace ReactNative.Chakra.Executor
             // we need to do a proper marshaling to get actual value
             // Also, JavaScript already has a log level in the message, hence just RnLog.Info
             string tag = "JS";
-            FormattableString message = $"{logline}";
+            string message = $"{logline}";
 
             switch (logLevel)
             {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using Newtonsoft.Json.Linq;
@@ -6,7 +6,6 @@ using ReactNative.Bridge;
 using ReactNative.Modules.Core;
 using System;
 using System.Reactive.Subjects;
-using static System.FormattableString;
 
 namespace ReactNative.Modules.Launch
 {
@@ -60,7 +59,7 @@ namespace ReactNative.Modules.Launch
             var uri = default(Uri);
             if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
             {
-                promise.Reject(new ArgumentException(Invariant($"URL argument '{uri}' is not valid.")));
+                promise.Reject(new ArgumentException($"URL argument '{uri}' is not valid."));
                 return;
             }
 
@@ -87,7 +86,7 @@ namespace ReactNative.Modules.Launch
             var uri = default(Uri);
             if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
             {
-                promise.Reject(new ArgumentException(Invariant($"URL argument '{uri}' is not valid.")));
+                promise.Reject(new ArgumentException($"URL argument '{uri}' is not valid."));
                 return;
             }
 

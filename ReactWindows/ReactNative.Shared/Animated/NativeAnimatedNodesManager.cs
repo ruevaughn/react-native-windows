@@ -172,7 +172,7 @@ namespace ReactNative.Animated
             if (valueNode == null)
             {
                 throw new InvalidOperationException(
-                    Invariant($"Animated node with tag '{tag}' is not a value node"));
+                    $"Animated node with tag '{tag}' is not a value node");
             }
 
             valueNode.Offset = offset;
@@ -186,7 +186,7 @@ namespace ReactNative.Animated
             if (valueNode == null)
             {
                 throw new InvalidOperationException(
-                    Invariant($"Animated node with tag '{tag}' is not a value node"));
+                    $"Animated node with tag '{tag}' is not a value node");
             }
 
             valueNode.FlattenOffset();
@@ -199,7 +199,7 @@ namespace ReactNative.Animated
             if (valueNode == null)
             {
                 throw new InvalidOperationException(
-                    Invariant($"Animated node with tag '{tag}' is not a value node"));
+                    $"Animated node with tag '{tag}' is not a value node");
             }
 
             valueNode.ExtractOffset();

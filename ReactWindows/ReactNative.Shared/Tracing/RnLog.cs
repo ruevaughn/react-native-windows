@@ -62,7 +62,7 @@ namespace ReactNative.Tracing
             logTracer = tracer;
         }
 
-        private static void WriteLogLine(EventLevel eventLevel, string tag, FormattableString message, Exception exception = null)
+        private static void WriteLogLine(EventLevel eventLevel, string tag, string message, Exception exception = null)
         {
             if (logTracer != null)
             {
@@ -75,7 +75,7 @@ namespace ReactNative.Tracing
         /// </summary>
         /// <param name="tag">Identifies the source of the log message. Usually a class or React Native module name.</param>
         /// <param name="message">Message format to log.</param>
-        public static void Info(string tag, FormattableString message)
+        public static void Info(string tag, string message)
         {
             Info(tag, null, message);
         }
@@ -86,7 +86,7 @@ namespace ReactNative.Tracing
         /// <param name="tag">Identifies the source of the log message. Usually a class or React Native module name.</param>
         /// <param name="exception">Exception to include with log (may be null).</param>
         /// <param name="message">Message format to log.</param>
-        public static void Info(string tag, Exception exception, FormattableString message)
+        public static void Info(string tag, Exception exception, string message)
         {
             WriteLogLine(EventLevel.Informational, tag, message, exception);
         }
@@ -96,7 +96,7 @@ namespace ReactNative.Tracing
         /// </summary>
         /// <param name="tag">Identifies the source of the log message. Usually a class or React Native module name.</param>
         /// <param name="message">The message to log.</param>
-        public static void Warn(string tag, FormattableString message)
+        public static void Warn(string tag, string message)
         {
             Warn(tag, null, message);
         }
@@ -107,7 +107,7 @@ namespace ReactNative.Tracing
         /// <param name="tag">Identifies the source of the log message. Usually a class or React Native module name.</param>
         /// <param name="exception">Exception to include with log (may be null).</param>
         /// <param name="message">The message to log.</param>
-        public static void Warn(string tag, Exception exception, FormattableString message)
+        public static void Warn(string tag, Exception exception, string message)
         {
             WriteLogLine(EventLevel.Warning, tag, message, exception);
         }
@@ -117,7 +117,7 @@ namespace ReactNative.Tracing
         /// </summary>
         /// <param name="tag">Identifies the source of the log message. Usually a class or React Native module name.</param>
         /// <param name="message">The message to log.</param>
-        public static void Error(string tag, FormattableString message)
+        public static void Error(string tag, string message)
         {
             Error(tag, null, message);
         }
@@ -128,7 +128,7 @@ namespace ReactNative.Tracing
         /// <param name="tag">Identifies the source of the log message. Usually a class or React Native module name.</param>
         /// <param name="exception">Exception to include with log (may be null).</param>
         /// <param name="message">The message to log.</param>
-        public static void Error(string tag, Exception exception, FormattableString message)
+        public static void Error(string tag, Exception exception, string message)
         {
             WriteLogLine(EventLevel.Error, tag, message, exception);
         }
@@ -138,7 +138,7 @@ namespace ReactNative.Tracing
         /// </summary>
         /// <param name="tag">Identifies the source of the crash. Usually a class or React Native module name.</param>
         /// <param name="message">The message to log/include in crash report.</param>
-        public static void Fatal(string tag, FormattableString message)
+        public static void Fatal(string tag, string message)
         {
             Fatal(tag, null, message);
         }
@@ -149,7 +149,7 @@ namespace ReactNative.Tracing
         /// <param name="tag">Identifies the source of the crash. Usually a class or React Native module name.</param>
         /// <param name="exception">Exception to include with crash report (may be null).</param>
         /// <param name="message">The message to log/include in crash report.</param>
-        public static void Fatal(string tag, Exception exception, FormattableString message)
+        public static void Fatal(string tag, Exception exception, string message)
         {
             WriteLogLine(EventLevel.Critical, tag, message, exception);
             Flush();

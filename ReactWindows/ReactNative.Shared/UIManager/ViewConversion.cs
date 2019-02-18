@@ -7,7 +7,6 @@ using Windows.UI.Xaml;
 #else
 using System.Windows;
 #endif
-using static System.FormattableString;
 
 namespace ReactNative.UIManager
 {
@@ -47,7 +46,7 @@ namespace ReactNative.UIManager
                 return typedView;
             }
 
-            throw new InvalidOperationException(Invariant($"Cannot convert view to '{typeof(T)}'."));
+            throw new InvalidOperationException($"Cannot convert view to '{typeof(T)}'.");
         }
     }
 }

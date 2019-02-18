@@ -412,7 +412,7 @@ namespace ReactNative.Chakra.Executor
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(arguments),
-                    Invariant($"Received invalid module ID '{moduleId}'."));
+                    $"Received invalid module ID '{moduleId}'.");
             }
 
             var module = _unbundle.GetModule((int)moduleId);
@@ -522,7 +522,7 @@ namespace ReactNative.Chakra.Executor
             }
             catch (Exception ex)
             {
-                var exceptionMessage = Invariant($"File read exception for asset '{fileName}'.");
+                var exceptionMessage = $"File read exception for asset '{fileName}'.";
                 throw new InvalidOperationException(exceptionMessage, ex);
             }
         }

@@ -1,89 +1,190 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
-using System;
+﻿using System;
 using System.Windows;
 
 namespace ReactNative.Tracing
 {
     static partial class LoggingFieldsExtensions
     {
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Boolean value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Boolean value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddBoolean(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Boolean[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Boolean[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddBoolean(name, val);
+                }
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Double value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Double value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddDouble(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Double[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Double[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddDouble(name, val);
+                }
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Guid value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Guid value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddGuid(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Guid[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Guid[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddGuid(name, val);
+                }
+            }
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Int16 value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Int16 value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddInt16(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Int16[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Int16[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                   builder.Fields.AddInt16(name, val);
+                }
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Int32 value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Int32 value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddInt32(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Int32[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Int32[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddInt32(name, val);
+                }
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Int64 value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Int64 value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddInt64(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Int64[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Int64[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddInt64(name, val);
+                }
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Single value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Single value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddSingle(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, Single[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, Single[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddSingle(name, val);
+                }
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, String value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, String value)
         {
+            if (builder != null)
+            {
+                builder.Fields.AddString(name, value);
+            }
+
             return builder;
         }
 
-        public static NullLoggingActivityBuilder With(this NullLoggingActivityBuilder builder, string name, String[] value)
+        public static LoggingActivityBuilder With(this LoggingActivityBuilder builder, string name, String[] value)
         {
+            if (builder != null)
+            {
+                foreach (var val in value)
+                {
+                    builder.Fields.AddString(name, val);
+                }
+            }
+
             return builder;
         }
 

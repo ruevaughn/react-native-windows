@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-﻿using NETWORKLIST;
-=======
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using NETWORKLIST;
->>>>>>> upstream-0.57-stable
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using ReactNative.Bridge;

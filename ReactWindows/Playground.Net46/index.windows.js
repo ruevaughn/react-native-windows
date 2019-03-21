@@ -7,48 +7,75 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
-  Text,
-  View,
+  View
 } from 'react-native';
+import MenuSide from './App/MenuSide'
+import LogArea from './App/LogArea'
+import { Pages, ControlsPage, EventsPage } from './App/ContentSide'
 
 class Playground extends Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      displayPage: Pages.CONTROLS,
+      log: 'Playground v 0.1'
+    }
+  }
+
+  switchContent = (page) => {
+    this.setState( previousState => ({
+      displayPage: page,
+      log: `${previousState.log}\n${new Date().toISOString()}: Page changed to ${page}`
+    }))
+  }
+
+  renderContent = () => {
+    const { displayPage } = this.state
+    return (
+      <View style={styles.clientArea}>
+        { displayPage === Pages.CONTROLS && <ControlsPage /> }
+        { displayPage === Pages.EVENTS && <EventsPage /> }
+      </View>
+    )
+  }
+
+  log = (message) => {
+    this.setState( previousState => (
+      {log: `${previousState.log}\n${new Date().toISOString()}: ${message}`}
+    ))
+  }
+
+
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome} testID="WelcomeText">
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.windows.js
-        </Text>
-        <Text style={styles.instructions}>
-          Press Ctrl+R to reload
-        </Text>
-        <Text style={styles.instructions}>
-          Press Ctrl+D or Ctrl+M for dev menu
-        </Text>
+        <View style={styles.content}>
+          <MenuSide logger={this.log} menuClick={this.switchContent}/>
+          {this.renderContent()}
+        </View>
+          <LogArea content={this.state.log} />
       </View>
-    );
+    )
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF'
+    flexDirection: 'column',
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10
+  content: {
+    flex: 1,
+    flexGrow: 2,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+    minHeight: 200
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5
-  },
+  clientArea: {
+    flexGrow: 2,
+  }
 });
 
 AppRegistry.registerComponent('Playground.Net46', () => Playground);

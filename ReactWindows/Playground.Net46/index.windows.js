@@ -34,7 +34,7 @@ class Playground extends Component {
     const { displayPage } = this.state
     return (
       <View style={styles.clientArea}>
-        { displayPage === Pages.CONTROLS && <ControlsPage /> }
+        { displayPage === Pages.CONTROLS && <ControlsPage logger={this.log} /> }
         { displayPage === Pages.EVENTS && <EventsPage /> }
       </View>
     )

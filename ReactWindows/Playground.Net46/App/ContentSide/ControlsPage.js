@@ -19,7 +19,7 @@ export default class ControlsPage extends Component {
   render() {
     return (
       <View style={styles.content}>
-        <Text>Controls</Text>
+        <Text style={styles.caption}>Controls</Text>
         <TextInputTest logger={this.props.logger} />
       </View>
     )

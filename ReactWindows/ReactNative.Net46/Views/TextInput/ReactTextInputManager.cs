@@ -612,8 +612,8 @@ namespace ReactNative.Views.TextInput
                     .GetNativeModule<UIManagerModule>()
                     .EventDispatcher
                     .DispatchEvent(
-                        new ReactTextInputKeyEvent(
-                            ReactTextInputKeyEvent.KeyPressEventString,
+                        new KeyEvent(
+                            KeyEvent.KeyPressEventString,
                             textBox.GetTag(),
                             e.Key));
             }

@@ -7,6 +7,13 @@ export default StyleSheet.create({
     borderWidth: 1,
     borderColor: 'blanchedalmond'
   },
+  caption: {
+    fontSize: 25
+  },
+  subCaption: {
+    fontSize: 16,
+    fontWeight: '500'
+  },
   textInput: {
     flexDirection: 'row',
     justifyContent: 'flex-start',

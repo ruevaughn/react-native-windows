@@ -20,7 +20,8 @@ export default class TextInputTest extends Component {
 
     this.state = {
       autoCapitalizeMode: this.autoCapitalize[3],
-      pressed: null
+      pressed: null,
+      blurOnSubmit: false
     }
   }
 
@@ -32,14 +33,18 @@ export default class TextInputTest extends Component {
     //this.props.logger(`Pressed ${key}`)
   }
 
-  selectCapMode = (element) => {
+  selectCapMode = element =>
     this.setState(previousState => ({
       autoCapitalizeMode: element
     }))
-  }
+  
+    toggleBlurOnSubmit = () => 
+    this.setState(previousState => ({
+      blurOnSubmit: !previousState.blurOnSubmit
+    }))
 
   render() {
-    const { autoCapitalizeMode, pressed } = this.state
+    const { autoCapitalizeMode, pressed, blurOnSubmit } = this.state
     return (
       <View style={styles.textInput}>
         <View style={{ flex: 3 }}>
@@ -47,12 +52,13 @@ export default class TextInputTest extends Component {
           <TextInput
             style={{ height: 25 }}
             autoCapitalize={autoCapitalizeMode}
-            onKeyPress={this.keyPressedHandler}>
+            onKeyPress={this.keyPressedHandler}
+            blurOnSubmit={blurOnSubmit}>
           </TextInput>
           <Text>Pressed: {pressed}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text>autoCapitalize</Text>
+          <Text style={styles.subCaption}>autoCapitalize</Text>
           {
             this.autoCapitalize.map((element, i) => {
               return (
@@ -65,6 +71,12 @@ export default class TextInputTest extends Component {
               )
             })
           }
+
+          <TouchableOpacity 
+            style={blurOnSubmit ? styles.autoCapSelected : styles.autoCapOrdinar}
+            onPress={this.toggleBlurOnSubmit}>
+            <Text>BlurOnSubmit</Text>
+          </TouchableOpacity>
         </View>
       </View>
     )

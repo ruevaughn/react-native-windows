@@ -99,6 +99,11 @@ namespace Playground.Net46
             shellWindow.Activate();
         }
 
+        /// <summary>
+        /// Handles main windows close and calls dispose on reactPage object then shutdown
+        /// </summary>
+        /// <param name="sender">sender windows</param>
+        /// <param name="e">on shell windows closed details</param>
         private async void OnShellWindowClosed(object sender, EventArgs e)
         {
             await _reactPage.DisposeAsync();

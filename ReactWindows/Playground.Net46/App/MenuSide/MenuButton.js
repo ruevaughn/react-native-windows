@@ -9,16 +9,18 @@ import styles from './styles'
 export default class MenuButton extends Component {
   static propTypes = {
     caption: PropTypes.string,
+    tabIndex: PropTypes.number,
     onClick: PropTypes.func.isRequired
   }
 
   render() {
+    const { tabIndex } = this.props
     return (
-      <View style={styles.button}>
+      <View style={styles.button} tabIndex={tabIndex}>
         <Button
-          onPress = {this.props.onClick} 
+          onPress={this.props.onClick}
           title={this.props.caption}
-          />
+        />
       </View>
     )
   }

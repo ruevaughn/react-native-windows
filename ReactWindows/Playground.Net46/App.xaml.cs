@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using ReactNative.Modules.Launch;
@@ -44,6 +44,8 @@ namespace Playground.Net46
 
             LauncherModule.SetActivatedUrl(String.Join(" ", arguments));
 
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
             var shellWindow = Application.Current.MainWindow;
 
             if (shellWindow == null)
@@ -59,6 +61,7 @@ namespace Playground.Net46
                 };
 
                 Application.Current.MainWindow = shellWindow;
+                shellWindow.Closed += this.OnShellWindowClosed;
             }
 
             //Show Window if it is not already active...
@@ -94,6 +97,12 @@ namespace Playground.Net46
 
             // Ensure the current window is active
             shellWindow.Activate();
+        }
+
+        private async void OnShellWindowClosed(object sender, EventArgs e)
+        {
+            await _reactPage.DisposeAsync();
+            Shutdown();
         }
 
         /// <summary>

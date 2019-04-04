@@ -51,7 +51,6 @@ class Playground extends Component {
     RCTDeviceEventEmitter.addListener('logMessageCreated', (evt) => {this.log(`${evt.messageSender}: ${evt.message}`)})
   }
 
-
   render() {
     return (
       <View style={styles.container}>

@@ -157,6 +157,11 @@
       <DependentUpon>RedBoxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="DevSupport\WebSocketJavaScriptExecutor.cs" />
+    <Compile Include="Modules\Logging\LogEvent.cs" />
+    <Compile Include="Modules\Logging\LoggingEventArgs.cs" />
+    <Compile Include="Modules\Logging\LoggingModule.cs" />
+    <Compile Include="Modules\Logging\LogsEventAggregator.cs" />
+    <Compile Include="Modules\Logging\ReactNativeLogTraceListener.cs" />
     <Compile Include="Tracing\LoggingActivity.cs" />
     <Compile Include="Tracing\LoggingFields.cs" />
     <Compile Include="Tracing\TraceWriter.cs" />

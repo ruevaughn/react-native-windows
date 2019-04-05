@@ -28,7 +28,6 @@ using ReactNative.Views.TextInput;
 using ReactNative.Views.View;
 using ReactNative.Views.Web;
 using System.Collections.Generic;
-using ReactNative.Net46.Modules.Logging;
 
 namespace ReactNative.Shell
 {
@@ -52,7 +51,6 @@ namespace ReactNative.Shell
                 //new CameraRollManager(reactContext),
                 new ClipboardModule(),
                 new DialogModule(reactContext),
-                new LoggingModule(reactContext),
                 new ImageLoaderModule(),
                 new I18NModule(reactContext),
                 new LauncherModule(reactContext),

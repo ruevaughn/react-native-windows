@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using ReactNative.Modules.Launch;
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using Playground.Net46.Logging;
 
 namespace Playground.Net46
 {
@@ -38,7 +41,7 @@ namespace Playground.Net46
         /// Called whenever the app is opened to initialized...
         /// </summary>
         /// <param name="arguments"></param>
-        private void OnCreate(string[] arguments)
+        private async void OnCreate(string[] arguments)
         {
             _reactPage.OnResume(Shutdown);
 
@@ -94,6 +97,8 @@ namespace Playground.Net46
 
             // Ensure the current window is active
             shellWindow.Activate();
+
+            await ActivateLogging();
         }
 
         /// <summary>
@@ -105,5 +110,15 @@ namespace Playground.Net46
         {
             throw new Exception("Failed to load Page...");
         }
+
+        #region Logging
+
+        private async Task ActivateLogging()
+        {
+            var context = await _reactPage.GetCurrentReactContext();
+            LogsEventAggregator.RegisterReactContext(context);
+        }
+
+        #endregion
     }
 }

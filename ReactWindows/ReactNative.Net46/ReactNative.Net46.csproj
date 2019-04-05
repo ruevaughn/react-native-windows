@@ -157,11 +157,6 @@
       <DependentUpon>RedBoxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="DevSupport\WebSocketJavaScriptExecutor.cs" />
-    <Compile Include="Events\LogEvent.cs" />
-    <Compile Include="Events\LoggingEventArgs.cs" />
-    <Compile Include="Modules\Logging\LoggingModule.cs" />
-    <Compile Include="Modules\Logging\LogsEventAggregator.cs" />
-    <Compile Include="Tracing\CustomTraceListeners\ReactNativeLogTraceListener.cs" />
     <Compile Include="Tracing\LoggingActivity.cs" />
     <Compile Include="Tracing\LoggingFields.cs" />
     <Compile Include="Tracing\TraceWriter.cs" />
@@ -260,9 +255,7 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TraceListeners\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="..\ReactNative.Shared\ReactNative.Shared.projitems" Label="Shared" />
   <Import Project="..\..\Yoga\csharp\Facebook.Yoga\Facebook.Yoga.Shared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

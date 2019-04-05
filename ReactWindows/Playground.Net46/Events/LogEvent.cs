@@ -1,9 +1,9 @@
 using ReactNative.Bridge;
 using ReactNative.Modules.Core;
 
-namespace ReactNative.Net46.Events
+namespace Playground.Net46.Events
 {
-    internal class LogEvent
+    public class LogEvent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="LogEvent"/> class.

@@ -1,9 +1,8 @@
 using System;
 using System.Diagnostics;
-using ReactNative.Net46.Events;
-using ReactNative.Net46.Modules.Logging;
+using Playground.Net46.Events;
 
-namespace ReactNative.Net46.Tracing.CustomTraceListeners
+namespace Playground.Net46.Logging
 {
     /// <summary>
     /// Custom trace listener
@@ -16,7 +15,7 @@ namespace ReactNative.Net46.Tracing.CustomTraceListeners
         /// <param name="name">listener name</param>
         public ReactNativeLogTraceListener(string name) : base(name)
         {
-            LoggingModule.RegisterTraceListener(this);
+            LogsEventAggregator.RegisterTraceListener(this);
         }
 
         /// <summary>

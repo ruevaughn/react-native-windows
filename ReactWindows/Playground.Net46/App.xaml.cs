@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using Playground.Net46.Logging;
+using ReactNative.Bridge;
 
 namespace Playground.Net46
 {
@@ -17,6 +18,8 @@ namespace Playground.Net46
     public partial class App : Application
     {
         private readonly AppReactPage _reactPage = new AppReactPage();
+
+        private ReactContext _reactContext;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -128,8 +131,8 @@ namespace Playground.Net46
 
         private async Task ActivateLogging()
         {
-            var context = await _reactPage.GetCurrentReactContext();
-            LogsEventAggregator.RegisterReactContext(context);
+            _reactContext = await _reactPage.GetCurrentReactContext();
+            LogsEventAggregator.RegisterReactContext(_reactContext);
         }
 
         #endregion

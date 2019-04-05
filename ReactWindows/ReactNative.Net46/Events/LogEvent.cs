@@ -1,7 +1,7 @@
 using ReactNative.Bridge;
 using ReactNative.Modules.Core;
 
-namespace ReactNative.Net46.Modules.Logging
+namespace ReactNative.Net46.Events
 {
     internal class LogEvent
     {

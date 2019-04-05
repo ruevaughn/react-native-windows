@@ -1,6 +1,6 @@
 using System;
 
-namespace ReactNative.Net46.Modules.Logging
+namespace ReactNative.Net46.Events
 {
     /// <summary>
     /// Logs event args

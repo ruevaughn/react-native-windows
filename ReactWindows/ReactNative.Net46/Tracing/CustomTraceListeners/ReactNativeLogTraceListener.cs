@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
+using ReactNative.Net46.Events;
+using ReactNative.Net46.Modules.Logging;
 
-namespace ReactNative.Net46.Modules.Logging
+namespace ReactNative.Net46.Tracing.CustomTraceListeners
 {
     /// <summary>
     /// Custom trace listener

@@ -1,6 +1,8 @@
 using System;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
+using ReactNative.Net46.Events;
+using ReactNative.Net46.Tracing.CustomTraceListeners;
 using ReactNative.Tracing;
 
 namespace ReactNative.Net46.Modules.Logging

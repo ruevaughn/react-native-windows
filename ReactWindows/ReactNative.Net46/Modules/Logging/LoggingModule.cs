@@ -1,4 +1,5 @@
 using ReactNative.Bridge;
+using ReactNative.Net46.Tracing.CustomTraceListeners;
 
 namespace ReactNative.Net46.Modules.Logging
 {

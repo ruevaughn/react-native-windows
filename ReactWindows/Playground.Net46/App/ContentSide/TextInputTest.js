@@ -48,7 +48,7 @@ export default class TextInputTest extends Component {
     return (
       <View style={styles.textInput}>
         <View style={{ flex: 3 }}>
-          <Text>TextInput:</Text>
+          <Text style={styles.caption}>TextInput</Text>
           <TextInput
             style={{ height: 25 }}
             autoCapitalize={autoCapitalizeMode}

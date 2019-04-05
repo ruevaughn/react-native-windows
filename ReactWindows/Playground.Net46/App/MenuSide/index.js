@@ -20,8 +20,8 @@ export default class MenuSide extends Component {
   render() {
     return (
       <View style={styles.content}>
-        <MenuButton caption={Pages.CONTROLS} onClick={this.menuClick.bind(null, Pages.CONTROLS)} />
-        <MenuButton caption={Pages.EVENTS} onClick={this.menuClick.bind(null, Pages.EVENTS)} />
+        <MenuButton tabIndex={1} caption={Pages.CONTROLS} onClick={this.menuClick.bind(null, Pages.CONTROLS)} />
+        <MenuButton tabIndex={2} caption={Pages.EVENTS} onClick={this.menuClick.bind(null, Pages.EVENTS)} />
       </View>
     )
   }

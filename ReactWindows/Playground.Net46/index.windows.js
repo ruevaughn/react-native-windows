@@ -12,6 +12,7 @@ import {
 import MenuSide from './App/MenuSide'
 import LogArea from './App/LogArea'
 import { Pages, ControlsPage, EventsPage } from './App/ContentSide'
+var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
 
 class Playground extends Component {
   constructor(props) {
@@ -46,6 +47,9 @@ class Playground extends Component {
     ))
   }
 
+  componentWillMount() {
+    RCTDeviceEventEmitter.addListener('logMessageCreated', (evt) => {this.log(`${evt.messageSender}: ${evt.message}`)})
+  }
 
   render() {
     return (

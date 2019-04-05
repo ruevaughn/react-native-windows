@@ -3,9 +3,12 @@
 
 using ReactNative.Modules.Launch;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using Playground.Net46.Logging;
+using ReactNative.Bridge;
 
 namespace Playground.Net46
 {
@@ -15,6 +18,8 @@ namespace Playground.Net46
     public partial class App : Application
     {
         private readonly AppReactPage _reactPage = new AppReactPage();
+
+        private ReactContext _reactContext;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -38,7 +43,7 @@ namespace Playground.Net46
         /// Called whenever the app is opened to initialized...
         /// </summary>
         /// <param name="arguments"></param>
-        private void OnCreate(string[] arguments)
+        private async void OnCreate(string[] arguments)
         {
             _reactPage.OnResume(Shutdown);
 
@@ -97,6 +102,8 @@ namespace Playground.Net46
 
             // Ensure the current window is active
             shellWindow.Activate();
+
+            await ActivateLogging();
         }
 
         /// <summary>
@@ -119,5 +126,15 @@ namespace Playground.Net46
         {
             throw new Exception("Failed to load Page...");
         }
+
+        #region Logging
+
+        private async Task ActivateLogging()
+        {
+            _reactContext = await _reactPage.GetCurrentReactContext();
+            LogsEventAggregator.RegisterReactContext(_reactContext);
+        }
+
+        #endregion
     }
 }

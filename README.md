@@ -66,6 +66,7 @@ For information on parity status with Android and iOS, including details on impl
 - Making modules helps grow the React Native ecosystem and community. We recommend writing modules for your use cases and sharing them on npm.
 - You should almost never need to modify or fork React Native Windows itself (the ReactNative and ReactNative.Shared project/sources) to create custom controls. The extension points should already exist to do just about anything!
 - Read the guides on [Native Modules for Windows](docs/NativeModulesWindows.md) and [Native UI Components for Windows](docs/NativeComponentsWindows.md) if you are interested in extending native functionality.
+- To update Yoga for RNW read the guide on [Yoga nuget update](docs/YogaUpdate.md).
 
 ## Opening Issues
 

@@ -43,6 +43,9 @@ namespace ReactNative
             });
         }
 
+        /// <summary>
+        /// Gets ReactInstanceManager
+        /// </summary>
         protected ReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
 
         /// <summary>

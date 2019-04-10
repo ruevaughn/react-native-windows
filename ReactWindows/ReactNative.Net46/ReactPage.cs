@@ -43,7 +43,7 @@ namespace ReactNative
             });
         }
 
-        private ReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
+        protected ReactInstanceManager ReactInstanceManager => _reactInstanceManager.Value;
 
         /// <summary>
         /// The custom path of the bundle file.

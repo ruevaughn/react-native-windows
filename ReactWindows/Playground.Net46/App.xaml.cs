@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using ReactNative.Modules.Launch;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using Playground.Net46.Logging;
+using ReactNative.Bridge;
 
 namespace Playground.Net46
 {
@@ -15,6 +18,8 @@ namespace Playground.Net46
     public partial class App : Application
     {
         private readonly AppReactPage _reactPage = new AppReactPage();
+
+        private ReactContext _reactContext;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -38,11 +43,13 @@ namespace Playground.Net46
         /// Called whenever the app is opened to initialized...
         /// </summary>
         /// <param name="arguments"></param>
-        private void OnCreate(string[] arguments)
+        private async void OnCreate(string[] arguments)
         {
             _reactPage.OnResume(Shutdown);
 
             LauncherModule.SetActivatedUrl(String.Join(" ", arguments));
+
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             var shellWindow = Application.Current.MainWindow;
 
@@ -59,6 +66,7 @@ namespace Playground.Net46
                 };
 
                 Application.Current.MainWindow = shellWindow;
+                shellWindow.Closed += this.OnShellWindowClosed;
             }
 
             //Show Window if it is not already active...
@@ -94,6 +102,19 @@ namespace Playground.Net46
 
             // Ensure the current window is active
             shellWindow.Activate();
+
+            await ActivateLogging();
+        }
+
+        /// <summary>
+        /// Handles main windows close and calls dispose on reactPage object then shutdown
+        /// </summary>
+        /// <param name="sender">sender windows</param>
+        /// <param name="e">on shell windows closed details</param>
+        private async void OnShellWindowClosed(object sender, EventArgs e)
+        {
+            await _reactPage.DisposeAsync();
+            Shutdown();
         }
 
         /// <summary>
@@ -105,5 +126,15 @@ namespace Playground.Net46
         {
             throw new Exception("Failed to load Page...");
         }
+
+        #region Logging
+
+        private async Task ActivateLogging()
+        {
+            _reactContext = await _reactPage.GetCurrentReactContext();
+            LogsEventAggregator.RegisterReactContext(_reactContext);
+        }
+
+        #endregion
     }
 }

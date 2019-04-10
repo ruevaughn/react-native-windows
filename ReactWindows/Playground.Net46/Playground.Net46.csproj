@@ -135,6 +135,9 @@
       <HintPath>$(SolutionDir)\packages\Facebook.Yoga.1.5.0-pre1\lib\net45\Facebook.Yoga.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -157,6 +160,10 @@
     <Compile Include="AppReactPage.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Events\LogEvent.cs" />
+    <Compile Include="Events\LoggingEventArgs.cs" />
+    <Compile Include="Logging\LogsEventAggregator.cs" />
+    <Compile Include="Logging\ReactNativeLogTraceListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -193,6 +200,7 @@
       <Visible>False</Visible>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

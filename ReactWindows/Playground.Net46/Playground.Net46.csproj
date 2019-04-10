@@ -132,7 +132,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Facebook.Yoga, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Facebook.Yoga.1.9.0\lib\net46\Facebook.Yoga.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Facebook.Yoga.1.9.0\lib\net46\Facebook.Yoga.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -193,7 +193,7 @@
     </PostBuildEvent>
   </PropertyGroup>
   <ItemGroup />
-  <Import Project="..\packages\Facebook.Yoga.1.9.0\build\net46\Facebook.Yoga.targets" Condition="Exists('..\packages\Facebook.Yoga.1.9.0\build\net46\Facebook.Yoga.targets')" />
+  <Import Project="$(SolutionDir)packages\Facebook.Yoga.1.9.0\build\net46\Facebook.Yoga.targets" Condition="Exists('..\packages\Facebook.Yoga.1.9.0\build\net46\Facebook.Yoga.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

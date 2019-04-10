@@ -74,7 +74,9 @@ namespace ReactNative.DevSupport
             }
         }
 
+#pragma warning disable 0067
         public event Action BeforeShowDevOptionsDialog;
+#pragma warning restore 0067
 
         public void HandleException(Exception exception)
         {

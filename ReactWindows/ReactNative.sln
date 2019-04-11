@@ -33,7 +33,6 @@ EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		ReactNative.Shared\ReactNative.Shared.projitems*{22cbff9c-fe36-43e8-a246-266c7635e662}*SharedItemsImports = 4
-		..\Yoga\csharp\Facebook.Yoga\Facebook.Yoga.Shared.projitems*{22cbff9c-fe36-43e8-a246-266c7635e662}*SharedItemsImports = 4
 		ReactNative.Shared.Tests\ReactNative.Shared.Tests.projitems*{5ac8108b-1c39-4c4a-8653-dbbe4ecce691}*SharedItemsImports = 4
 		..\Yoga\csharp\Facebook.Yoga\Facebook.Yoga.Shared.projitems*{91c42d32-291d-4b72-90b4-551663d60b8b}*SharedItemsImports = 13
 		ReactNative.Shared.Tests\ReactNative.Shared.Tests.projitems*{9249e9fd-f19a-4b90-8b74-41c151a6ab30}*SharedItemsImports = 4

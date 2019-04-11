@@ -322,6 +322,7 @@ namespace ReactNative.Modules.Storage
             }
         }
 
+        [Obsolete("Deprecated in favor of OnReactInstanceDisposeAsync")]
         public override void OnReactInstanceDispose()
         {
             _mutex.Dispose();

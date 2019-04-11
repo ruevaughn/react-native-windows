@@ -1,6 +1,6 @@
 {
   "name": "@bluejeans/react-native-windows",
-  "version": "0.57.0-rc.8",
+  "version": "0.57.0-rc.12",
   "description": "React Native platform extensions for the Universal Windows Platform.",
   "license": "MIT",
   "repository": {
@@ -13,6 +13,7 @@
   "engineStrict": true,
   "main": "Libraries/react-native-windows/react-native-windows-implementation.js",
   "scripts": {
+    "postinstall": "node postinstall.js",
     "test": "jasmine",
     "lint": "eslint .",
     "flow-check": "flow check"
@@ -28,7 +29,8 @@
     "Yoga/csharp/Yoga",
     "Yoga/yoga",
     "local-cli",
-    "README.md"
+    "README.md",
+    "postinstall.js"
   ],
   "peerDependencies": {
     "react": "16.6.0-alpha.8af6728",
@@ -49,18 +51,18 @@
     "jasmine-reporters": "^2.2.1",
     "minimist": "^1.2.0",
     "prettier": "1.13.6",
-    "react": "16.6.0-alpha.8af6728",
+    "react-native-local-cli": "^1.0.0-alpha.5",
     "react-devtools-core": "^3.3.4",
-    "react-native": "~0.57.0",
     "rnpm-plugin-windows": "^0.2.8"
   },
   "dependencies": {
     "chalk": "^1.1.1",
     "glob": "^7.1.1",
-    "react-native-local-cli": "^1.0.0-alpha.5",
     "shelljs": "^0.7.8",
     "username": "^3.0.0",
     "uuid": "^2.0.1",
+    "react": "16.6.0-alpha.8af6728",
+    "react-native": "~0.57.0",
     "xml-parser": "^1.2.1"
   },
   "rnpm": {

@@ -13,6 +13,7 @@ import MenuSide from './App/MenuSide'
 import LogArea from './App/LogArea'
 import { Pages, ControlsPage, EventsPage } from './App/ContentSide'
 var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
+import * as Animatable from 'react-native-animatable'
 
 class Playground extends Component {
   constructor(props) {
@@ -54,10 +55,12 @@ class Playground extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <View style={styles.content}>
-          <MenuSide logger={this.log} menuClick={this.switchContent}/>
-          {this.renderContent()}
+      <Animatable.View style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
+        <View style={styles.content}>        
+          <MenuSide logger={this.log} menuClick={this.switchContent} />        
+          {this.renderContent()}          
         </View>
+        </Animatable.View>
           <LogArea content={this.state.log} />
       </View>
     )

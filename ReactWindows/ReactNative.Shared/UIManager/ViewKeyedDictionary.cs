@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Collections.Concurrent;
 using ReactNative.Bridge;
 using System.Collections.Generic;
 #if WINDOWS_UWP
@@ -34,7 +35,7 @@ namespace ReactNative.UIManager
 #if WINDOWS_UWP
         private ConcurrentDictionary<TKey, TValue> _dictionary = new ConcurrentDictionary<TKey, TValue>();
 #else
-        private Dictionary<TKey, TValue> _dictionary = new Dictionary<TKey, TValue>();
+        private ConcurrentDictionary<TKey, TValue> _dictionary = new ConcurrentDictionary<TKey, TValue>();
 #endif
 
         /// <summary>Attempts to get the value associated with the specified key.</summary>
@@ -59,7 +60,7 @@ namespace ReactNative.UIManager
 #if WINDOWS_UWP
             _dictionary.AddOrUpdate(key, value, (k, v) => value);
 #else
-            _dictionary.Add(key, value);
+            _dictionary.AddOrUpdate(key, value, (k, v) => value);
 #endif
         }
 
@@ -73,7 +74,7 @@ namespace ReactNative.UIManager
 #if WINDOWS_UWP
             return _dictionary.TryRemove(key, out _);
 #else
-            return _dictionary.Remove(key);
+            return _dictionary.TryRemove(key, out _);
 #endif
         }
 

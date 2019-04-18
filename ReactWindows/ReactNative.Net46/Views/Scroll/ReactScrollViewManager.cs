@@ -18,6 +18,8 @@ namespace ReactNative.Views.Scroll
     {
         private const int CommandScrollTo = 1;
 
+        private const int CommandScrollToEnd = 2;
+
         private readonly IDictionary<ScrollViewer, ScrollViewerData> _scrollViewerData =
             new Dictionary<ScrollViewer, ScrollViewerData>();
 
@@ -42,6 +44,7 @@ namespace ReactNative.Views.Scroll
                 return new Dictionary<string, object>
                 {
                     { "scrollTo", CommandScrollTo },
+                    { "scrollToEnd", CommandScrollToEnd },
                 };
             }
         }

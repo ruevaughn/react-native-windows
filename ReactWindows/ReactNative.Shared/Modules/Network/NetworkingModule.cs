@@ -52,7 +52,7 @@ namespace ReactNative.Modules.Network
         /// </summary>
         /// <param name="client">The HTTP client.</param>
         /// <param name="reactContext">The context.</param>
-        internal NetworkingModule(IHttpClient client, ReactContext reactContext)
+        public NetworkingModule(IHttpClient client, ReactContext reactContext)
             : base(reactContext)
         {
 #if !WINDOWS_UWP
@@ -73,6 +73,8 @@ namespace ReactNative.Modules.Network
                 return "RCTNetworking";
             }
         }
+
+        public override bool CanOverrideExistingModule => true;
 
         private RCTDeviceEventEmitter EventEmitter
         {

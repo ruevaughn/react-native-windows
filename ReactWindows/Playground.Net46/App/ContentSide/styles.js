@@ -39,5 +39,21 @@ export default StyleSheet.create({
   imageBox: {
     height: 32,
     width: 46
+  },
+  outTouchableOpacityStyle: {
+    flex: 1,
+    height: '100%',
+    borderBottomLeftRadius: 22,
+    borderTopLeftRadius: 22,
+    backgroundColor: '#0070A0'
+  },
+  innerViewStyle: {
+    flex: 1,
+    height: '100%',
+    borderBottomLeftRadius: 22,
+    borderTopLeftRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'green',
   }
 })

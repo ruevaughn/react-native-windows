@@ -46,20 +46,20 @@ export default StyleSheet.create({
     borderWidth: 2,
     borderColor: '#505050',
   },
-  expandToContainer: {
-    flex: 1,
-    width: 'auto'
-  },
-  moreAreaMedium: {
-    width: 32,
-    height: '100%',
-    borderBottomRightRadius: 17,
-    borderTopRightRadius: 17
-  },
-  mainAreaMedium: {
+  outeTouchableOpacityStyle: {
     flex: 1,
     height: '100%',
-    borderBottomLeftRadius: 17,
-    borderTopLeftRadius: 17
+    borderBottomLeftRadius: 22,
+    borderTopLeftRadius: 22,
+    backgroundColor: '#0070A0'
   },
+  innerViewStyle: {
+    flex: 1,
+    height: '100%',
+    borderBottomLeftRadius: 22,
+    borderTopLeftRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'green',
+  }
 })

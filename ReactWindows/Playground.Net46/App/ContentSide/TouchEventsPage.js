@@ -6,24 +6,14 @@ import {
   View,
 } from 'react-native'
 
+import styles from './styles'
+
 export default class TouchEvents extends Component {
   static propTypes = {
     logger: PropTypes.func
   }
 
-  constructor(props) {
-    super(props)
-
-    this.autoCapitalize = ['characters', 'words', 'sentences', 'none']
-
-    this.state = {
-      autoCapitalizeMode: this.autoCapitalize[3],
-      pressed: null,
-      blurOnSubmit: false
-    }
-  }
-
-  keyPressedHandler = () => {
+  mouseDownHandler = () => {
     this.props.logger(`Touch`)
   }
 
@@ -31,25 +21,10 @@ export default class TouchEvents extends Component {
     return (
         <View style={{width: 100, height: 50}}>
         <TouchableOpacity
-          style={{
-            flex: 1,
-            height: '100%',
-            borderBottomLeftRadius: 22,
-            borderTopLeftRadius: 22,
-            backgroundColor: '#0070A0'
-          }}
-          onPress={() => this.keyPressedHandler()}
-          >
+          style={styles.outeTouchableOpacityStyle}
+          onPress={() => this.mouseDownHandler()}>
           <View pointerEvents={'box-only'}
-            style={{
-              flex: 1,
-              height: '100%',
-              borderBottomLeftRadius: 22,
-              borderTopLeftRadius: 22,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'green',
-            }}
+            style={styles.innerViewStyle}
               >
             <Text>JOIN</Text>
           </View>

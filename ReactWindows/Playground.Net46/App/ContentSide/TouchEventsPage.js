@@ -21,7 +21,7 @@ export default class TouchEvents extends Component {
     return (
         <View style={{width: 100, height: 50}}>
         <TouchableOpacity
-          style={styles.outeTouchableOpacityStyle}
+          style={styles.outTouchableOpacityStyle}
           onPress={() => this.mouseDownHandler()}>
           <View pointerEvents={'box-only'}
             style={styles.innerViewStyle}

@@ -40,13 +40,7 @@ export default StyleSheet.create({
     height: 32,
     width: 46
   },
-  section: {
-    height: 100,
-    backgroundColor: '#0070A0',
-    borderWidth: 2,
-    borderColor: '#505050',
-  },
-  outeTouchableOpacityStyle: {
+  outTouchableOpacityStyle: {
     flex: 1,
     height: '100%',
     borderBottomLeftRadius: 22,

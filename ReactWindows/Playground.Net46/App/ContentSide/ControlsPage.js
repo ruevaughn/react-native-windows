@@ -7,6 +7,7 @@ import {
 import styles from './styles'
 import TextInputTest from './TextInputTest'
 import ImageTest from './ImageTest'
+import TouchEvents from './TouchEventsPage'
 
 export default class ControlsPage extends Component {
   static propTypes = {
@@ -23,6 +24,7 @@ export default class ControlsPage extends Component {
         <Text testID='Text_Controls' style={styles.title}>Controls</Text>
         <TextInputTest style={styles.item} logger={this.props.logger} />
         <ImageTest style={styles.item} logger={this.props.logger} />
+        <TouchEvents style={styles.item} logger={this.props.logger}/>
       </View>
     )
   }

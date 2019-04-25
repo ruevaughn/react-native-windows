@@ -2,13 +2,9 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import {
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  Image
 } from 'react-native'
-import styles from './styles'
-import images from '../Images'
 
 export default class TouchEvents extends Component {
   static propTypes = {

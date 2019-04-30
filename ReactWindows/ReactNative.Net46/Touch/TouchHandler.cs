@@ -7,6 +7,8 @@ using ReactNative.UIManager;
 using ReactNative.UIManager.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -265,6 +267,21 @@ namespace ReactNative.Touch
                 }
             }
 
+            foreach (var source in sources)
+            {
+                var viewHierarchy = RootViewHelper.GetReactViewHierarchy(source);
+                var dependencyObjects = viewHierarchy as DependencyObject[] ?? viewHierarchy.ToArray();
+                var enumerator = dependencyObjects.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    var current = enumerator.Current;
+                    if (source == null || current.GetPointerEvents() == PointerEvents.BoxOnly)
+                    {
+                        return (UIElement)current;
+                    }
+                }
+            }
+
             return null;
         }
 
@@ -322,7 +339,7 @@ namespace ReactNative.Touch
             var coalescingKey = activePointers[pointerIndex].PointerId;
 
             var touchEvent = new TouchEvent(touchEventType, touches, changedIndices, coalescingKey);
-
+            
             _view.GetReactContext()?
                 .GetNativeModule<UIManagerModule>()
                 .EventDispatcher

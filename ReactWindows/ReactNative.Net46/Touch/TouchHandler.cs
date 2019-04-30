@@ -7,7 +7,6 @@ using ReactNative.UIManager;
 using ReactNative.UIManager.Events;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -339,7 +338,7 @@ namespace ReactNative.Touch
             var coalescingKey = activePointers[pointerIndex].PointerId;
 
             var touchEvent = new TouchEvent(touchEventType, touches, changedIndices, coalescingKey);
-            
+
             _view.GetReactContext()?
                 .GetNativeModule<UIManagerModule>()
                 .EventDispatcher

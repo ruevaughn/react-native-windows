@@ -7,6 +7,7 @@ using ReactNative.UIManager;
 using ReactNative.UIManager.Events;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -249,23 +250,38 @@ namespace ReactNative.Touch
                     }),
                 new PointHitTestParameters(point));
 
-            // Get the first React view that does not have pointer events set
-            // to 'none' or 'box-none', and is not a child of a view with 
-            // 'box-only' or 'none' settings for pointer events.
-
-            // TODO: use pooled data structure
-            var isBoxOnlyCache = new Dictionary<DependencyObject, bool>();
-            foreach (var source in sources)
+            var viewHierarchy = RootViewHelper.GetReactViewHierarchy(originalSource);
+            var dependencyObjects = viewHierarchy as DependencyObject[] ?? viewHierarchy.ToArray();
+            var enumerator = dependencyObjects.GetEnumerator();
+            if (!enumerator.MoveNext())
             {
-                var viewHierarchy = RootViewHelper.GetReactViewHierarchy(source);
-                var isBoxOnly = IsBoxOnlyWithCache(viewHierarchy, isBoxOnlyCache);
-                if (!isBoxOnly)
+                return null;
+            }
+
+            if (enumerator.Current.GetPointerEvents() == PointerEvents.BoxNone)
+            {
+                var nonBoxOnlyView =
+                    sources.FirstOrDefault(x => x.HasTag() && x.GetPointerEvents() != PointerEvents.BoxNone);
+
+                enumerator = RootViewHelper.GetReactViewHierarchy(nonBoxOnlyView).GetEnumerator();
+                if (!enumerator.MoveNext())
                 {
-                    return (UIElement)source;
+                    return null;
+                }
+
+            }
+
+            var element = enumerator.Current;
+            while (enumerator.MoveNext())
+            {
+                var current = enumerator.Current;
+                if (element == null || current.GetPointerEvents() == PointerEvents.BoxOnly || !(element is UIElement))
+                {
+                    element = current;
                 }
             }
 
-            return null;
+            return (UIElement) element;
         }
 
         private void UpdatePointerForEvent(ReactPointer pointer, TouchEventArgs e)

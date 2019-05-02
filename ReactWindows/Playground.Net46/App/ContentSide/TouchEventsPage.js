@@ -13,20 +13,38 @@ export default class TouchEvents extends Component {
     logger: PropTypes.func
   }
 
-  mouseDownHandler = () => {
-    this.props.logger(`Touch`)
+  mouseDownHandler = (touchSource) => {
+    this.props.logger(touchSource)
   }
 
   render() {
     return (
-        <View style={{width: 100, height: 50}}>
+        <View style={{width: 100, height: 150, flex: 1}}>
         <TouchableOpacity
           style={styles.outTouchableOpacityStyle}
-          onPress={() => this.mouseDownHandler()}>
+          onPress={() => this.mouseDownHandler(`Touch from box-only`)}>
           <View pointerEvents={'box-only'}
             style={styles.innerViewStyle}
               >
-            <Text>JOIN</Text>
+            <Text>Box-only</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.outTouchableOpacityStyle}
+          onPress={() => this.mouseDownHandler(`Touch from box-none`)}>
+          <View pointerEvents={'box-none'}
+            style={styles.innerViewStyle}
+              >
+            <Text>Box-none</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.outTouchableOpacityStyle}
+          onPress={() => this.mouseDownHandler(`Touch from auto`)}>
+          <View
+            style={styles.innerViewStyle}
+              >
+            <Text>Auto</Text>
           </View>
         </TouchableOpacity>
       </View>

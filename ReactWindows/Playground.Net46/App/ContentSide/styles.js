@@ -42,6 +42,7 @@ export default StyleSheet.create({
   },
   outTouchableOpacityStyle: {
     flex: 1,
+    marginBottom: 5,
     height: '100%',
     borderBottomLeftRadius: 22,
     borderTopLeftRadius: 22,

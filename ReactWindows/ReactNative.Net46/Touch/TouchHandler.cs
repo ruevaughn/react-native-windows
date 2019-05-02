@@ -277,7 +277,7 @@ namespace ReactNative.Touch
                 var current = enumerator.Current;
                 if (element == null || current.GetPointerEvents() == PointerEvents.BoxOnly)
                 {
-                    return (UIElement) current;
+                    element = current;
                 }
             }
 

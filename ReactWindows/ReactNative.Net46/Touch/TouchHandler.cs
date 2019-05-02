@@ -275,7 +275,7 @@ namespace ReactNative.Touch
             while (enumerator.MoveNext())
             {
                 var current = enumerator.Current;
-                if (element == null || current.GetPointerEvents() == PointerEvents.BoxOnly)
+                if (element == null || current.GetPointerEvents() == PointerEvents.BoxOnly || !(element is UIElement))
                 {
                     element = current;
                 }

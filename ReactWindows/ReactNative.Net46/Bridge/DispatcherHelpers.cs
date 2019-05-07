@@ -220,12 +220,13 @@ namespace ReactNative.Bridge
                 }
                 catch (Exception ex)
                 {
-                    return Task.FromException<T>(ex);
+                    //return Task.FromException<T>(ex);
+                    return Net46.Net45.Task.FromException<T>(ex);
                 }
             }
             else
             {
-                var taskCompletionSource = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var taskCompletionSource = new TaskCompletionSource<T>(/*TaskCreationOptions.RunContinuationsAsynchronously*/);
 
                 RunOnDispatcher(dispatcher, DispatcherPriority.Normal, () =>
                 {

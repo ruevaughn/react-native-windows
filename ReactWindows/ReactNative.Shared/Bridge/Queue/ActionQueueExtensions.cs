@@ -35,7 +35,7 @@ namespace ReactNative.Bridge.Queue
         /// <returns>A task to await the result.</returns>
         public static Task<T> RunAsync<T>(this IActionQueue actionQueue, Func<T> func)
         {
-            var taskCompletionSource = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var taskCompletionSource = new TaskCompletionSource<T>(/*TaskCreationOptions.RunContinuationsAsynchronously*/);
 
             actionQueue.Dispatch(() =>
             {

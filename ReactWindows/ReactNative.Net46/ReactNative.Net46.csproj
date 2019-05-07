@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(SolutionDir)\packages\Microsoft.ChakraCore.1.11.2\build\netstandard1.0\Microsoft.ChakraCore.props" Condition="Exists('$(SolutionDir)\packages\Microsoft.ChakraCore.1.11.2\build\netstandard1.0\Microsoft.ChakraCore.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ReactNative.Net46</RootNamespace>
     <AssemblyName>ReactNative.Net46</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -160,6 +160,8 @@
       <DependentUpon>RedBoxDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="DevSupport\WebSocketJavaScriptExecutor.cs" />
+    <Compile Include="Net45\Task.cs" />
+    <Compile Include="Net45\Time.cs" />
     <Compile Include="Tracing\LoggingActivity.cs" />
     <Compile Include="Tracing\LoggingFields.cs" />
     <Compile Include="Tracing\TraceWriter.cs" />

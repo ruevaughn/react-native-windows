@@ -203,7 +203,7 @@ namespace ReactNative.UIManager
             }, true); // allow inlining
 
             var rootTag = rootView.GetTag();
-            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var taskCompletionSource = new TaskCompletionSource<bool>(/*TaskCreationOptions.RunContinuationsAsynchronously*/);
             _rootViewCleanupTasks.AddOrUpdate(rootTag, taskCompletionSource, (k, v) => throw new InvalidOperationException("Duplicate root view removal"));
             return taskCompletionSource.Task;
         }
@@ -674,7 +674,8 @@ namespace ReactNative.UIManager
         {
             DispatcherHelpers.RunOnDispatcher(_uiImplementation.OnDestroy);
             _eventDispatcher.OnReactInstanceDispose();
-            return Task.CompletedTask;
+            // return Task.CompletedTask;
+            return Net46.Net45.Task.CompletedTask;
         }
 
 #endregion

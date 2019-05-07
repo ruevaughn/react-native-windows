@@ -452,7 +452,8 @@ namespace ReactNative
                     }
                 }
 
-                return Task.CompletedTask;
+                // return Task.CompletedTask;
+                return Net46.Net45.Task.CompletedTask;
             }, true /* inlining allowed */).Unwrap(); // await inner task
         }
 

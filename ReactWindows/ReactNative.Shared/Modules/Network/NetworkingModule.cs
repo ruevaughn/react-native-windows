@@ -81,6 +81,7 @@ namespace ReactNative.Modules.Network
             }
         }
 
+        /// <inheritedoc />
         public override bool CanOverrideExistingModule => true;
 
         private RCTDeviceEventEmitter EventEmitter
@@ -235,7 +236,8 @@ namespace ReactNative.Modules.Network
             _shuttingDown = true;
             _tasks.CancelAllTasks();
             _client.Dispose();
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
+            return Net46.Net45.Task.CompletedTask;
         }
 
         private async Task ProcessRequestFromUriAsync(

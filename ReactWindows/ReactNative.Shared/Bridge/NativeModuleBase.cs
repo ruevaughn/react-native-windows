@@ -227,7 +227,8 @@ namespace ReactNative.Bridge
         /// <returns>
         /// A task to await the dispose operation.
         /// </returns>
-        public virtual Task OnReactInstanceDisposeAsync() => Task.CompletedTask;
+        //public virtual Task OnReactInstanceDisposeAsync() => Task.CompletedTask;
+        public virtual Task OnReactInstanceDisposeAsync() => Net46.Net45.Task.CompletedTask;
 
         private IReadOnlyDictionary<string, INativeMethod> InitializeMethods()
         {

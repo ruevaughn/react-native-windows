@@ -208,7 +208,8 @@ namespace ReactNative.Modules.Core
         public override Task OnReactInstanceDisposeAsync()
         {
             _idleCancellationDisposable.Dispose();
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
+            return Net46.Net45.Task.CompletedTask;
         }
 
         private void DoFrameSafe(object sender, object e)
@@ -304,9 +305,9 @@ namespace ReactNative.Modules.Core
 
             if (sendIdleEvents)
             {
-                // var frameStartTime = frameTime - s_frameDuration;
-                // Context.GetJavaScriptModule<JSTimers>()
-                //    .callIdleCallbacks(frameStartTime.ToUnixTimeMilliseconds());
+                var frameStartTime = frameTime - s_frameDuration;
+                Context.GetJavaScriptModule<JSTimers>()
+                   .callIdleCallbacks(Net46.Net45.Time.ToUnixTimeMilliseconds(frameStartTime));
             }
         }
 

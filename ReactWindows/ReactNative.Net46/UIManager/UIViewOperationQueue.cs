@@ -64,7 +64,8 @@ namespace ReactNative.UIManager
 
             // WPF implementation is single-threaded as far as UI dispatcher threads are concerned.
             // We can call the callback safely at this point.
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
+            return Net46.Net45.Task.CompletedTask;
         }
 
         /// <summary>

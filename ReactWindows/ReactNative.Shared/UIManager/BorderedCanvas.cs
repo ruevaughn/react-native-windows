@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Windows.Automation.Peers;
 #if WINDOWS_UWP
 using ReactNative.Accessibility;
 using Windows.UI;
@@ -108,6 +109,12 @@ namespace ReactNative.UIManager
                     GetOrCreateBorder().BorderBrush = value ?? DefaultBorderBrush;
                 }
             }
+        }
+
+        /// <inheritdoc />
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new ModifiedBorderedCanvasAutomationPeer(this);
         }
 
         /// <summary>
@@ -292,6 +299,30 @@ namespace ReactNative.UIManager
             }
 
             #endregion
+        }
+
+        /// <summary>
+        /// Custom peer class deriving from FrameworkElementAutomationPeer
+        /// </summary>
+        public class ModifiedBorderedCanvasAutomationPeer : FrameworkElementAutomationPeer
+        {
+            /// <summary>
+            /// Modified BorderedCanvas with interactive role.
+            /// </summary>
+            /// <param name="owner">The Border instance.</param>
+            public ModifiedBorderedCanvasAutomationPeer(BorderedCanvas owner) : base(owner)
+            {
+
+            }
+
+            /// <summary>
+            /// Interactive role in the user interface
+            /// </summary>
+            /// <returns> Boolean </returns>
+            protected override bool IsControlElementCore()
+            {
+                return true;
+            }
         }
     }
 }

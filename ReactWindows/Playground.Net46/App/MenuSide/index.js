@@ -21,7 +21,8 @@ export default class MenuSide extends Component {
     return (
       <View style={styles.content}>
         <MenuButton tabIndex={1} caption={Pages.CONTROLS} onClick={this.menuClick.bind(null, Pages.CONTROLS)} />
-        <MenuButton tabIndex={2} caption={Pages.EVENTS} onClick={this.menuClick.bind(null, Pages.EVENTS)} />
+        <MenuButton tabIndex={2} caption={Pages.FIXES} onClick={this.menuClick.bind(null, Pages.FIXES)} />
+        <MenuButton tabIndex={3} caption={'CLEAR LOG'} onClick={this.menuClick.bind(null, 'CLEAR_LOG')} />
       </View>
     )
   }

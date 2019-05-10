@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Text, View, Image } from 'react-native'
 import styles from './styles'
-import images from '../Images'
+import images from '../../Images'
 
 export default class ImageTest extends Component {
   static propTypes = {

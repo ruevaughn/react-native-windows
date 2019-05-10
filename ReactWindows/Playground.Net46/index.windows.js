@@ -11,22 +11,32 @@ import {
 } from 'react-native';
 import MenuSide from './App/MenuSide'
 import LogArea from './App/LogArea'
-import { Pages, ControlsPage, EventsPage } from './App/ContentSide'
+import { Pages, ControlsPage, FixesPage } from './App/ContentSide'
 var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
 import * as Animatable from 'react-native-animatable'
+
+const LOG_INIT_MESSAGE = 'Playground v 0.3'
 
 class Playground extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      displayPage: Pages.CONTROLS,
-      log: 'Playground v 0.1'
+      displayPage: Pages.FIXES,
+      log: LOG_INIT_MESSAGE
     }
   }
 
   switchContent = (page) => {
-    this.setState( previousState => ({
+    if (page === 'CLEAR_LOG') {
+      this.setState(previousState => ({
+        log: LOG_INIT_MESSAGE
+      })
+      )
+      return
+    }
+
+    this.setState(previousState => ({
       displayPage: page,
       log: `${previousState.log}\n${new Date().toISOString()}: Page changed to ${page}`
     }))
@@ -36,32 +46,32 @@ class Playground extends Component {
     const { displayPage } = this.state
     return (
       <View style={styles.clientArea}>
-        { displayPage === Pages.CONTROLS && <ControlsPage logger={this.log} /> }
-        { displayPage === Pages.EVENTS && <EventsPage /> }
+        {displayPage === Pages.CONTROLS && <ControlsPage logger={this.log} />}
+        {displayPage === Pages.FIXES && <FixesPage logger={this.log} />}
       </View>
     )
   }
 
   log = (message) => {
-    this.setState( previousState => (
-      {log: `${previousState.log}\n${new Date().toISOString()}: ${message}`}
+    this.setState(previousState => (
+      { log: `${previousState.log}\n${new Date().toISOString()}: ${message}` }
     ))
   }
 
   componentWillMount() {
-    RCTDeviceEventEmitter.addListener('logMessageCreated', (evt) => {this.log(`${evt.messageSender}: ${evt.message}`)})
+    RCTDeviceEventEmitter.addListener('logMessageCreated', (evt) => { this.log(`${evt.messageSender}: ${evt.message}`) })
   }
 
   render() {
     return (
       <View style={styles.container}>
-      <Animatable.View style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
-        <View style={styles.content}>        
-          <MenuSide logger={this.log} menuClick={this.switchContent} />        
-          {this.renderContent()}          
-        </View>
+        <Animatable.View style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
+          <View style={styles.content}>
+            <MenuSide logger={this.log} menuClick={this.switchContent} />
+            {this.renderContent()}
+          </View>
         </Animatable.View>
-          <LogArea content={this.state.log} />
+        <LogArea content={this.state.log} />
       </View>
     )
   }

@@ -1,5 +1,5 @@
 import { Pages } from './constant'
 import ControlsPage from './ControlsPage'
-import EventsPage from './EventsPage'
+import FixesPage from './FixesPage'
 
-export { Pages, ControlsPage, EventsPage }
+export { Pages, ControlsPage, FixesPage }

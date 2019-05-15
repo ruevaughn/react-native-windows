@@ -168,7 +168,11 @@ namespace ReactNative.DevSupport
                 var lastNativeUpdateTime = Windows.ApplicationModel.Package.Current.InstalledDate.UtcDateTime;
                 var localFolder = ApplicationData.Current.LocalFolder.Path;
 #else
+                return false; /* fix the issue with metro bundle https://github.com/facebook/metro/issues/375
+                    should be removed once it will be fixed */
+#pragma warning disable CS0162 // Unreachable code detected remove [remove this once issue above will be fixed]
                 var lastNativeUpdateTime = File.GetLastWriteTimeUtc(Assembly.GetEntryAssembly().Location);
+#pragma warning restore CS0162 // Unreachable code detected
                 var localFolder = FileSystem.Current.LocalStorage.Path;
 #endif
                 var jsBundleFileName = Path.Combine(localFolder, JSBundleFileName);

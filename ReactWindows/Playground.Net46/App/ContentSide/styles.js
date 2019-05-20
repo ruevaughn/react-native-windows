@@ -56,5 +56,18 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'green',
-  }
+  },
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+    marginBottom: 4,
+    marginTop: 2,
+    width: 40,
+    height: 40,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'black'
+  },
 })

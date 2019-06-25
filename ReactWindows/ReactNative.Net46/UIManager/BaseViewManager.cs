@@ -120,6 +120,18 @@ namespace ReactNative.UIManager
             AutomationProperties.SetName(view, label ?? "");
         }
 
+        [ReactProp("tabIndex")]
+        public void SetTabIndex(TFrameworkElement view, int tabIndex)
+        {
+            KeyboardNavigation.SetTabIndex(view, tabIndex);
+        }
+
+        [ReactProp("isFocusable")]
+        public virtual void SetIsFocusable(TFrameworkElement view, bool isFocusable)
+        {
+            view.Focusable = isFocusable;
+        }
+
         // ToDo: SetAccessibilityLiveRegion - ReactProp("accessibilityLiveRegion")
 
         /// <summary>

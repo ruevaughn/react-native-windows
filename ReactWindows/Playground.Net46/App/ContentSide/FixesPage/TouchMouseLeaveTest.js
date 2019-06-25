@@ -24,16 +24,18 @@ export default class TouchMouseLeaveTest extends Component {
   render() {
     return (
       <View style={styles.content}>
-        <Text style={styles.subCaption}>Clicking Touchable Erroneously Fires onMouseLeave Event</Text>
+        <Text selectable={true} accessibilityLabel={'Clicking Touchable Erroneously Fires onMouseLeave Event'} style={styles.subCaption}>Clicking Touchable Erroneously Fires onMouseLeave Event</Text>
         <View
           onMouseEnter={this.log.bind(null, 'hit onMouseEnter')}
           onMouseLeave={this.log.bind(null, 'hit onMouseLeave')}
           style={{ height: 30, backgroundColor: 'white' }}>
+          <View isFocusable={true} accessibilityLabel={'Click Me!'}>
           <TouchableOpacity
             onPress={this.log.bind(null, 'clicked!')}
           >
             <Text>Click Me!</Text>
           </TouchableOpacity>
+          </View>
         </View>
       </View>
     )

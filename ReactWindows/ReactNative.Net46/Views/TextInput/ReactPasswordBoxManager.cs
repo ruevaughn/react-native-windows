@@ -259,17 +259,6 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
-        /// Sets the tab index for the view.
-        /// </summary>
-        /// <param name="view">The view.</param>
-        /// <param name="tabIndex">The tab index.</param>
-        [ReactProp("tabIndex")]
-        public void SetTabIndex(PasswordBox view, int tabIndex)
-        {
-            view.TabIndex = tabIndex;
-        }
-
-        /// <summary>
         /// Sets the max character length prop on the <see cref="PasswordBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>

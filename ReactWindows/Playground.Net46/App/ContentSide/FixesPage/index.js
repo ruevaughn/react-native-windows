@@ -20,8 +20,8 @@ export default class FixesPage extends Component {
 
   render() {
     return (
-      <View style={styles.content}>
-        <Text  style={styles.title}>Fixes</Text>
+      <View isFocusable={true} accessibilityLabel={'Fixes layout'} style={styles.content}>
+        <Text selectable={true}  accessibilityLabel={'Fixes title'} style={styles.title}>Fixes</Text>
         <SiblingZOrder style={styles.item} />
         <BorderTest style={styles.item} />
         <TouchMouseLeaveTest style={styles.item} logger={this.props.logger} />

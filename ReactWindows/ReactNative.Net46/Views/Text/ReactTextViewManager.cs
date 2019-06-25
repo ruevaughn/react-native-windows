@@ -80,7 +80,7 @@ namespace ReactNative.Views.Text
         [ReactProp("selectable")]
         public void SetSelectable(TextBlock view, bool selectable)
         {
-            throw new NotImplementedException();
+            view.Focusable = true;
         }
 
         /// <summary>

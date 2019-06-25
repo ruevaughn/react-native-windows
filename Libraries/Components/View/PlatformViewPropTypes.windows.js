@@ -48,6 +48,8 @@ module.exports = {
    */
   tooltip: PropTypes.string,
 
+  isFocusable: PropTypes.bool,
+
   /**
    * Controls how view is important for accessibility which is if it
    * fires accessibility events and if it is reported to accessibility services
@@ -150,5 +152,5 @@ module.exports = {
    *
    * @platform windows
    */
-  onMouseLeave: PropTypes.func,
+  onMouseLeave: PropTypes.func
 };

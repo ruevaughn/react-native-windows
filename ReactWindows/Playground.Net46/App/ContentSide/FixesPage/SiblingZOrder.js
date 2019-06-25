@@ -9,22 +9,22 @@ export default class SiblingZOrder extends Component {
   render() {
     return (
       <View style={styles.content}>
-        <Text style={styles.subCaption}>Check issue https://github.com/facebook/react-native/issues/18344</Text>
-        <Text>zIndex only works when Views are siblings of each other</Text>
+        <Text selectable={true}  accessibilityLabel={'Check issue https://github.com/facebook/react-native/issues/18344'} style={styles.subCaption}>Check issue https://github.com/facebook/react-native/issues/18344</Text>
+        <Text selectable={true} accessibilityLabel={'zIndex only works when Views are siblings of each other'}>zIndex only works when Views are siblings of each other</Text>
         <View style={styles.testBar}>
-          <Text>Sibling no Z-Order</Text>
+          <Text selectable={true} accessibilityLabel={'Sibling no Z-Order'}>Sibling no Z-Order</Text>
           <View>
             <View styles={styles.item}>
               <View style={styles.redBox} />
               <View style={styles.greenBox} />
             </View>
           </View>
-          <Text>    Sibling with Z-Order</Text>
+          <Text selectable={true} accessibilityLabel={'Sibling with Z-Order'}>    Sibling with Z-Order</Text>
           <View styles={styles.item}>
             <View style={[styles.redBox, { zIndex: 10 }]} />
             <View style={styles.greenBox} />
           </View>
-          <Text>   NonSibling with Z-Order</Text>
+          <Text selectable={true} accessibilityLabel={'NonSibling with Z-Order'}>   NonSibling with Z-Order</Text>
           <View styles={styles.item}>
             <View style={[styles.redBox, { zIndex: 10 }]} />
           </View>

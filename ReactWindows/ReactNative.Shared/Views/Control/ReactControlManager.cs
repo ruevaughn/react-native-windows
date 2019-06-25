@@ -88,17 +88,6 @@ namespace ReactNative.Views.ControlView
             view.IsTabStop = isTabStop;
         }
 
-        /// <summary>
-        /// Sets the tab index for the view.
-        /// </summary>
-        /// <param name="view">The view.</param>
-        /// <param name="tabIndex">The tab index.</param>
-        [ReactProp("tabIndex")]
-        public void SetTabIndex(ReactControl view, int tabIndex)
-        {
-            view.TabIndex = tabIndex;
-        }
-
 #if WINDOWS_UWP
         /// <summary>
         /// Sets the tab navigation for the view.

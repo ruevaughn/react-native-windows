@@ -7,13 +7,17 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
-  View
+  View,
+  Text,
+  TouchableOpacity,
+  Button
 } from 'react-native';
 import MenuSide from './App/MenuSide'
 import LogArea from './App/LogArea'
 import { Pages, ControlsPage, FixesPage } from './App/ContentSide'
 var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
 import * as Animatable from 'react-native-animatable'
+import GenericModal from "./App/Modals/GenericModal";
 
 const LOG_INIT_MESSAGE = 'Playground v 0.3'
 
@@ -23,7 +27,8 @@ class Playground extends Component {
 
     this.state = {
       displayPage: Pages.FIXES,
-      log: LOG_INIT_MESSAGE
+      log: LOG_INIT_MESSAGE,
+      isModalOpen: false
     }
   }
 
@@ -58,6 +63,10 @@ class Playground extends Component {
     ))
   }
 
+  modalButtonClickHandler = (isOpen) => {
+    this.setState({isModalOpen: isOpen})
+  }
+
   componentWillMount() {
     RCTDeviceEventEmitter.addListener('logMessageCreated', (evt) => { this.log(`${evt.messageSender}: ${evt.message}`) })
   }
@@ -65,13 +74,15 @@ class Playground extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Animatable.View style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
+        <Animatable.View  style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
           <View style={styles.content}>
             <MenuSide logger={this.log} menuClick={this.switchContent} />
             {this.renderContent()}
           </View>
         </Animatable.View>
         <LogArea content={this.state.log} />
+        <Button title={'Show Modal'} onPress={() => this.modalButtonClickHandler(true)}/>
+        <GenericModal isOpen={this.state.isModalOpen} close={() => this.modalButtonClickHandler(false)} />
       </View>
     )
   }

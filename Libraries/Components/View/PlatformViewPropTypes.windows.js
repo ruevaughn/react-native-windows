@@ -48,6 +48,11 @@ module.exports = {
    */
   tooltip: PropTypes.string,
 
+  /**
+   * IsFocusable property
+   *
+   * @platform windows
+   */
   isFocusable: PropTypes.bool,
 
   /**

@@ -120,12 +120,22 @@ namespace ReactNative.UIManager
             AutomationProperties.SetName(view, label ?? "");
         }
 
+        /// <summary>
+        /// Sets the tab index property.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="tabIndex">The tab index.</param>
         [ReactProp("tabIndex")]
         public void SetTabIndex(TFrameworkElement view, int tabIndex)
         {
             KeyboardNavigation.SetTabIndex(view, tabIndex);
         }
 
+        /// <summary>
+        /// Sets the Focusable property
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="isFocusable">The isFocusable prop.</param>
         [ReactProp("isFocusable")]
         public virtual void SetIsFocusable(TFrameworkElement view, bool isFocusable)
         {

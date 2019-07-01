@@ -27,7 +27,11 @@ export default class GenericModal extends Component {
               <Image isFocusable={true} accessibilityLabel={'Logo'} style={CommonModalStyles.imageBox} source={images.bjnLogo} />
               <Text selectable={true} accessibilityLabel={'BlueJeans version'} style={CommonModalStyles.version}>0.0.0.0</Text>
               <Text selectable={true} accessibilityLabel={'BlueJeans copyright'} style={CommonModalStyles.copyright}>BlueJeans 2019</Text>
-              <Button title={'Close Modal'} onPress={() => this.props.close()}/>
+              <View style={{backgroundColor: 'red'}} isFocusable={true}>
+                <TouchableOpacity onPress={() => this.props.close()}>
+                  <Text>Close Modal</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>

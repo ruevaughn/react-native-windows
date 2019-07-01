@@ -52,7 +52,7 @@ class Playground extends Component {
     return (
       <View style={styles.clientArea}>
         {displayPage === Pages.CONTROLS && <ControlsPage logger={this.log} />}
-        {displayPage === Pages.FIXES && <FixesPage logger={this.log} />}
+        {displayPage === Pages.FIXES && <FixesPage isFocusable={this.state.isModalOpen === false} logger={this.log} />}
       </View>
     )
   }
@@ -73,15 +73,19 @@ class Playground extends Component {
 
   render() {
     return (
-      <View style={styles.container}>
-        <Animatable.View  style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
-          <View style={styles.content}>
-            <MenuSide logger={this.log} menuClick={this.switchContent} />
+      <View isFocusable={this.state.isModalOpen === false} style={styles.container}>
+        <Animatable.View isFocusable={this.state.isModalOpen === false} style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
+          <View isFocusable={this.state.isModalOpen === false} style={styles.content}>
+            <MenuSide isFocusable={this.state.isModalOpen === false} logger={this.log} menuClick={this.switchContent} />
             {this.renderContent()}
           </View>
         </Animatable.View>
         <LogArea content={this.state.log} />
-        <Button title={'Show Modal'} onPress={() => this.modalButtonClickHandler(true)}/>
+        <View style={{backgroundColor: 'gray', alignItems: 'center', justifyContent: 'center'}} isFocusable={this.state.isModalOpen === false}>
+          <TouchableOpacity onPress={() => this.modalButtonClickHandler(true)}>
+            <Text>Show Modal</Text>
+          </TouchableOpacity>
+        </View>
         <GenericModal isOpen={this.state.isModalOpen} close={() => this.modalButtonClickHandler(false)} />
       </View>
     )

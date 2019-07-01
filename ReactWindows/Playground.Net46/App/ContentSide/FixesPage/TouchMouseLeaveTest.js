@@ -10,7 +10,8 @@ import styles from './styles'
 
 export default class TouchMouseLeaveTest extends Component {
   static propTypes = {
-    logger: PropTypes.func
+    logger: PropTypes.func,
+    isFocusable: PropTypes.bool
   }
 
   constructor(props) {
@@ -24,12 +25,12 @@ export default class TouchMouseLeaveTest extends Component {
   render() {
     return (
       <View style={styles.content}>
-        <Text selectable={true} accessibilityLabel={'Clicking Touchable Erroneously Fires onMouseLeave Event'} style={styles.subCaption}>Clicking Touchable Erroneously Fires onMouseLeave Event</Text>
+        <Text selectable={this.props.isFocusable} accessibilityLabel={'Clicking Touchable Erroneously Fires onMouseLeave Event'} style={styles.subCaption}>Clicking Touchable Erroneously Fires onMouseLeave Event</Text>
         <View
           onMouseEnter={this.log.bind(null, 'hit onMouseEnter')}
           onMouseLeave={this.log.bind(null, 'hit onMouseLeave')}
           style={{ height: 30, backgroundColor: 'white' }}>
-          <View isFocusable={true} accessibilityLabel={'Click Me!'}>
+          <View isFocusable={this.props.isFocusable} accessibilityLabel={'Click Me!'}>
           <TouchableOpacity
             onPress={this.log.bind(null, 'clicked!')}
           >

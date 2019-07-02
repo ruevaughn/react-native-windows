@@ -1,4 +1,6 @@
 export const Pages = {
+    MAIN: 'MAIN',
     CONTROLS: 'CONTROLS',
-    FIXES: 'FIXES'
+    FIXES: 'FIXES',
+    ACCESSIBILITY: 'ACCESSIBILITY'
 }

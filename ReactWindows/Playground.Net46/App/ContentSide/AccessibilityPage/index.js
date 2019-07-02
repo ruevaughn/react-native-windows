@@ -18,7 +18,7 @@ export default class MainPage extends Component {
   render() {
     return (
       <View isFocusable={this.props.isFocusable} accessibilityLabel={'Accessibility Page'} style={styles.content}>
-        <Text selectable={this.props.isFocusable} accessibilityLable={'Accessibility Page'} style={styles.title}>Accessibility Page</Text>
+        <Text selectable={this.props.isFocusable} accessibilityLable={'Accessibility Title'} style={styles.title}>Accessibility Page</Text>
         <View style={styles.content}>
           <Text accessibilityLabel={'Different UI Elements'} selectable={this.props.isFocusable}>Different UI Elements</Text>
           <View isFocusable={this.props.isFocusable} accessibilityLabel={"Touchable opacity"}>
@@ -26,7 +26,6 @@ export default class MainPage extends Component {
             <Text>Click here</Text>
           </TouchableOpacity>
           </View>
-
         </View>
       </View>
     )

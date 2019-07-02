@@ -150,4 +150,6 @@ bld/
 
 # OpenCover
 *_coverage.xml
-/ReactWindows/Playground.Net46/.idea
+
+#WebStorm files
+.idea

@@ -15,9 +15,9 @@ export default class ImageTest extends Component {
 
   render() {
     return (
-      <View isFocusable={true} accessibilityLabel={'Image container'} style={styles.content}>
-        <Text selectable={true}  accessibilityLabel={'Image title'} style={styles.caption}>Image</Text>
-        <Image isFocusable={true} accessibilityLabel={'Image itself'} style={styles.imageBox} source={images.bjnLogo} />
+      <View style={styles.content}>
+        <Text style={styles.caption}>Image</Text>
+        <Image style={styles.imageBox} source={images.bjnLogo} />
       </View>
     )
   }

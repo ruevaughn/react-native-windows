@@ -6,7 +6,6 @@ import {
 import styles from './styles'
 
 export default class SiblingZOrder extends Component {
-
   render() {
     return (
       <View style={styles.content}>

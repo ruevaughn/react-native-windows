@@ -29,13 +29,11 @@ export default class TouchMouseLeaveTest extends Component {
           onMouseEnter={this.log.bind(null, 'hit onMouseEnter')}
           onMouseLeave={this.log.bind(null, 'hit onMouseLeave')}
           style={{ height: 30, backgroundColor: 'white' }}>
-          <View>
           <TouchableOpacity
             onPress={this.log.bind(null, 'clicked!')}
           >
             <Text>Click Me!</Text>
           </TouchableOpacity>
-          </View>
         </View>
       </View>
     )

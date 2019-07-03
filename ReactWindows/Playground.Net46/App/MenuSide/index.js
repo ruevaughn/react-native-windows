@@ -10,7 +10,8 @@ import MenuButton from './MenuButton'
 export default class MenuSide extends Component {
   static propTypes = {
     logger: PropTypes.func,
-    menuClick: PropTypes.func
+    menuClick: PropTypes.func,
+    isFocusable: PropTypes.bool
   }
 
   menuClick = (page) => {
@@ -20,9 +21,11 @@ export default class MenuSide extends Component {
   render() {
     return (
       <View style={styles.content}>
-        <MenuButton tabIndex={1} caption={Pages.CONTROLS} onClick={this.menuClick.bind(null, Pages.CONTROLS)} />
-        <MenuButton tabIndex={2} caption={Pages.FIXES} onClick={this.menuClick.bind(null, Pages.FIXES)} />
-        <MenuButton tabIndex={3} caption={'CLEAR LOG'} onClick={this.menuClick.bind(null, 'CLEAR_LOG')} />
+        <MenuButton isFocusable={this.props.isFocusable} caption={Pages.MAIN} onClick={this.menuClick.bind(null, Pages.MAIN)} />
+        <MenuButton isFocusable={this.props.isFocusable} caption={Pages.CONTROLS} onClick={this.menuClick.bind(null, Pages.CONTROLS)} />
+        <MenuButton isFocusable={this.props.isFocusable} caption={Pages.FIXES} onClick={this.menuClick.bind(null, Pages.FIXES)} />
+        <MenuButton isFocusable={this.props.isFocusable} caption={Pages.ACCESSIBILITY} onClick={this.menuClick.bind(null, Pages.ACCESSIBILITY)} />
+        <MenuButton isFocusable={this.props.isFocusable} caption={'CLEAR LOG'} onClick={this.menuClick.bind(null, 'CLEAR_LOG')} />
       </View>
     )
   }

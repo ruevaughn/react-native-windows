@@ -49,6 +49,13 @@ module.exports = {
   tooltip: PropTypes.string,
 
   /**
+   * IsFocusable property
+   *
+   * @platform windows
+   */
+  isFocusable: PropTypes.bool,
+
+  /**
    * Controls how view is important for accessibility which is if it
    * fires accessibility events and if it is reported to accessibility services
    * that query the screen. Works for Android only.
@@ -150,5 +157,5 @@ module.exports = {
    *
    * @platform windows
    */
-  onMouseLeave: PropTypes.func,
+  onMouseLeave: PropTypes.func
 };

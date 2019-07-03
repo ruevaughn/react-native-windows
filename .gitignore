@@ -150,3 +150,6 @@ bld/
 
 # OpenCover
 *_coverage.xml
+
+#WebStorm files
+.idea

@@ -7,13 +7,17 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
-  View
+  View,
+  Text,
+  TouchableOpacity,
+  Button
 } from 'react-native';
 import MenuSide from './App/MenuSide'
 import LogArea from './App/LogArea'
-import { Pages, ControlsPage, FixesPage } from './App/ContentSide'
+import { Pages, ControlsPage, FixesPage, MainPage, AccessibilityPage } from './App/ContentSide'
 var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
 import * as Animatable from 'react-native-animatable'
+import GenericModal from "./App/Modals/GenericModal";
 
 const LOG_INIT_MESSAGE = 'Playground v 0.3'
 
@@ -22,8 +26,9 @@ class Playground extends Component {
     super(props)
 
     this.state = {
-      displayPage: Pages.FIXES,
-      log: LOG_INIT_MESSAGE
+      displayPage: Pages.MAIN,
+      log: LOG_INIT_MESSAGE,
+      isModalOpen: false
     }
   }
 
@@ -46,8 +51,10 @@ class Playground extends Component {
     const { displayPage } = this.state
     return (
       <View style={styles.clientArea}>
+        {displayPage === Pages.MAIN && <MainPage/>}
         {displayPage === Pages.CONTROLS && <ControlsPage logger={this.log} />}
         {displayPage === Pages.FIXES && <FixesPage logger={this.log} />}
+        {displayPage === Pages.ACCESSIBILITY && <AccessibilityPage isFocusable={this.state.isModalOpen === false} logger={this.log} />}
       </View>
     )
   }
@@ -58,20 +65,30 @@ class Playground extends Component {
     ))
   }
 
+  modalButtonClickHandler = (isOpen) => {
+    this.setState({isModalOpen: isOpen})
+  }
+
   componentWillMount() {
     RCTDeviceEventEmitter.addListener('logMessageCreated', (evt) => { this.log(`${evt.messageSender}: ${evt.message}`) })
   }
 
   render() {
     return (
-      <View style={styles.container}>
-        <Animatable.View style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
-          <View style={styles.content}>
-            <MenuSide logger={this.log} menuClick={this.switchContent} />
+      <View isFocusable={this.state.isModalOpen === false} style={styles.container}>
+        <Animatable.View isFocusable={this.state.isModalOpen === false} style={styles.content} ref='content' animation='fadeInUp' duration={800} easing='ease-in'>
+          <View isFocusable={this.state.isModalOpen === false} style={styles.content}>
+            <MenuSide isFocusable={this.state.isModalOpen === false} logger={this.log} menuClick={this.switchContent} />
             {this.renderContent()}
           </View>
         </Animatable.View>
         <LogArea content={this.state.log} />
+        <View style={{backgroundColor: 'gray', alignItems: 'center', justifyContent: 'center'}} isFocusable={this.state.isModalOpen === false}>
+          <TouchableOpacity onPress={() => this.modalButtonClickHandler(true)}>
+            <Text>Show Modal</Text>
+          </TouchableOpacity>
+        </View>
+        <GenericModal isOpen={this.state.isModalOpen} close={() => this.modalButtonClickHandler(false)} />
       </View>
     )
   }

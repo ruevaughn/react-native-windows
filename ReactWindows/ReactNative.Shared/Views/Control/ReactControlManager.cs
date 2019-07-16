@@ -8,6 +8,7 @@ using ReactNative.UIManager.Annotations;
 using ReactNative.UIManager.Events;
 using System;
 using System.Linq;
+using System.Windows.Automation.Peers;
 #if WINDOWS_UWP
 using ReactNative.Accessibility;
 using Windows.UI.Xaml;
@@ -67,6 +68,31 @@ namespace ReactNative.Views.ControlView
                 {
                     { "Keys", KeyHelpers.GetKeyConstants() },
                 };
+            }
+        }
+
+        /// <summary>
+        /// Sets controlTypeName
+        /// </summary>
+        [ReactProp("controlTypeName")]
+        public void SetControlTypeName(ReactControl view, string controlTypeName)
+        {
+            try
+            {
+                AutomationControlType type;
+
+                if (!Enum.TryParse(controlTypeName, true, out type))
+                {
+                    // In case of false Enum.TryParse will choose  AutomationControlType.Button as first.
+                    // AutomationControlType.Custom looks better as unknown element.
+                    type = AutomationControlType.Custom;
+                }
+
+                view.SetAutomationControlType(type);
+            }
+            catch (Exception)
+            {
+                //ignore
             }
         }
 

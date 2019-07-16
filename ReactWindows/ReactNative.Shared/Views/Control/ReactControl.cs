@@ -7,8 +7,13 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation.Peers;
 using Windows.UI.Xaml.Controls;
 #else
+using System;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
+
 #endif
 
 namespace ReactNative.Views.ControlView
@@ -24,6 +29,13 @@ namespace ReactNative.Views.ControlView
     {
         private readonly Canvas _canvas;
 
+        public AutomationControlType AutomationControlType { get; private set; }
+
+        public void SetAutomationControlType(AutomationControlType type)
+        {
+            AutomationControlType = type;
+        }
+
         /// <summary>
         /// Instantiates the <see cref="ReactControl"/>. 
         /// </summary>
@@ -34,6 +46,9 @@ namespace ReactNative.Views.ControlView
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
             };
+
+            AutomationControlType = AutomationControlType.Custom;
+
 #if WINDOWS_UWP
             UseSystemFocusVisuals = true;
 #endif
@@ -68,6 +83,12 @@ namespace ReactNative.Views.ControlView
             set;
         }
 
+        /// <inheritdoc />                                              
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new ReactControlAutomationPeer(this);
+        }
+
 #if WINDOWS_UWP
         /// <inheritdoc />                                              
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -80,4 +101,40 @@ namespace ReactNative.Views.ControlView
         public AccessibilityTrait[] AccessibilityTraits { get; set; }
 #endif
     }
+
+    /// <summary>
+    /// Custom peer class deriving from UserControlAutomationPeer
+    /// </summary>
+    public class ReactControlAutomationPeer : UserControlAutomationPeer
+    {
+        private readonly AutomationControlType _ownerAutomationControlType;
+
+        /// <summary>
+        /// Modified ReactControl with interactive role.
+        /// </summary>
+        /// <param name="owner">The ReactControl instance.</param>
+        public ReactControlAutomationPeer(ReactControl owner) : base(owner)
+        {
+            _ownerAutomationControlType = owner.AutomationControlType;
+        }
+
+        /// <summary>
+        /// Override for GetAutomationControlTypeCore
+        /// </summary>
+        /// <returns>AutomationControlType</returns>
+        protected override AutomationControlType GetAutomationControlTypeCore()
+        {
+            return _ownerAutomationControlType;
+        }
+
+        /// <summary>
+        /// Interactive role in the user interface
+        /// </summary>
+        /// <returns> Boolean </returns>
+        protected override bool IsControlElementCore()
+        {
+            return true;
+        }
+    }
+
 }

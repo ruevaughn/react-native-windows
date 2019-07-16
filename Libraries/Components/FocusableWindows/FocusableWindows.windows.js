@@ -61,6 +61,53 @@ class FocusableWindowsTemplate {
     isTabStop: PropTypes.bool,
 
     /**
+     * Sets control type name. Used in AutomationPeer creation
+     *
+     * @platform windows
+     */
+    controlTypeName: PropTypes.oneOf([
+      'button',
+      'calendar',
+      'checkBox',
+      'comboBox',
+      'edit',
+      'hyperlink',
+      'image',
+      'listItem',
+      'list',
+      'menu',
+      'menuBar',
+      'menuItem',
+      'progressBar',
+      'radioButton',
+      'scrollBar',
+      'slider',
+      'spinner',
+      'statusBar',
+      'tab',
+      'tabItem',
+      'text',
+      'toolBar',
+      'toolTip',
+      'tree',
+      'treeItem',
+      'custom',
+      'group',
+      'thumb',
+      'dataGrid',
+      'dataItem',
+      'document',
+      'splitButton',
+      'window',
+      'pane',
+      'header',
+      'headerItem',
+      'table',
+      'titleBar',
+      'separator'
+    ]),
+
+    /**
      * Sets the tab index for the view.
      *
      * @platform windows

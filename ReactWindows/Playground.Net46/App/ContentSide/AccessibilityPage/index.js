@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
+const createFocusableComponent = require('FocusableWindows');
+const FocusableTouchableOpacity = createFocusableComponent(TouchableOpacity);
+
 export default class MainPage extends Component {
   static propTypes = {
     isFocusable: PropTypes.bool
@@ -21,10 +24,16 @@ export default class MainPage extends Component {
         <Text selectable={this.props.isFocusable} accessibilityLable={'Accessibility Title'} style={styles.title}>Accessibility Page</Text>
         <View style={styles.content}>
           <Text accessibilityLabel={'Different UI Elements'} selectable={this.props.isFocusable}>Different UI Elements</Text>
-          <View isFocusable={this.props.isFocusable} accessibilityLabel={"Touchable opacity"}>
-          <TouchableOpacity>
-            <Text>Click here</Text>
-          </TouchableOpacity>
+          <View>
+            <FocusableTouchableOpacity controlTypeName='button' isTabStop={true} accessibilityLabel='Focusable Touchable Opacity'>
+              <Text>Focusable Touchable Opacity button</Text>
+            </FocusableTouchableOpacity>
+            <FocusableTouchableOpacity controlTypeName='hyperlink' isTabStop={true} accessibilityLabel='Focusable Touchable Opacity'>
+              <Text>Focusable Touchable Opacity link</Text>
+            </FocusableTouchableOpacity>
+            <FocusableTouchableOpacity controlTypeName='radioButton' isTabStop={true} accessibilityLabel='Focusable Touchable Opacity'>
+              <Text>Focusable Touchable Opacity radiobutton</Text>
+            </FocusableTouchableOpacity>
           </View>
         </View>
       </View>

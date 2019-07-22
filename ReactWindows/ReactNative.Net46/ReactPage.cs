@@ -131,7 +131,7 @@ namespace ReactNative
 
             RootView.AddHandler(Keyboard.KeyDownEvent, (KeyEventHandler)OnAcceleratorKeyActivated);
 
-            RootView.Focusable = true;
+            RootView.Focusable = false;
             RootView.Focus();
             RootView.FocusVisualStyle = null;
         }

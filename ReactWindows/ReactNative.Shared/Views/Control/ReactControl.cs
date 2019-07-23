@@ -26,13 +26,6 @@ namespace ReactNative.Views.ControlView
     {
         private readonly Canvas _canvas;
 
-        public AutomationControlType AutomationControlType { get; private set; }
-
-        public void SetAutomationControlType(AutomationControlType type)
-        {
-            AutomationControlType = type;
-        }
-
         /// <summary>
         /// Instantiates the <see cref="ReactControl"/>. 
         /// </summary>
@@ -80,10 +73,24 @@ namespace ReactNative.Views.ControlView
             set;
         }
 
+        /// <summary>
+        /// Gets or sets automation control type
+        /// </summary>
+        public AutomationControlType AutomationControlType { get; private set; }
+
         /// <inheritdoc />                                              
         protected override AutomationPeer OnCreateAutomationPeer()
         {
             return new ReactControlAutomationPeer(this);
+        }
+
+        /// <summary>
+        /// Used to set automation control type
+        /// </summary>
+        /// <param name="type">automation control type</param>
+        public void SetAutomationControlType(AutomationControlType type)
+        {
+            AutomationControlType = type;
         }
 
 #if WINDOWS_UWP

@@ -132,6 +132,7 @@ namespace ReactNative
             RootView.AddHandler(Keyboard.KeyDownEvent, (KeyEventHandler)OnAcceleratorKeyActivated);
 
             RootView.Focusable = true;
+            KeyboardNavigation.SetIsTabStop(RootView, false);
             RootView.Focus();
             RootView.FocusVisualStyle = null;
         }

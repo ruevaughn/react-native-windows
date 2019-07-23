@@ -228,6 +228,17 @@ namespace ReactNative.Views.TextInput
         }
 
         /// <summary>
+        /// Sets the caret index for the <see cref="ReactTextBox"/>.
+        /// </summary>
+        /// <param name="view">The view instance.</param>
+        /// <param name="index">cursor position value.</param>
+        [ReactProp("caretIndex")]
+        public void SetCaretIndex(ReactTextBox view, int index)
+        {
+            view.CaretIndex = index;
+        }
+
+        /// <summary>
         /// Sets the text alignment prop on the <see cref="ReactTextBox"/>.
         /// </summary>
         /// <param name="view">The view instance.</param>

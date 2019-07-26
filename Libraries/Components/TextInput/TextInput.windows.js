@@ -227,6 +227,7 @@ type Props = $ReadOnly<{|
   blurOnSubmit?: ?boolean,
   style?: ?TextStyleProp,
   caretHidden?: ?boolean,
+  caretIndex?: ?number,
   contextMenuHidden?: ?boolean,
 |}>;
 
@@ -769,6 +770,10 @@ const TextInput = createReactClass({
      * This property is supported only for single-line TextInput component on iOS.
      */
     caretHidden: PropTypes.bool,
+    /**
+     * sets the caret position in TextInput
+    */
+    caretIndex: PropTypes.number,
     /*
      * If `true`, contextMenuHidden is hidden. The default value is `false`.
      */

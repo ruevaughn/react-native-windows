@@ -74,6 +74,7 @@ namespace ReactNative.Modules.Network
             }
         }
 
+        /// <inheritdoc />
         public override bool CanOverrideExistingModule => true;
 
         private RCTDeviceEventEmitter EventEmitter

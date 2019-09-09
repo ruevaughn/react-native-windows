@@ -433,7 +433,7 @@ namespace ReactNative.Views.Image
                         image = await DownloadBitmapImageFromUriAsync(uri);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     image = null;
                 }

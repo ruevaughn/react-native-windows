@@ -16,6 +16,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Automation.Peers;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace ReactNative.Views.Image
 {
@@ -385,7 +387,7 @@ namespace ReactNative.Views.Image
         /// </summary>
         /// <param name="view">The image view instance.</param>
         /// <param name="source">The source URI.</param>
-        private void SetUriFromSingleSource(Border view, string source)
+        private async void SetUriFromSingleSource(Border view, string source)
         {
             var imageBrush = (ImageBrush)view.Background;
             var tag = view.GetTag();
@@ -398,28 +400,77 @@ namespace ReactNative.Views.Image
             }
 
             var image = new BitmapImage();
-            image.BeginInit();
-            image.CacheOption = BitmapCacheOption.OnLoad;
+
             if (BitmapImageHelpers.IsBase64Uri(source))
             {
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+
                 disposable.Disposable = image.GetStreamLoadObservable().Subscribe(
                     status => OnImageStatusUpdate(view, status),
                     _ => OnImageFailed(view));
 
                 var stream = BitmapImageHelpers.GetStreamAsync(source);
                 image.StreamSource = stream;
+
+                image.EndInit();
             }
             else
             {
-                disposable.Disposable = image.GetUriLoadObservable().Subscribe(
-                    status => OnImageStatusUpdate(view, status),
-                    _ => OnImageFailed(view));
+                try
+                {
+                    var uri = new Uri(source);
 
-                image.UriSource = new Uri(source);
+                    if (uri.IsFile)
+                    {
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.UriSource = uri;
+                        image.EndInit();
+                    }
+                    else
+                    {
+                        image = await DownloadBitmapImageFromUriAsync(uri);
+                    }
+                }
+                catch (Exception)
+                {
+                    image = null;
+                }
+            }
+            imageBrush.ImageSource = image;
+        }
+
+        /// <summary>
+        /// Downloads the image and returns bitmapImage
+        /// </summary>
+        /// <param name="uri">image uri</param>
+        private async Task<BitmapImage> DownloadBitmapImageFromUriAsync(Uri uri)
+        {
+            var bitmapImage = new BitmapImage();
+
+            var webRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
+            webRequest.Proxy = WebRequest.GetSystemWebProxy();
+            webRequest.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+            webRequest.AllowWriteStreamBuffering = true;
+            webRequest.Timeout = 30000;
+
+            var content = new MemoryStream();
+
+            using (var webResponse = await webRequest.GetResponseAsync())
+            {
+                using (var responseStream = webResponse.GetResponseStream())
+                {
+                    responseStream.CopyTo(content);
+                }
+
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = content;
+                bitmapImage.EndInit();
             }
 
-            image.EndInit();
-            imageBrush.ImageSource = image;
+            return bitmapImage;
         }
 
         /// <summary>

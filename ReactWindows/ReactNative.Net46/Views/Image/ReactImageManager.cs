@@ -433,7 +433,7 @@ namespace ReactNative.Views.Image
                         image = await DownloadBitmapImageFromUriAsync(uri);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     image = null;
                 }
@@ -463,6 +463,8 @@ namespace ReactNative.Views.Image
                 {
                     responseStream.CopyTo(content);
                 }
+
+                content.Seek(0, SeekOrigin.Begin);
 
                 bitmapImage.BeginInit();
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;

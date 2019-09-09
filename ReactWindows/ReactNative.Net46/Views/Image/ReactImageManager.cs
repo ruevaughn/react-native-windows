@@ -449,32 +449,25 @@ namespace ReactNative.Views.Image
         {
             var bitmapImage = new BitmapImage();
 
-            try
+            var webRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
+            webRequest.Proxy = WebRequest.GetSystemWebProxy();
+            webRequest.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+            webRequest.AllowWriteStreamBuffering = true;
+            webRequest.Timeout = 30000;
+
+            var content = new MemoryStream();
+
+            using (var webResponse = await webRequest.GetResponseAsync())
             {
-                var webRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
-                webRequest.Proxy = WebRequest.GetSystemWebProxy();
-                webRequest.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
-                webRequest.AllowWriteStreamBuffering = true;
-                webRequest.Timeout = 30000;
-
-                var content = new MemoryStream();
-
-                using (var webResponse = await webRequest.GetResponseAsync())
+                using (var responseStream = webResponse.GetResponseStream())
                 {
-                    using (var responseStream = webResponse.GetResponseStream())
-                    {
-                        responseStream.CopyTo(content);
-                    }
-
-                    bitmapImage.BeginInit();
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.StreamSource = content;
-                    bitmapImage.EndInit();
+                    responseStream.CopyTo(content);
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
+
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = content;
+                bitmapImage.EndInit();
             }
 
             return bitmapImage;

@@ -435,17 +435,17 @@ namespace ReactNative.Views.Image
                 }
                 catch (Exception)
                 {
-                    // ignore
+                    image = null;
                 }
             }
             imageBrush.ImageSource = image;
         }
 
         /// <summary>
-        /// Downloads the image and return bitmapImage
+        /// Downloads the image and returns bitmapImage
         /// </summary>
         /// <param name="uri">image uri</param>
-        public async Task<BitmapImage> DownloadBitmapImageFromUriAsync(Uri uri)
+        private async Task<BitmapImage> DownloadBitmapImageFromUriAsync(Uri uri)
         {
             var bitmapImage = new BitmapImage();
 
@@ -472,9 +472,9 @@ namespace ReactNative.Views.Image
                     bitmapImage.EndInit();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return null;
+                throw ex;
             }
 
             return bitmapImage;

@@ -464,6 +464,8 @@ namespace ReactNative.Views.Image
                     responseStream.CopyTo(content);
                 }
 
+                content.Seek(0, SeekOrigin.Begin);
+
                 bitmapImage.BeginInit();
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.StreamSource = content;

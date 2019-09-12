@@ -3,7 +3,6 @@
 
 using Newtonsoft.Json.Linq;
 using ReactNative.Collections;
-using ReactNative.Modules.I18N;
 using ReactNative.Modules.Image;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
@@ -11,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive.Disposables;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -421,17 +419,19 @@ namespace ReactNative.Views.Image
                 {
                     var uri = new Uri(source);
 
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+
                     if (uri.IsFile)
                     {
-                        image.BeginInit();
-                        image.CacheOption = BitmapCacheOption.OnLoad;
                         image.UriSource = uri;
-                        image.EndInit();
                     }
                     else
                     {
-                        image = await DownloadBitmapImageFromUriAsync(uri);
+                        await SetImageSourceFromUri(uri, image);
                     }
+
+                    image.EndInit();
                 }
                 catch (Exception)
                 {
@@ -445,10 +445,9 @@ namespace ReactNative.Views.Image
         /// Downloads the image and returns bitmapImage
         /// </summary>
         /// <param name="uri">image uri</param>
-        private async Task<BitmapImage> DownloadBitmapImageFromUriAsync(Uri uri)
+        /// <param name="image">result image</param>
+        private async Task SetImageSourceFromUri(Uri uri, BitmapImage image)
         {
-            var bitmapImage = new BitmapImage();
-
             var webRequest = (HttpWebRequest)WebRequest.Create(uri.AbsoluteUri);
             webRequest.Proxy = WebRequest.GetSystemWebProxy();
             webRequest.Proxy.Credentials = CredentialCache.DefaultNetworkCredentials;
@@ -461,18 +460,11 @@ namespace ReactNative.Views.Image
             {
                 using (var responseStream = webResponse.GetResponseStream())
                 {
-                    responseStream.CopyTo(content);
+                    await responseStream.CopyToAsync(content);
+                    content.Seek(0, SeekOrigin.Begin);
+                    image.StreamSource = content;
                 }
-
-                content.Seek(0, SeekOrigin.Begin);
-
-                bitmapImage.BeginInit();
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.StreamSource = content;
-                bitmapImage.EndInit();
             }
-
-            return bitmapImage;
         }
 
         /// <summary>

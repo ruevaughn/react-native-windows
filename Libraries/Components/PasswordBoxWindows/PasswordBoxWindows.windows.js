@@ -435,6 +435,7 @@ const PasswordBoxWindows = createReactClass({
         selectionColor={this.props.selectionColor}
         text={this._getText()}
         editable={this.props.editable}
+		    tabIndex={this.props.tabIndex}
       />;
 
     return (

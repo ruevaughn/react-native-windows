@@ -200,7 +200,6 @@ const NetInfo = {
    * - `InternetAccess` - Local and Internet access.
    */
   fetch(): Promise<any> {
-    console.warn('NetInfo.fetch() is deprecated. Use NetInfo.getConnectionInfo() instead.');
     return RCTNetInfo.getCurrentConnectivity().then(resp => resp.network_info);
   },
 

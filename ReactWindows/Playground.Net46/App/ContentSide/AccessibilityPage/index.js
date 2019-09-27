@@ -14,6 +14,12 @@ export default class MainPage extends Component {
   static propTypes = {
     isFocusable: PropTypes.bool
   }
+  
+  componentDidMount() {
+	  if(this.refs.focusableButton){
+		  this.refs.focusableButton.focus()
+	  }
+  }
 
   constructor(props) {
     super(props)
@@ -25,7 +31,7 @@ export default class MainPage extends Component {
         <View style={styles.content}>
           <Text accessibilityLabel={'Different UI Elements'} selectable={this.props.isFocusable}>Different UI Elements</Text>
           <View>
-            <FocusableTouchableOpacity controlTypeName='button' isTabStop={true} accessibilityLabel='Focusable Touchable Opacity'>
+            <FocusableTouchableOpacity ref='focusableButton' controlTypeName='button' isTabStop={true} accessibilityLabel='Focusable Touchable Opacity'>
               <Text>Focusable Touchable Opacity button</Text>
             </FocusableTouchableOpacity>
             <FocusableTouchableOpacity controlTypeName='hyperlink' isTabStop={true} accessibilityLabel='Focusable Touchable Opacity'>

@@ -27,6 +27,11 @@ namespace ReactNative.Views.ControlView
         private readonly Canvas _canvas;
 
         /// <summary>
+        /// This flag determines whether focus was requested before the state of the component was set to IsLoaded
+        /// </summary>
+        private bool _isFocusRequestedBeforeLoad;
+
+        /// <summary>
         /// Instantiates the <see cref="ReactControl"/>. 
         /// </summary>
         public ReactControl()
@@ -37,11 +42,24 @@ namespace ReactNative.Views.ControlView
                 VerticalAlignment = VerticalAlignment.Stretch,
             };
 
+            this.Loaded += OnLoaded;
+
             AutomationControlType = AutomationControlType.Custom;
 
 #if WINDOWS_UWP
             UseSystemFocusVisuals = true;
 #endif
+        }
+
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            if (_isFocusRequestedBeforeLoad)
+            {
+                base.Focus();
+            }
+
+            this.Loaded -= OnLoaded;
         }
 
         /// <summary>
@@ -82,6 +100,23 @@ namespace ReactNative.Views.ControlView
         protected override AutomationPeer OnCreateAutomationPeer()
         {
             return new ReactControlAutomationPeer(this);
+        }
+
+        /// <summary>
+        /// New Focus method introduced to handle calls while IsLoaded == false.
+        /// </summary>
+        /// <returns>operation result.</returns>
+        public new bool Focus()
+        {
+            if (!this.IsLoaded)
+            {
+                this._isFocusRequestedBeforeLoad = true;
+                return false;
+            }
+            else
+            {
+                return base.Focus();
+            }
         }
 
         /// <summary>

@@ -26,6 +26,16 @@ namespace ReactNative.Views.TextInput
         private ClearButtonModeType _clearButtonMode = ClearButtonModeType.Default;
         private Button _deleteButton;
 
+        /// <summary>
+        /// This flag determines whether focus was requested before the state of the component was set to IsLoaded
+        /// </summary>
+        private bool _isFocusRequestedBeforeLoad;
+
+        public ReactTextBox()
+        {
+            this.Loaded += OnLoaded;
+        }
+
         // This ensures that default XAML behavior is used if 'clearButtonMode' prop is unaltered/unused.
         // If 'clearButtonMode' is changed to anything but default and is changed back to default, then it will use the WhileEditing behavior
         // because default behavior becomes distorted after manually manipulating DeleteButton visibility.
@@ -136,6 +146,23 @@ namespace ReactNative.Views.TextInput
             return Interlocked.Increment(ref _eventCount);
         }
 
+        /// <summary>
+        /// New Focus method introduced to handle calls while IsLoaded == false.
+        /// </summary>
+        /// <returns>operation result.</returns>
+        public new bool Focus()
+        {
+            if (!this.IsLoaded)
+            {
+                this._isFocusRequestedBeforeLoad = true;
+                return false;
+            }
+            else
+            {
+                return base.Focus();
+            }
+        }
+
 #if WINDOWS_UWP
         protected override void OnApplyTemplate()
 #else
@@ -160,6 +187,16 @@ namespace ReactNative.Views.TextInput
 #endif
             TextChanged += OnTextChanged;
             UpdateDeleteButtonVisibility();
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            if (_isFocusRequestedBeforeLoad)
+            {
+                base.Focus();
+            }
+
+            this.Loaded -= OnLoaded;
         }
 
         private void UpdateDeleteButtonVisibility()

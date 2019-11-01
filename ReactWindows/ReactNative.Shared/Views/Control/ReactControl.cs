@@ -7,8 +7,10 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation.Peers;
 using Windows.UI.Xaml.Controls;
 #else
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 
 #endif
@@ -26,10 +28,17 @@ namespace ReactNative.Views.ControlView
     {
         private readonly Canvas _canvas;
 
+        private ReactControlAutomationPeer peer;
+
         /// <summary>
         /// This flag determines whether focus was requested before the state of the component was set to IsLoaded
         /// </summary>
         private bool _isFocusRequestedBeforeLoad;
+
+        /// <summary>
+        /// This flag determines whether alert was requested before the state of the component was set to IsLoaded
+        /// </summary>
+        private bool _isAlertRequestedBeforeLoad;
 
         /// <summary>
         /// Instantiates the <see cref="ReactControl"/>. 
@@ -57,6 +66,11 @@ namespace ReactNative.Views.ControlView
             if (_isFocusRequestedBeforeLoad)
             {
                 base.Focus();
+            }
+
+            if (_isAlertRequestedBeforeLoad)
+            {
+                this.RaiseSystemAlertInternal();
             }
 
             this.Loaded -= OnLoaded;
@@ -99,7 +113,35 @@ namespace ReactNative.Views.ControlView
         /// <inheritdoc />                                              
         protected override AutomationPeer OnCreateAutomationPeer()
         {
-            return new ReactControlAutomationPeer(this);
+            this.peer = new ReactControlAutomationPeer(this);
+            return this.peer;
+        }
+
+        /// <summary>
+        /// Raises a system alert.
+        /// </summary>
+        /// <returns>Operation result.</returns>
+        public bool RaiseSystemAlert()
+        {
+            if (!this.IsLoaded)
+            {
+                this._isAlertRequestedBeforeLoad = true;
+                return false;
+            }
+            else
+            {
+                this.RaiseSystemAlertInternal();
+                return true;
+            }
+        }
+
+        private void RaiseSystemAlertInternal()
+        {
+            if (this.peer != null)
+            {
+                // Have the AutomationPeer for this element raise the UIA event.
+                peer.RaiseSystemAlertEvent();
+            }
         }
 
         /// <summary>
@@ -148,13 +190,42 @@ namespace ReactNative.Views.ControlView
     {
         private readonly AutomationControlType _ownerAutomationControlType;
 
+        ReactControl reactControl;
+
+        IRawElementProviderSimple provider;
+
         /// <summary>
         /// Modified ReactControl with interactive role.
         /// </summary>
         /// <param name="owner">The ReactControl instance.</param>
         public ReactControlAutomationPeer(ReactControl owner) : base(owner)
         {
+            this.reactControl = owner;
             _ownerAutomationControlType = owner.AutomationControlType;
+        }
+
+        /// <summary>
+        /// Raises System alert
+        /// </summary>
+        public void RaiseSystemAlertEvent()
+        {
+            // Get the IRawElementProviderSimple for this AutomationPeer.
+            if (this.provider == null)
+            {
+                AutomationPeer peer = FrameworkElementAutomationPeer.FromElement(this.reactControl);
+
+                if (peer != null)
+                {
+                    provider = ProviderFromPeer(peer);
+                }
+            }
+
+            if (this.provider != null)
+
+            {
+                // Call the native UiaRaiseAutomationEvent to raise the event.
+                UiaRaiseAutomationEvent(this.provider, 20023 /*UIA_SystemAlertEventId*/);
+            }
         }
 
         /// <summary>
@@ -174,6 +245,10 @@ namespace ReactNative.Views.ControlView
         {
             return true;
         }
+
+        [DllImport("UIAutomationCore.dll", EntryPoint = "UiaRaiseAutomationEvent")]
+
+        private static extern int UiaRaiseAutomationEvent(IRawElementProviderSimple element, int eventId);
     }
 
 }

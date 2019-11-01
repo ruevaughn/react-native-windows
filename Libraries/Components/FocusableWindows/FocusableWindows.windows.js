@@ -361,6 +361,15 @@ function createFocusableComponent(Component: any) {
           null);
       }
     }
+	
+	alert() {
+      if (this._focusable) {
+        UIManager.dispatchViewManagerCommand(
+          ReactNative.findNodeHandle(this._focusable),
+          UIManager.WindowsControl.Commands.alert,
+          null);
+      }
+    }
 
     setNativeProps(nativeProps) {
       let focusableProps = {};

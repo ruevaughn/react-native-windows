@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Newtonsoft.Json.Linq;
-using ReactNative.Reflection;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using ReactNative.UIManager.Events;
@@ -29,12 +28,13 @@ namespace ReactNative.Views.ControlView
     {
         private const int FocusCommand = 1;
         private const int BlurCommand = 2;
+        private const int AlertCommand = 3;
 
         /// <summary>
         /// The name of this view manager. This will be the name used to 
         /// reference this view manager from JavaScript.
         /// </summary>
-        public override string  Name
+        public override string Name
         {
             get
             {
@@ -53,6 +53,7 @@ namespace ReactNative.Views.ControlView
                 {
                     { "focus", FocusCommand },
                     { "blur", BlurCommand },
+                    { "alert", AlertCommand },
                 };
             }
         }
@@ -305,6 +306,10 @@ namespace ReactNative.Views.ControlView
 #else
                 Keyboard.ClearFocus();
 #endif
+            }
+            else if (commandId == AlertCommand)
+            {
+                view.RaiseSystemAlert();
             }
         }
 

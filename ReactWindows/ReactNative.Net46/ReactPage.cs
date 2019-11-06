@@ -208,11 +208,13 @@ namespace ReactNative
                 }
             }
 
+#if WINDOWS_UWP
             // Back button
             if (e.Key == Key.Back || e.Key == Key.BrowserBack)
             {
                 ReactInstanceManager.OnBackPressed();
             }
+#endif
         }
 
         private ReactInstanceManager CreateReactInstanceManager()

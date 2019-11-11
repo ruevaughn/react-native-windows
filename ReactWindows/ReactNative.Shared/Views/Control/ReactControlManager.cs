@@ -330,6 +330,7 @@ namespace ReactNative.Views.ControlView
             view.LostFocus += OnLostFocus;
             view.KeyUp += OnKeyUp;
             view.KeyDown += OnKeyDown;
+            view.IsKeyboardFocusWithinChanged += OnIsKeyboardFocusWithinChanged;
         }
 
         /// <summary>
@@ -348,7 +349,20 @@ namespace ReactNative.Views.ControlView
             view.LostFocus -= OnLostFocus;
             view.KeyDown -= OnKeyDown;
             view.KeyUp -= OnKeyUp;
+            view.IsKeyboardFocusWithinChanged -= OnIsKeyboardFocusWithinChanged;
             base.OnDropViewInstance(reactContext, view);
+        }
+
+        private void OnIsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue != e.OldValue)
+            {
+                var view = (ReactControl)sender;
+                view.GetReactContext()
+                    .GetNativeModule<UIManagerModule>()
+                    .EventDispatcher
+                    .DispatchEvent(new IsKeyboardFocusWithinChangedEvent(view.GetTag(), (bool)e.NewValue));
+            }
         }
 
         private void OnGotFocus(object sender, RoutedEventArgs e)

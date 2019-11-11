@@ -185,6 +185,13 @@ class FocusableWindowsTemplate {
      * @platform windows
      */
     onBlur: PropTypes.func,
+	
+    /**
+     * Called when IsKeyboardFocusWithin changed.
+     *
+     * @platform windows
+     */
+	onIsKeyboardFocusWithinChanged: PropTypes.func,
 
     /**
      * Set of keys that should be handled on key down by this component.

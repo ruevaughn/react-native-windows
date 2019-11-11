@@ -348,6 +348,20 @@ namespace ReactNative.UIManager
                         }
                     }
                 },
+                {
+                    "topIsKeyboardFocusWithinChanged",
+                    new JObject
+                    {
+                        {
+                            "phasedRegistrationNames",
+                            new JObject
+                            {
+                                { "bubbled" , "onIsKeyboardFocusWithinChanged" },
+                                { "captured" , "onIsKeyboardFocusWithinChangedCapture" }
+                            }
+                        }
+                    }
+                }
             };
         }
 

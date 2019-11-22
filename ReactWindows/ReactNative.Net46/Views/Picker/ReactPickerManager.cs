@@ -149,7 +149,10 @@ namespace ReactNative.Views.Picker
         /// <returns>The view instance.</returns>
         protected override ComboBox CreateViewInstance(ThemedReactContext reactContext)
         {
-            return new ComboBox();
+            return new ComboBox
+            {
+                TabIndex = 0
+            };
         }
 
         /// <summary>

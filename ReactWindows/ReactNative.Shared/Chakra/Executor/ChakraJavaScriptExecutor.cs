@@ -51,10 +51,18 @@ namespace ReactNative.Chakra.Executor
         private Action<JToken> _flushQueueImmediate;
 
         /// <summary>
+        /// Callback for bundle modification from outside.
+        /// </summary>
+        private readonly Func<string, string> _modifyBundle;
+
+        /// <summary>
         /// Instantiates the <see cref="ChakraJavaScriptExecutor"/>.
         /// </summary>
-        public ChakraJavaScriptExecutor()
+        /// <param name="modifyBundle">Callback for bundle modification from outside.</param>
+        public ChakraJavaScriptExecutor(Func<string, string> modifyBundle)
         {
+            this._modifyBundle = modifyBundle;
+
             _runtime = JavaScriptRuntime.Create();
             _context = JavaScriptSourceContext.FromIntPtr(IntPtr.Zero);
             InitializeChakra();
@@ -167,6 +175,9 @@ namespace ReactNative.Chakra.Executor
             else
             {
                 startupCode = LoadScript(sourcePath);
+
+                //Modify bundle function returns modified bundle.
+                startupCode = this._modifyBundle(startupCode);
             }
 
             EvaluateScript(startupCode, sourceUrl);

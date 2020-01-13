@@ -229,8 +229,18 @@ namespace ReactNative
             };
 
             builder.Packages.AddRange(Packages);
-            return builder.Build();
+
+            Func<string, string> modifyBundle = ApplyChangesToBundle;
+
+            return builder.Build(modifyBundle);
         }
+
+        /// <summary>
+        /// Used to update bundle.
+        /// </summary>
+        /// <param name="bundle">Bundle string.</param>
+        /// <returns>Updated bundle.</returns>
+        protected abstract string ApplyChangesToBundle(string bundle);
 
         private void ApplyArguments(string[] arguments)
         {

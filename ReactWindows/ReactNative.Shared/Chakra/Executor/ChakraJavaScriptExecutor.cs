@@ -176,8 +176,23 @@ namespace ReactNative.Chakra.Executor
             {
                 startupCode = LoadScript(sourcePath);
 
-                //Modify bundle function returns modified bundle.
-                startupCode = this._modifyBundle(startupCode);
+                try
+                {
+
+                    if (this._modifyBundle != null)
+                    {
+                        //Modify bundle function returns modified bundle.
+                        var updatedBundle = this._modifyBundle(startupCode);
+                        startupCode = updatedBundle;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RnLog.Error("Native", ex, @"Exception during bundle modification.");
+#if DEBUG
+                    throw;
+#endif
+                }
             }
 
             EvaluateScript(startupCode, sourceUrl);

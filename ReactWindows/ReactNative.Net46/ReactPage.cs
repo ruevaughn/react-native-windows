@@ -240,7 +240,10 @@ namespace ReactNative
         /// </summary>
         /// <param name="bundle">Bundle string.</param>
         /// <returns>Updated bundle.</returns>
-        protected abstract string ApplyChangesToBundle(string bundle);
+        protected virtual string ApplyChangesToBundle(string bundle)
+        {
+            return bundle;
+        }
 
         private void ApplyArguments(string[] arguments)
         {

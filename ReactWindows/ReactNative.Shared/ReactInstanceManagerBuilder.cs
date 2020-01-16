@@ -146,8 +146,9 @@ namespace ReactNative
         /// <summary>
         /// Instantiates a new <see cref="ReactInstanceManager"/>. 
         /// </summary>
+        /// <param name="modifyBundle">Callback for bundle modification from outside.</param>
         /// <returns>The instance.</returns>
-        public ReactInstanceManager Build()
+        public ReactInstanceManager Build(Func<string, string> modifyBundle)
         {
             if (!_initialLifecycleState.HasValue)
             {
@@ -172,7 +173,7 @@ namespace ReactNative
 
             if (_jsExecutorFactory == null)
             {
-                _jsExecutorFactory = () => new ChakraJavaScriptExecutor();
+                _jsExecutorFactory = () => new ChakraJavaScriptExecutor(modifyBundle);
             }
 
             return new ReactInstanceManager(

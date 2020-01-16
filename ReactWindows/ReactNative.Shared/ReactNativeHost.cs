@@ -155,7 +155,7 @@ namespace ReactNative
             };
 
             builder.Packages.AddRange(Packages);
-            return builder.Build();
+            return builder.Build(null);
         }
     }
 }

@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.Modules.Core;
 using System;
+using System.Diagnostics;
 using System.Reactive.Subjects;
 
 namespace ReactNative.Modules.Launch
@@ -63,7 +64,12 @@ namespace ReactNative.Modules.Launch
                 return;
             }
 
-            System.Diagnostics.Process.Start(uri.AbsoluteUri);
+            var si = new ProcessStartInfo()
+            {
+                FileName = uri.AbsoluteUri,
+                WorkingDirectory = Environment.GetEnvironmentVariable("LocalAppData")
+            };
+            Process.Start(si);
             promise.Resolve(true);
         }
 

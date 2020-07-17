@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Automation.Peers;
 using System.Net;
 using System.Threading.Tasks;
+using System.Windows.Media.Effects;
 
 namespace ReactNative.Views.Image
 {
@@ -95,7 +96,7 @@ namespace ReactNative.Views.Image
         [ReactProp(ViewProps.ResizeMode)]
         public void SetResizeMode(Border view, string resizeMode)
         {
-            if (resizeMode !=  null)
+            if (resizeMode != null)
             {
                 var imageBrush = (ImageBrush)view.Background;
 
@@ -111,6 +112,53 @@ namespace ReactNative.Views.Image
                 {
                     imageBrush.Stretch = Stretch.Fill;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Set the blur radius of the image.
+        /// </summary>
+        /// <param name="view">The image view instance.</param>
+        /// <param name="blurRadius">The blur radius.</param>
+        /// <remarks>Gaussian blur with performance rendering bias.</remarks>
+        [ReactProp(ViewProps.BlurRadius)]
+        public void SetBlurRadius(Border view, double? blurRadius)
+        {
+            if (blurRadius != null)
+            {
+                view.Effect = new BlurEffect
+                {
+                    Radius = blurRadius.Value,
+                    RenderingBias = RenderingBias.Performance,
+                    KernelType = KernelType.Gaussian
+                };
+            }
+            else
+            {
+                view.Effect = null;
+            }
+        }
+
+        /// <summary>
+        /// Set the blur effect of the image.
+        /// </summary>
+        /// <param name="view">The image view instance.</param>
+        /// <param name="blurEffect">The blur effect.</param>
+        [ReactProp(ViewProps.BlurEffect)]
+        public void SetBlurEffect(Border view, BlurEffectSettings blurEffect)
+        {
+            if (blurEffect != null)
+            {
+                view.Effect = new BlurEffect
+                {
+                    Radius = blurEffect.Radius,
+                    RenderingBias = blurEffect.RenderingBias,
+                    KernelType = blurEffect.KernelType
+                };
+            }
+            else
+            {
+                view.Effect = null;
             }
         }
 

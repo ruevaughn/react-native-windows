@@ -71,6 +71,8 @@ const ImageProps = {
    * See https://facebook.github.io/react-native/docs/image.html#blurradius
    */
   blurRadius: PropTypes.number,
+
+  blurEffect: PropTypes.object,
   /**
    * See https://facebook.github.io/react-native/docs/image.html#defaultsource
    */

@@ -80,6 +80,8 @@ namespace ReactNative.UIManager
         // Props that affect more than just layout
         public const string Disabled = "disabled";
         public const string BackgroundColor = "backgroundColor";
+        public const string BlurRadius = "blurRadius";
+        public const string BlurEffect = "blurEffect";
         public const string Color = "color";
         public const string FontSize = "fontSize";
         public const string FontWeight = "fontWeight";

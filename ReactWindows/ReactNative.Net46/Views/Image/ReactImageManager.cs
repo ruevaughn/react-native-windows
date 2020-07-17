@@ -96,9 +96,9 @@ namespace ReactNative.Views.Image
         [ReactProp(ViewProps.ResizeMode)]
         public void SetResizeMode(Border view, string resizeMode)
         {
-            if (resizeMode !=  null)
+            if (resizeMode != null)
             {
-                var imageBrush = (VisualBrush)view.Background;
+                var imageBrush = (ImageBrush)view.Background;
 
                 if (resizeMode.Equals("cover"))
                 {
@@ -124,28 +124,18 @@ namespace ReactNative.Views.Image
         [ReactProp(ViewProps.BlurRadius)]
         public void SetBlurRadius(Border view, double? blurRadius)
         {
-            var visualBrush = (VisualBrush)view.Background;
-
-            if (visualBrush == null)
+            if (blurRadius != null)
             {
-                return;
+                view.Effect = new BlurEffect
+                {
+                    Radius = blurRadius.Value,
+                    RenderingBias = RenderingBias.Performance,
+                    KernelType = KernelType.Gaussian
+                };
             }
-
-            if (visualBrush.Visual is System.Windows.Controls.Image image)
+            else
             {
-                if (blurRadius != null)
-                {
-                    image.Effect = new BlurEffect
-                    {
-                        Radius = blurRadius.Value,
-                        RenderingBias = RenderingBias.Performance,
-                        KernelType = KernelType.Gaussian
-                    };
-                }
-                else
-                {
-                    image.Effect = null;
-                }
+                view.Effect = null;
             }
         }
 
@@ -157,28 +147,18 @@ namespace ReactNative.Views.Image
         [ReactProp(ViewProps.BlurEffect)]
         public void SetBlurEffect(Border view, BlurEffectSettings blurEffect)
         {
-            var visualBrush = (VisualBrush)view.Background;
-
-            if (visualBrush == null)
+            if (blurEffect != null)
             {
-                return;
+                view.Effect = new BlurEffect
+                {
+                    Radius = blurEffect.Radius,
+                    RenderingBias = blurEffect.RenderingBias,
+                    KernelType = blurEffect.KernelType
+                };
             }
-
-            if (visualBrush.Visual is System.Windows.Controls.Image image)
+            else
             {
-                if (blurEffect != null)
-                {
-                    image.Effect = new BlurEffect
-                    {
-                        Radius = blurEffect.Radius,
-                        RenderingBias = blurEffect.RenderingBias,
-                        KernelType = blurEffect.KernelType
-                    };
-                }
-                else
-                {
-                    image.Effect = null;
-                }
+                view.Effect = null;
             }
         }
 
@@ -392,10 +372,9 @@ namespace ReactNative.Views.Image
         {
             return new UIAutomationBorder
             {
-                Background = new VisualBrush
+                Background = new ImageBrush
                 {
-                    Visual = new System.Windows.Controls.Image(),
-                    Stretch = Stretch.UniformToFill
+                    Stretch = Stretch.UniformToFill,
                 },
             };
         }
@@ -456,7 +435,7 @@ namespace ReactNative.Views.Image
         /// <param name="source">The source URI.</param>
         private async void SetUriFromSingleSource(Border view, string source)
         {
-            var imageBrush = (VisualBrush)view.Background;
+            var imageBrush = (ImageBrush)view.Background;
             var tag = view.GetTag();
 
             var disposable = default(SerialDisposable);
@@ -507,11 +486,7 @@ namespace ReactNative.Views.Image
                     image = null;
                 }
             }
-
-            if (imageBrush.Visual is System.Windows.Controls.Image imageVisual)
-            {
-                imageVisual.Source = image;
-            }
+            imageBrush.ImageSource = image;
         }
 
         /// <summary>

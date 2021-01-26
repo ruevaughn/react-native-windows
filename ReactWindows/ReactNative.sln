@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 16.0.30804.86
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ReactNative.Shared", "ReactNative.Shared\ReactNative.Shared.shproj", "{EEA8B852-4D07-48E1-8294-A21AB5909FE5}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ReactNative.Shared.Tests", "ReactNative.Shared.Tests\ReactNative.Shared.Tests.shproj", "{EEA8B852-4D07-48E1-8294-A21AB5909FE6}"

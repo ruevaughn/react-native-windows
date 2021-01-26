@@ -75,6 +75,7 @@ ipch/
 *.tlog/
 Ankh.NoLoad
 UpgradeLog.htm
+**/*.GeneratedMSBuildEditorConfig.editorconfig
 
 #MonoDevelop
 *.pidb

@@ -1,4 +1,4 @@
-﻿﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
 using System;
@@ -702,12 +702,14 @@ namespace ReactNative.Views.TextInput
 
             var typeface = new Typeface(fontFamily, fontStyle, fontWeight, fontStretch);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var formattedText = new FormattedText(placeholderText, CultureInfo.CurrentCulture, adornedElement.FlowDirection, typeface, adornedElement.FontSize, foreground)
             {
                 TextAlignment = computedTextAlignment,
                 MaxTextHeight = maxHeight,
                 MaxTextWidth = maxWidth
             };
+#pragma warning restore CS0618 // Type or member is obsolete
 
             double left;
             double top = 0.0;

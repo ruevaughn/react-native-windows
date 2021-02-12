@@ -33,7 +33,7 @@ namespace ReactNative.Tests
 
         public static Task Run(Func<ChakraJavaScriptExecutor, IActionQueue, Task> action)
         {
-            return Run(action, () => new ChakraJavaScriptExecutor(), @"Resources/test.js");
+            return Run(action, () => new ChakraJavaScriptExecutor(null), @"Resources/test.js");
         }
 
         public static async Task Run<TJavaScriptExecutor>(Func<TJavaScriptExecutor, IActionQueue, Task> action, Func<TJavaScriptExecutor> jsFactory, string scriptPath)

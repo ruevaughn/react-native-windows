@@ -247,7 +247,7 @@ namespace ReactNative.Tests.Bridge
         {
             var jsFactories = new Func<IJavaScriptExecutor>[]
             {
-                () => new ChakraJavaScriptExecutor(),
+                () => new ChakraJavaScriptExecutor(null),
 #if WINDOWS_UWP
                 () => new NativeJavaScriptExecutor(),
 #endif
@@ -293,7 +293,7 @@ namespace ReactNative.Tests.Bridge
         {
             var jsFactories = new Func<IJavaScriptExecutor>[]
             {
-                () => new ChakraJavaScriptExecutor(),
+                () => new ChakraJavaScriptExecutor(null),
 #if WINDOWS_UWP
                 () => new NativeJavaScriptExecutor(),
 #endif

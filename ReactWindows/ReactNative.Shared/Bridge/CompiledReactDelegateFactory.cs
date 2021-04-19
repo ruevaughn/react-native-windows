@@ -26,7 +26,7 @@ namespace ReactNative.Bridge
         private static readonly MethodInfo s_toObject = ((MethodInfo)ReflectionHelpers.InfoOf((JToken token) => token.ToObject(typeof(Type))));
         private static readonly MethodInfo s_stringFormat = (MethodInfo)ReflectionHelpers.InfoOf(() => string.Format(default(IFormatProvider), default(string), default(object)));
         private static readonly MethodInfo s_getIndex = (MethodInfo)ReflectionHelpers.InfoOf((JArray arr) => arr[0]);
-        private static readonly MethodInfo s_fromObject = (MethodInfo)ReflectionHelpers.InfoOf(() => JObject.FromObject(default(object)));
+        private static readonly MethodInfo s_fromObject = (MethodInfo)ReflectionHelpers.InfoOf((object obj) => JToken.FromObject(obj));
         private static readonly PropertyInfo s_countProperty = (PropertyInfo)ReflectionHelpers.InfoOf((JArray arr) => arr.Count);
 
         private CompiledReactDelegateFactory() { }
@@ -156,8 +156,13 @@ namespace ReactNative.Bridge
                 //
                 // var result = ...;
                 //
-                blockStatements[blockStatements.Length - 2] =
-                    Expression.Assign(resultParameter, resultExpression);
+                blockStatements[blockStatements.Length - 2] = Expression.Assign(
+                    resultParameter,
+                    Expression.TypeAs(
+                        resultExpression,
+                        typeof(object)
+                    )
+                );
 
                 //
                 // return result == null ? JValue.CreateNull() : JObject.FromObject(result);

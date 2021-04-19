@@ -97,6 +97,40 @@ namespace ReactNative.Tests.Bridge
         }
 
         [Test]
+        public void NativeModuleBase_SyncInvocation()
+        {
+            var testModule = new TestSyncNativeModule();
+            testModule.Initialize();
+
+            var nopCallback = new InvokeCallback((_, __) => { });
+            JToken result = default(JToken);
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetBool)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(TestSyncNativeModule.TestBool, result.ToObject<bool>());
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetInt)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(TestSyncNativeModule.TestInt, result.ToObject<int>());
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetDouble)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(TestSyncNativeModule.TestDouble, result.ToObject<double>());
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetString)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(TestSyncNativeModule.TestString, result.ToObject<string>());
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetEnum)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(TestSyncNativeModule.TestEnum.TestValue, result.ToObject<TestSyncNativeModule.TestEnum>());
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetObject)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(TestSyncNativeModule.TestObjectInstance.TestField, result.ToObject<TestSyncNativeModule.TestObject>().TestField);
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetNull)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(null, result.ToObject<object>());
+
+            result = testModule.Methods[nameof(TestSyncNativeModule.GetVoid)].Invoke(nopCallback, new JArray());
+            Assert.AreEqual(null, result.ToObject<object>());
+        }
+
+        [Test]
         public void NativeModuleBase_Invocation_Callbacks()
         {
             var callbackArgs = new object[] { 1, 2, 3 };
@@ -407,6 +441,82 @@ namespace ReactNative.Tests.Bridge
             public void Bar(int x)
             {
                 _onBar(x);
+            }
+        }
+
+        class TestSyncNativeModule : NativeModuleBase
+        {
+            static public bool TestBool = true;
+            static public int TestInt = 42;
+            static public float TestFloat = 4.25f; // precisely represented
+            static public double TestDouble = 4.25; // precisely represented
+            static public string TestString = "test_string";
+            static public TestObject TestObjectInstance = new TestObject { TestField = "test_object_field" };
+
+            public enum TestEnum
+            {
+                TestValue
+            }
+
+            public class TestObject
+            {
+                public string TestField;
+            }
+
+            public override string Name
+            {
+                get
+                {
+                    return "SyncWithReturn";
+                }
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public bool GetBool()
+            {
+                return true;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public int GetInt()
+            {
+                return TestInt;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public double GetDouble()
+            {
+                return TestDouble;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public object GetString()
+            {
+                return TestString;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public TestEnum GetEnum()
+            {
+                return TestEnum.TestValue;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public object GetObject()
+            {
+                return TestObjectInstance;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public object GetNull()
+            {
+                return null;
+            }
+
+            [ReactMethod(IsBlockingSynchronousMethod = true)]
+            public void GetVoid()
+            {
+                return;
             }
         }
 

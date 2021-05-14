@@ -27,114 +27,62 @@ export default class WebViewPage extends Component {
     super(props)
   }
 
-  // render() {
-  //   return (
-  //     <View style={styles.content}>
-  //       <WebView source={{ uri: 'https://sfbay.craigslist.org/' }} />
-  //     </View>
-  //   )
-  // }
-
-  // render() {
-  //   const html = `
-  //     <html>
-  //     <head>Hello World</head>
-  //     <body>
-  //       <script>
-  //         setTimeout(function () {
-  //           window.external.PostMessage("Hello!")
-  //         }, 2000)
-  //       </script>
-  //     </body>
-  //     </html>
-  //   `;
-
-  //   return (
-  //     <View style={styles.content}>
-  //       <WebView
-  //         injectJavaScript={'setTimeout(function () { window.external.PostMessage("Injected Hello!") }, 2000)'}
-  //         messagingEnabled={true}
-  //         source={{ html }}
-  //         onMessage={event => {
-  //           this.props.logger(event.nativeEvent.data)
-  //           alert(event.nativeEvent.data);
-  //         }}
-  //         onLoadingStart={event => {
-  //           var jsonString = JSON.stringify(event, null, 4)
-  //           this.props.logger(`EVENT: onLoadingStart ${jsonString}\n`)
-  //         }}
-  //         onLoadingFinish={event => {
-  //           var jsonString = JSON.stringify(event, null, 4)
-  //           this.props.logger(`EVENT: onLoadingFinish ${jsonString}\n`)
-  //         }}
-  //         updateNavigationState={event => {
-  //           var jsonString = JSON.stringify(event, null, 4)
-  //           this.props.logger(`EVENT: updateNavigationState ${jsonString}\n`)
-  //         }}          
-  //       />
-  //     </View>
-  //   );
-  // }
-
   render() {
     const html = `
     <html>  
     <head>  
         <script type="text/javascript">  
-            // Function Without Parameters  
-            function JavaScriptFunctionWithoutParameters()    
-            {  
-              window.external.PostMessage("JavaScriptFunctionWithoutParameters!") 
-            }  
- 
-        </script>  
+            setTimeout(function () {
+              window.external.postMessage("Hello from embedded script")
+            }, 2000)
+         </script>  
     </head>  
     <body>  
     <div id="outputID" style="color:Red; font-size:16">  
         Hello from HTML document with script!  
     </div>  
     </body>  
-</html>  
+    </html>  
     `;
-    // function JavaScriptFunctionWithParameters(it)    
-    // {  
-    //   window.external.PostMessage("JavaScriptFunctionWithParameters[${it}]") 
-    // }
-    const run = `
+
+    const script1 = `
       document.body.style.backgroundColor = 'blue';
       true;
     `;
 
-const script2 = `window.external.PostMessage("JavaScriptFunctionWithoutParameters!") `;
+    const script2 = `window.external.PostMessage("Hello from externally injected script") `;
 
     setTimeout(() => {
-      this.webref.injectJavaScript(script2);
-    }, 3000);
-    // injectedJavaScript={'JavaScriptFunctionWithoutParameters'}
+      if(this.webref != null) {
+        this.webref.injectJavaScript(script2);
+      }
+    }, 5000);
+
     return (
       <View style={{ flex: 1 }}>
         <WebView
-        javaScriptEnabled={true}
-        injectedJavaScript={run}
-          messagingEnabled={true}
+          injectedJavaScript={script1}
+          javaScriptEnabled={true}
           ref={r => (this.webref = r)}
           source={{ html }}
-          onMessage={event => {
-            this.props.logger(event.nativeEvent.data)
-            // alert(event.nativeEvent.data);
+          onLoad={(event) => {
+            var jsonString = JSON.stringify(event.nativeEvent, null, 4)
+            this.props.logger(`onLoad(${jsonString})\n`)
           }}
-                
+          onLoadStart={event => {
+            var jsonString = JSON.stringify(event.nativeEvent, null, 4)
+            this.props.logger(`onLoadStart(${jsonString})\n`)
+          }}   
+          onLoadEnd={event => {
+            var jsonString = JSON.stringify(event.nativeEvent, null, 4)
+            this.props.logger(`onLoadEnd(${jsonString})\n`)
+          }}                     
+          onMessage={event => {
+            this.props.logger(`onMessage(${event.nativeEvent.data})`)
+          }}
+                 
         />
       </View>
     );
   }
 }
-
-// onLoadStart={event => {
-//   var jsonString = JSON.stringify(event, null, 4)
-//   this.props.logger(`EVENT: onLoadStart ${jsonString}\n`)
-// }}   
-// onLoadEnd={event => {
-//   var jsonString = JSON.stringify(event, null, 4)
-//   this.props.logger(`EVENT: onLoadEnd ${jsonString}\n`)
-// }}  

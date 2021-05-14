@@ -1,17 +1,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
+// Portions derived from React Native:
+// Copyright (c) 2015-present, Facebook, Inc.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Windows.Controls;
-using System.Windows.Navigation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using ReactNative.Views.Web.Events;
+using System;
+using System.Net.Http;
+using System.Windows.Controls;
+using System.Windows.Navigation;
 
 namespace ReactNative.Views.Web
 {
@@ -28,6 +29,8 @@ namespace ReactNative.Views.Web
         private const int CommandStopLoading = 4;
         private const int CommandPostMessage = 5;
         private const int CommandInjectJavaScript = 6;
+
+        private const string BridgeName = "__REACT_WEB_VIEW_BRIDGE";
 
         private readonly ViewKeyedDictionary<WebBrowser, WebViewData> _webViewData = new ViewKeyedDictionary<WebBrowser, WebViewData>();
         private readonly ReactContext _context;
@@ -104,8 +107,6 @@ namespace ReactNative.Views.Web
         {
             var webViewData = GetWebViewData(view);
             webViewData.InjectedJavaScript = injectedJavaScript;
-
-            _webViewData[view] = webViewData;
         }
 
         /// <summary>
@@ -152,52 +153,6 @@ namespace ReactNative.Views.Web
             var webViewData = GetWebViewData(view);
             webViewData.Source = source;
             webViewData.SourceUpdated = true;        	
-        	
-            //if (source != null)
-            //{
-            //    var html = source.Value<string>("html");
-            //    if (html != null)
-            //    {
-            //        var baseUrl = source.Value<string>("baseUrl");
-            //        if (baseUrl != null)
-            //        {
-            //            view.Source = new Uri(baseUrl);
-            //        }
-
-            //        view.NavigateToString(html);
-            //        return;
-            //    }
-
-            //    var uri = source.Value<string>("uri");
-            //    if (uri != null)
-            //    {
-            //        string previousUri = view.Source?.OriginalString;
-            //        if (!String.IsNullOrWhiteSpace(previousUri) && previousUri.Equals(uri))
-            //        {
-            //            return;
-            //        }
-
-            //        using (var request = new HttpRequestMessage())
-            //        {
-            //            var sourceUri = new Uri(uri);
-
-            //            //If the source URI has a file URL scheme, do not form the RequestUri.
-            //            if (!sourceUri.IsFile)
-            //            {
-            //                request.RequestUri = sourceUri;
-            //            }
-                      
-            //            var method = source.Value<string>("method");
-            //            var headers = (string)source.GetValue("headers", StringComparison.Ordinal);
-            //            var body = source.Value<Byte[]>("body");
-
-            //            view.Navigate(sourceUri, view.Name, body, headers);
-            //            return;
-            //        }
-            //    }
-            //}
-
-            //view.Navigate(new Uri(BLANK_URL));
         }
 
         /// <inheritdoc />
@@ -221,7 +176,6 @@ namespace ReactNative.Views.Web
                     PostMessage(view, args[0].Value<string>());
                     break;
                 case CommandInjectJavaScript:
-                    //InvokeScriptByName(view, args[0].Value<string>());
                     InvokeScript(view, args[0].Value<string>());
                     break;
                 default:
@@ -233,7 +187,7 @@ namespace ReactNative.Views.Web
         public override void OnDropViewInstance(ThemedReactContext reactContext, WebBrowser view)
         {
             base.OnDropViewInstance(reactContext, view);
-            view.LoadCompleted -= OnLoadCompleted;
+            view.LoadCompleted -= OnNavigationCompleted;
             view.Navigating -= OnNavigationStarting;
 
             RemoveWebViewData(view);
@@ -252,7 +206,7 @@ namespace ReactNative.Views.Web
         protected override void AddEventEmitters(ThemedReactContext reactContext, WebBrowser view)
         {
             base.AddEventEmitters(reactContext, view);
-            view.LoadCompleted += OnLoadCompleted;
+            view.LoadCompleted += OnNavigationCompleted;
             view.Navigating += OnNavigationStarting;
         }
 
@@ -289,6 +243,9 @@ namespace ReactNative.Views.Web
                 var uri = source.Value<string>("uri");
                 if (uri != null)
                 {
+                    // HTML files need to be loaded with the ms-appx-web schema.
+                    // uri = uri.Replace("ms-appx:", "ms-appx-web:");
+
                     string previousUri = view.Source?.OriginalString;
                     if (!String.IsNullOrWhiteSpace(previousUri) && previousUri.Equals(uri))
                     {
@@ -366,18 +323,16 @@ namespace ReactNative.Views.Web
             InvokeScript(view, script);
         }
 
-
-
         private void OnNavigationStarting(object sender, NavigatingCancelEventArgs e)
         {
             var webView = (WebBrowser)sender;
-
+            var tag = webView.GetTag();
             webView.GetReactContext().GetNativeModule<UIManagerModule>()
                 .EventDispatcher
                 .DispatchEvent(
-                    new WebViewLoadingEvent(
-                         webView.GetTag(),
-                         "Start",
+                    new WebViewLoadEvent(
+                         tag,
+                         WebViewLoadEvent.TopLoadingStart,
                          e.Uri?.OriginalString,
                          true,
                          webView.GetDocumentTitle("Title Unavailable"),
@@ -389,21 +344,6 @@ namespace ReactNative.Views.Web
             {
                 webView.ObjectForScripting = bridge;
             }
-        }
-
-        private static void LoadFinished(WebBrowser webView, string uri)
-        {
-            webView.GetReactContext().GetNativeModule<UIManagerModule>()
-                    .EventDispatcher
-                    .DispatchEvent(
-                         new WebViewLoadingEvent(
-                            webView.GetTag(),
-                            "Finish",
-                            uri,
-                            false,
-                            "Title Unavailable",
-                            webView.CanGoBack,
-                            webView.CanGoForward));
         }
 
         private void OnNavigationFailed(WebBrowser webView, string status, string message)
@@ -418,44 +358,33 @@ namespace ReactNative.Views.Web
                         message));
         }
 
-        private void OnLoadCompleted(object sender, NavigationEventArgs e)
+        private void OnNavigationCompleted(object sender, NavigationEventArgs e)
         {
-            var webView = (WebBrowser)sender;
-            LoadFinished(webView, e.Uri?.OriginalString);
+			var webView = (WebBrowser)sender;
 
-            //if (webView.IsLoaded)
-            //{
-            //    var script = default(string);
-
-            //    if (_injectedJS.TryGetValue(webView.GetTag(), out script) && !string.IsNullOrWhiteSpace(script))
-            //    {
-            //        string[] args = { script };
-            //        try
-            //        {
-            //            webView.InvokeScript("eval", args);
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            OnNavigationFailed(webView, "Loaded", ex.Message);
-            //        }
-            //    }
-            //}
-            //else
-            //{
-            //    OnNavigationFailed(webView, "Unknown Error loading webview.", null);
-            //}
+            webView.GetReactContext()
+            		.GetNativeModule<UIManagerModule>()
+                    .EventDispatcher
+                    .DispatchEvent(
+                         new WebViewLoadEvent(
+                            webView.GetTag(),
+                            WebViewLoadEvent.TopLoadingFinish,
+                            e.Uri?.OriginalString,
+                            false,
+                            webView.GetDocumentTitle("Title Unavailable"),
+                            webView.CanGoBack,
+                            webView.CanGoForward));
 
             if (webView.IsLoaded)
             {
-                var injectedJavaScript = GetWebViewData(webView).InjectedJavaScript;
+                var webViewData = GetWebViewData(webView);
+
+                var injectedJavaScript = webViewData.InjectedJavaScript;
+
                 if (!string.IsNullOrWhiteSpace(injectedJavaScript))
                 {
                     try
                     {
-                        //object[] args = { injectedJavaScript };
-
-                        //InvokeScript(webView, args);
-                        //InvokeScriptByName(webView, injectedJavaScript);
                         InvokeScript(webView, injectedJavaScript);
                     }
                     catch (Exception ex)
@@ -463,6 +392,12 @@ namespace ReactNative.Views.Web
                         OnNavigationFailed(webView, "Loaded", ex.Message);
                     }
                 }
+
+                // UWP OnDOMContentLoaded does this
+                //if (webViewData.Bridge != null)
+                //{
+                //    InvokeScript(webView, $"window.postMessage = function(data) => window.external.PostMessage(String(data))");
+                //}
             }
             else
             {

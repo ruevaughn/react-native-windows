@@ -216,9 +216,9 @@
     <Compile Include="Views\TextInput\ReactPasswordBoxManager.cs" />
     <Compile Include="Views\TextInput\ReactTextInputManager.cs" />
     <Compile Include="Views\Web\Events\MessageEvent.cs" />
+    <Compile Include="Views\Web\Events\WebViewLoadEvent.cs" />
     <Compile Include="Views\Web\Events\WebViewLoadingErrorEvent.cs" />
     <Compile Include="Views\Web\Events\MessagePostedEventArgs.cs" />
-    <Compile Include="Views\Web\Events\WebViewLoadingEvent.cs" />
     <Compile Include="Views\Web\ReactWebViewManager.cs" />
     <Compile Include="Views\Web\WebBrowserExtensions.cs" />
     <Compile Include="Views\Web\WebViewBridge.cs" />

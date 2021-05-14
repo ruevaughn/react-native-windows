@@ -29,11 +29,10 @@ namespace ReactNative.Views.Web
         private const int CommandPostMessage = 5;
         private const int CommandInjectJavaScript = 6;
 
-        private const string BridgeName = "__REACT_WEB_VIEW_BRIDGE";
-
         private readonly ViewKeyedDictionary<WebBrowser, WebViewData> _webViewData = new ViewKeyedDictionary<WebBrowser, WebViewData>();
-        private readonly Dictionary<int, string> _injectedJS = new Dictionary<int, string>();
         private readonly ReactContext _context;
+
+        private bool isJavaScriptEnabled;
 
         /// <summary>
         /// Instantiates the <see cref="ReactWebViewManager"/>.
@@ -81,7 +80,7 @@ namespace ReactNative.Views.Web
         [ReactProp("javaScriptEnabled")]
         public void SetJavaScriptEnabled(WebBrowser view, bool enabled)
         {
-            // Not Implementable
+            this.isJavaScriptEnabled = enabled;
         }
 
         /// <summary>
@@ -106,7 +105,7 @@ namespace ReactNative.Views.Web
             var webViewData = GetWebViewData(view);
             webViewData.InjectedJavaScript = injectedJavaScript;
 
-            _injectedJS[view.GetTag()] = injectedJavaScript;
+            _webViewData[view] = webViewData;
         }
 
         /// <summary>
@@ -154,51 +153,51 @@ namespace ReactNative.Views.Web
             webViewData.Source = source;
             webViewData.SourceUpdated = true;        	
         	
-            if (source != null)
-            {
-                var html = source.Value<string>("html");
-                if (html != null)
-                {
-                    var baseUrl = source.Value<string>("baseUrl");
-                    if (baseUrl != null)
-                    {
-                        view.Source = new Uri(baseUrl);
-                    }
+            //if (source != null)
+            //{
+            //    var html = source.Value<string>("html");
+            //    if (html != null)
+            //    {
+            //        var baseUrl = source.Value<string>("baseUrl");
+            //        if (baseUrl != null)
+            //        {
+            //            view.Source = new Uri(baseUrl);
+            //        }
 
-                    view.NavigateToString(html);
-                    return;
-                }
+            //        view.NavigateToString(html);
+            //        return;
+            //    }
 
-                var uri = source.Value<string>("uri");
-                if (uri != null)
-                {
-                    string previousUri = view.Source?.OriginalString;
-                    if (!String.IsNullOrWhiteSpace(previousUri) && previousUri.Equals(uri))
-                    {
-                        return;
-                    }
+            //    var uri = source.Value<string>("uri");
+            //    if (uri != null)
+            //    {
+            //        string previousUri = view.Source?.OriginalString;
+            //        if (!String.IsNullOrWhiteSpace(previousUri) && previousUri.Equals(uri))
+            //        {
+            //            return;
+            //        }
 
-                    using (var request = new HttpRequestMessage())
-                    {
-                        var sourceUri = new Uri(uri);
+            //        using (var request = new HttpRequestMessage())
+            //        {
+            //            var sourceUri = new Uri(uri);
 
-                        //If the source URI has a file URL scheme, do not form the RequestUri.
-                        if (!sourceUri.IsFile)
-                        {
-                            request.RequestUri = sourceUri;
-                        }
+            //            //If the source URI has a file URL scheme, do not form the RequestUri.
+            //            if (!sourceUri.IsFile)
+            //            {
+            //                request.RequestUri = sourceUri;
+            //            }
                       
-                        var method = source.Value<string>("method");
-                        var headers = (string)source.GetValue("headers", StringComparison.Ordinal);
-                        var body = source.Value<Byte[]>("body");
+            //            var method = source.Value<string>("method");
+            //            var headers = (string)source.GetValue("headers", StringComparison.Ordinal);
+            //            var body = source.Value<Byte[]>("body");
 
-                        view.Navigate(sourceUri, view.Name, body, headers);
-                        return;
-                    }
-                }
-            }
+            //            view.Navigate(sourceUri, view.Name, body, headers);
+            //            return;
+            //        }
+            //    }
+            //}
 
-            view.Navigate(new Uri(BLANK_URL));
+            //view.Navigate(new Uri(BLANK_URL));
         }
 
         /// <inheritdoc />
@@ -222,6 +221,7 @@ namespace ReactNative.Views.Web
                     PostMessage(view, args[0].Value<string>());
                     break;
                 case CommandInjectJavaScript:
+                    //InvokeScriptByName(view, args[0].Value<string>());
                     InvokeScript(view, args[0].Value<string>());
                     break;
                 default:
@@ -271,56 +271,77 @@ namespace ReactNative.Views.Web
         {
             var webViewData = GetWebViewData(view);
             var source = webViewData.Source;
-            //if (source != null)
-            //{
-            //    var html = source.Value<string>("html");
-            //    if (html != null)
-            //    {
-            //        var baseUrl = source.Value<string>("baseUrl");
-            //        if (baseUrl != null)
-            //        {
-            //            view.Source = new Uri(baseUrl);
-            //        }
+            if (source != null)
+            {
+                var html = source.Value<string>("html");
+                if (html != null)
+                {
+                    var baseUrl = source.Value<string>("baseUrl");
+                    if (baseUrl != null)
+                    {
+                        view.Source = new Uri(baseUrl);
+                    }
 
-            //        view.NavigateToString(html);
-            //        return;
-            //    }
+                    view.NavigateToString(html);
+                    return;
+                }
 
-            //    var uri = source.Value<string>("uri");
-            //    if (uri != null)
-            //    {
-            //        string previousUri = view.Source?.OriginalString;
-            //        if (!String.IsNullOrWhiteSpace(previousUri) && previousUri.Equals(uri))
-            //        {
-            //            return;
-            //        }
+                var uri = source.Value<string>("uri");
+                if (uri != null)
+                {
+                    string previousUri = view.Source?.OriginalString;
+                    if (!String.IsNullOrWhiteSpace(previousUri) && previousUri.Equals(uri))
+                    {
+                        return;
+                    }
 
-            //        using (var request = new HttpRequestMessage())
-            //        {
-            //            var sourceUri = new Uri(uri);
+                    using (var request = new HttpRequestMessage())
+                    {
+                        var sourceUri = new Uri(uri);
 
-            //            //If the source URI has a file URL scheme, do not form the RequestUri.
-            //            if (!sourceUri.IsFile)
-            //            {
-            //                request.RequestUri = sourceUri;
-            //            }
+                        //If the source URI has a file URL scheme, do not form the RequestUri.
+                        if (!sourceUri.IsFile)
+                        {
+                            request.RequestUri = sourceUri;
+                        }
 
-            //            var method = source.Value<string>("method");
-            //            var headers = (string)source.GetValue("headers", StringComparison.Ordinal);
-            //            var body = source.Value<Byte[]>("body");
+                        var method = source.Value<string>("method");
+                        var headers = (string)source.GetValue("headers", StringComparison.Ordinal);
+                        var body = source.Value<Byte[]>("body");
 
-            //            view.Navigate(sourceUri, view.Name, body, headers);
-            //            return;
-            //        }
-            //    }
-            //}
+                        view.Navigate(sourceUri, view.Name, body, headers);
+                        return;
+                    }
+                }
+            }
 
-            //view.Navigate(new Uri(BLANK_URL));
+            view.Navigate(new Uri(BLANK_URL));
         }
 
-        private void InvokeScript(WebBrowser view, string scriptName)
+        private void InvokeScriptByName(WebBrowser view, string scriptName)
         {
-            view.InvokeScript(scriptName);
+            if (this.isJavaScriptEnabled)
+            {
+                view.InvokeScript(scriptName);
+            }
+        }
+
+        private void InvokeScript(WebBrowser view, string script)
+        {
+            if (!string.IsNullOrWhiteSpace(script))
+            {
+                object[] args = {script};
+
+                InvokeScript(view, args);
+            }
+        }
+
+        private void InvokeScript(WebBrowser view, object[] args)
+        {
+            if (view != null && this.isJavaScriptEnabled)
+            {
+                view.InvokeScript("eval", args);
+            }
         }
 
         private void PostMessage(WebBrowser view, string message)
@@ -402,16 +423,40 @@ namespace ReactNative.Views.Web
             var webView = (WebBrowser)sender;
             LoadFinished(webView, e.Uri?.OriginalString);
 
+            //if (webView.IsLoaded)
+            //{
+            //    var script = default(string);
+
+            //    if (_injectedJS.TryGetValue(webView.GetTag(), out script) && !string.IsNullOrWhiteSpace(script))
+            //    {
+            //        string[] args = { script };
+            //        try
+            //        {
+            //            webView.InvokeScript("eval", args);
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            OnNavigationFailed(webView, "Loaded", ex.Message);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    OnNavigationFailed(webView, "Unknown Error loading webview.", null);
+            //}
+
             if (webView.IsLoaded)
             {
-                var script = default(string);
-
-                if (_injectedJS.TryGetValue(webView.GetTag(), out script) && !string.IsNullOrWhiteSpace(script))
+                var injectedJavaScript = GetWebViewData(webView).InjectedJavaScript;
+                if (!string.IsNullOrWhiteSpace(injectedJavaScript))
                 {
-                    string[] args = { script };
                     try
                     {
-                        webView.InvokeScript("eval", args);
+                        //object[] args = { injectedJavaScript };
+
+                        //InvokeScript(webView, args);
+                        //InvokeScriptByName(webView, injectedJavaScript);
+                        InvokeScript(webView, injectedJavaScript);
                     }
                     catch (Exception ex)
                     {

@@ -65,6 +65,9 @@
     "uuid": "^3.0.1",
     "xml-parser": "^1.2.1"
   },
+  "resolutions": {
+      "metro-config": "bluejeans/metro-config-hotfix-0.48.5"
+  },
   "rnpm": {
     "haste": {
       "platforms": [

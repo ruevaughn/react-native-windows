@@ -48,22 +48,12 @@ namespace ReactNative.Views.Web
         /// <summary>
         /// The name of the view manager.
         /// </summary>
-        public override string Name
-        {
-            get
-            {
-                return "RCTWebView";
-            }
-        }
+        public override string Name => "RCTWebView";
 
         /// <summary>
         /// The commands map for the webview manager.
         /// </summary>
-        public override JObject ViewCommandsMap
-        {
-            get
-            {
-                return new JObject
+        public override JObject ViewCommandsMap => new JObject
                 {
                     { "goBack", CommandGoBack },
                     { "goForward", CommandGoForward },
@@ -72,8 +62,6 @@ namespace ReactNative.Views.Web
                     { "postMessage", CommandPostMessage },
                     { "injectJavaScript", CommandInjectJavaScript },
                 };
-            }
-        }
 
         /// <summary>
         /// Sets the background color for the <see cref="WebView"/>.
@@ -138,6 +126,7 @@ namespace ReactNative.Views.Web
         public void SetMessagingEnabled(WebView view, bool messagingEnabled)
         {
             var webViewData = GetWebViewData(view);
+
             if (messagingEnabled)
             {
                 var bridge = new WebViewBridge(view.GetTag());
@@ -164,15 +153,7 @@ namespace ReactNative.Views.Web
             webViewData.SourceUpdated = true;
         }
 
-        /// <summary>
-        /// Receive events/commands directly from JavaScript through the 
-        /// <see cref="UIManagerModule"/>.
-        /// </summary>
-        /// <param name="view">
-        /// The view instance that should receive the command.
-        /// </param>
-        /// <param name="commandId">Identifer for the command.</param>
-        /// <param name="args">Optional arguments for the command.</param>
+        /// <inheritdoc />
         public override void ReceiveCommand(WebView view, int commandId, JArray args)
         {
             switch (commandId)
@@ -201,12 +182,7 @@ namespace ReactNative.Views.Web
             }
         }
 
-        /// <summary>
-        /// Called when view is detached from view hierarchy and allows for 
-        /// additional cleanup by the <see cref="ReactWebViewManager"/>.
-        /// </summary>
-        /// <param name="reactContext">The React context.</param>
-        /// <param name="view">The view.</param>
+        /// <inheritdoc />
         public override void OnDropViewInstance(ThemedReactContext reactContext, WebView view)
         {
             base.OnDropViewInstance(reactContext, view);
@@ -218,11 +194,7 @@ namespace ReactNative.Views.Web
             _webViewData.Remove(view);
         }
 
-        /// <summary>
-        /// Creates a new view instance of type <see cref="WebView"/>.
-        /// </summary>
-        /// <param name="reactContext">The React context.</param>
-        /// <returns>The view instance.</returns>
+        /// <inheritdoc />
         protected override WebView CreateViewInstance(ThemedReactContext reactContext)
         {
             var view = new WebView(WebViewExecutionMode.SeparateThread);
@@ -231,12 +203,7 @@ namespace ReactNative.Views.Web
             return view;
         }
 
-        /// <summary>
-        /// Subclasses can override this method to install custom event 
-        /// emitters on the given view.
-        /// </summary>
-        /// <param name="reactContext">The React context.</param>
-        /// <param name="view">The view instance.</param>
+        /// <inheritdoc />
         protected override void AddEventEmitters(ThemedReactContext reactContext, WebView view)
         {
             base.AddEventEmitters(reactContext, view);
@@ -246,10 +213,7 @@ namespace ReactNative.Views.Web
             view.NavigationCompleted += OnNavigationCompleted;
         }
 
-        /// <summary>
-        /// Callback that will be triggered after all props are updated         
-        /// </summary>
-        /// <param name="view">The view instance.</param>
+        /// <inheritdoc />
         protected override void OnAfterUpdateTransaction(WebView view)
         {
             var webViewData = GetWebViewData(view);

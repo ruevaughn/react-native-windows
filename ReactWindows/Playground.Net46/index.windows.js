@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import MenuSide from './App/MenuSide'
 import LogArea from './App/LogArea'
-import { Pages, ControlsPage, FixesPage, MainPage, AccessibilityPage } from './App/ContentSide'
+import { Pages, ControlsPage, FixesPage, MainPage, AccessibilityPage, WebViewPage } from './App/ContentSide'
 var RCTDeviceEventEmitter = require('RCTDeviceEventEmitter')
 import * as Animatable from 'react-native-animatable'
 import GenericModal from "./App/Modals/GenericModal";
@@ -55,6 +55,7 @@ class Playground extends Component {
         {displayPage === Pages.CONTROLS && <ControlsPage logger={this.log} />}
         {displayPage === Pages.FIXES && <FixesPage logger={this.log} />}
         {displayPage === Pages.ACCESSIBILITY && <AccessibilityPage isFocusable={this.state.isModalOpen === false} logger={this.log} />}
+        {displayPage === Pages.WEBVIEW && <WebViewPage isFocusable={this.state.isModalOpen === false} logger={this.log} />}
       </View>
     )
   }

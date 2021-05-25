@@ -25,6 +25,7 @@ export default class MenuSide extends Component {
         <MenuButton isFocusable={this.props.isFocusable} caption={Pages.CONTROLS} onClick={this.menuClick.bind(null, Pages.CONTROLS)} />
         <MenuButton isFocusable={this.props.isFocusable} caption={Pages.FIXES} onClick={this.menuClick.bind(null, Pages.FIXES)} />
         <MenuButton isFocusable={this.props.isFocusable} caption={Pages.ACCESSIBILITY} onClick={this.menuClick.bind(null, Pages.ACCESSIBILITY)} />
+        <MenuButton isFocusable={this.props.isFocusable} caption={Pages.WEBVIEW} onClick={this.menuClick.bind(null, Pages.WEBVIEW)} />
         <MenuButton isFocusable={this.props.isFocusable} caption={'CLEAR LOG'} onClick={this.menuClick.bind(null, 'CLEAR_LOG')} />
       </View>
     )

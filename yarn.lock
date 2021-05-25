@@ -811,10 +811,6 @@ ansi-regex@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-3.0.0.tgz#ed0317c322064f79466c02966bddb605ab37d998"
 
-ansi-regex@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-4.0.0.tgz#70de791edf021404c3fd615aa89118ae0432e5a9"
-
 ansi-styles@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-2.2.1.tgz#b432dd3358b634cf75e1e4664368240533c1ddbe"
@@ -3172,25 +3168,15 @@ metro-cache@0.51.1:
     mkdirp "^0.5.1"
     rimraf "^2.5.4"
 
-metro-config@0.48.5:
+metro-config@0.48.5, metro-config@0.51.1, metro-config@^0.51.0, metro-config@bluejeans/metro-config-hotfix-0.48.5:
   version "0.48.5"
-  resolved "https://registry.yarnpkg.com/metro-config/-/metro-config-0.48.5.tgz#05624064617eb648ee6e336951b60ac665230a45"
+  resolved "https://codeload.github.com/bluejeans/metro-config-hotfix-0.48.5/tar.gz/40fceb7f7de33388510ece67a3210bdce60680a5"
   dependencies:
     cosmiconfig "^5.0.5"
     metro "0.48.5"
     metro-cache "0.48.5"
     metro-core "0.48.5"
     pretty-format "^23.4.1"
-
-metro-config@0.51.1, metro-config@^0.51.0:
-  version "0.51.1"
-  resolved "https://registry.yarnpkg.com/metro-config/-/metro-config-0.51.1.tgz#8f1a241ce2c0b521cd492c39bc5c6c69e3397b82"
-  dependencies:
-    cosmiconfig "^5.0.5"
-    metro "0.51.1"
-    metro-cache "0.51.1"
-    metro-core "0.51.1"
-    pretty-format "24.0.0-alpha.6"
 
 metro-core@0.48.5, metro-core@^0.48.1:
   version "0.48.5"
@@ -3397,7 +3383,7 @@ metro@0.48.5, metro@^0.48.1:
     xpipe "^1.0.5"
     yargs "^9.0.0"
 
-metro@0.51.1, metro@^0.51.0:
+metro@^0.51.0:
   version "0.51.1"
   resolved "https://registry.yarnpkg.com/metro/-/metro-0.51.1.tgz#b0aad4731593b9f244261bad1abb2a006d1c8969"
   dependencies:
@@ -4083,13 +4069,6 @@ preserve@^0.2.0:
 prettier@1.13.6:
   version "1.13.6"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.13.6.tgz#00ae0b777ad92f81a9e7a1df2f0470b6dab0cb44"
-
-pretty-format@24.0.0-alpha.6:
-  version "24.0.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/pretty-format/-/pretty-format-24.0.0-alpha.6.tgz#25ad2fa46b342d6278bf241c5d2114d4376fbac1"
-  dependencies:
-    ansi-regex "^4.0.0"
-    ansi-styles "^3.2.0"
 
 pretty-format@^23.4.1:
   version "23.6.0"

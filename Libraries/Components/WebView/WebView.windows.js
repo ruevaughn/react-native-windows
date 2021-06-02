@@ -318,7 +318,7 @@ class WebView extends React.Component {
         onMessage={this.onMessage}
         contentInset={this.props.contentInset}
         automaticallyAdjustContentInsets={this.props.automaticallyAdjustContentInsets}
-        onContentSizeChange={this.props.onContentSizeChange}
+        onContentSizeChange={this.onContentSizeChange}
         onLoadingStart={this.onLoadingStart}
         onLoadingFinish={this.onLoadingFinish}
         onLoadingError={this.onLoadingError}
@@ -439,10 +439,15 @@ class WebView extends React.Component {
     this.updateNavigationState(event);
   };
 
-  onMessage = (event: Event) => {
+  onMessage = (event: Event) => {    
     var {onMessage} = this.props;
     onMessage && onMessage(event);
   }
+
+  onContentSizeChange = (event: Event) => {    
+    var {onContentSizeChange} = this.props;
+    onContentSizeChange && onContentSizeChange(event);
+  }  
 }
 
 var RCTWebView = requireNativeComponent('RCTWebView', WebView, WebView.extraNativeComponentConfig);

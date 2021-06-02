@@ -80,7 +80,10 @@ export default class WebViewPage extends Component {
           onMessage={event => {
             this.props.logger(`onMessage(${event.nativeEvent.data})`)
           }}
-                 
+
+          onContentSizeChange={event => {
+            this.props.logger(`onContentSizeChange(${JSON.stringify(event.nativeEvent)}`)
+          }}             
         />
       </View>
     );

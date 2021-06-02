@@ -6,6 +6,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReactNative.Bridge;
+using ReactNative.Net46.Views.Web.Events;
 using ReactNative.UIManager;
 using ReactNative.UIManager.Annotations;
 using ReactNative.Views.Web.Events;
@@ -189,7 +190,7 @@ namespace ReactNative.Views.Web
             base.OnDropViewInstance(reactContext, view);
             view.LoadCompleted -= OnNavigationCompleted;
             view.Navigating -= OnNavigationStarting;
-
+            view.SizeChanged -= OnViewSizeChanged;
             RemoveWebViewData(view);
         }
 
@@ -208,6 +209,7 @@ namespace ReactNative.Views.Web
             base.AddEventEmitters(reactContext, view);
             view.LoadCompleted += OnNavigationCompleted;
             view.Navigating += OnNavigationStarting;
+            view.SizeChanged += OnViewSizeChanged;
         }
 
         /// <inheritdoc />
@@ -356,6 +358,20 @@ namespace ReactNative.Views.Web
                         webView.GetTag(),
                         status,
                         message));
+        }
+
+        private void OnViewSizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        {
+            var webView = (WebBrowser)sender;
+
+            webView.GetReactContext()
+            .GetNativeModule<UIManagerModule>()
+            .EventDispatcher
+            .DispatchEvent(
+            new WebViewContentSizeChangedEvent(
+                webView.GetTag(),
+                e.NewSize.Width,
+                e.NewSize.Height));
         }
 
         private void OnNavigationCompleted(object sender, NavigationEventArgs e)

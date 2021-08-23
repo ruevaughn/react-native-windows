@@ -141,7 +141,11 @@ namespace ReactNative
             RootView.FocusVisualStyle = null;
         }
 
-
+        /// <summary>
+        /// When overridden, gets any auxiliary roots views and their associated react components names.
+        /// This is infrastructure for using multiple windows to pop-up such as chat-widget.
+        /// </summary>
+        /// <returns></returns>
         public virtual List<(ReactRootView View, string ReactComponentName)> GetAuxiliaryViews()
         {
             return new List<(ReactRootView View, string ReactComponentName)>();

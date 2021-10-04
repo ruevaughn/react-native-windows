@@ -128,13 +128,27 @@ namespace ReactNative
         {
             ApplyArguments(arguments);
             RootView.StartReactApplication(ReactInstanceManager, MainComponentName, initialProps);
-
+            // Instantiate any other auxiliary views
+            var auxViews = GetAuxiliaryViews();
+            foreach (var auxView in auxViews)
+            {
+                auxView.View.StartReactApplication(ReactInstanceManager, auxView.ReactComponentName, initialProps);
+            }
             RootView.AddHandler(Keyboard.KeyDownEvent, (KeyEventHandler)OnAcceleratorKeyActivated);
-
             RootView.Focusable = true;
             KeyboardNavigation.SetIsTabStop(RootView, false);
             RootView.Focus();
             RootView.FocusVisualStyle = null;
+        }
+
+        /// <summary>
+        /// When overridden, gets any auxiliary roots views and their associated react components names.
+        /// This is infrastructure for using multiple windows to pop-up such as chat-widget.
+        /// </summary>
+        /// <returns></returns>
+        public virtual List<(ReactRootView View, string ReactComponentName)> GetAuxiliaryViews()
+        {
+            return new List<(ReactRootView View, string ReactComponentName)>();
         }
 
         /// <summary>
